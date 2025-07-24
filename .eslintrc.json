@@ -1,0 +1,14 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": ["@typescript-eslint", "unused-imports"],
+  "rules": {
+    "unused-imports/no-unused-imports": "error",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "react-hooks/exhaustive-deps": "warn",
+    "prettier/prettier": "warn"
+  }
+}

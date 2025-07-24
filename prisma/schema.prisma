@@ -1,0 +1,223 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DOCENTE
+  ESTUDIANTE
+  COORDINADOR
+}
+
+enum UnenrollRequestStatus {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+enum AttendanceStatus {
+  PRESENTE
+  AUSENTE
+  TARDANZA
+  JUSTIFICADO
+}
+
+model Attendance {
+  id            String           @id @default(auto()) @map("_id") @db.ObjectId
+  status        AttendanceStatus
+  justification String? // Justificación para ausencias/tardanzas
+  student       User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId     String           @db.ObjectId
+  class         Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classId       String           @db.ObjectId
+  recordedAt    DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([studentId, classId])
+}
+
+model User {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                String?
+  document            String?   @unique
+  emailVerified       DateTime?
+  image               String?
+  // Información de contacto y códigos
+  correoPersonal      String?   @unique
+  correoInstitucional String?   @unique
+  telefono            String?
+  codigoEstudiantil   String?   // Removed @unique as it's optional
+  codigoDocente       String?   // Removed @unique as it's optional
+
+  signatureUrl     String? // URL de la imagen de la firma del docente
+  password         String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  role             Role      @default(ESTUDIANTE)
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relaciones como Docente
+  subjectsAsTeacher   Subject[]        @relation("TeacherSubjects")
+  createdEvents       SubjectEvent[]
+  generatedReports    Report[]
+
+  // Relaciones como Estudiante
+  enrolledSubjectIds String[]     @db.ObjectId
+  attendances        Attendance[]
+
+  // Relaciones con solicitudes de desmatriculación
+  requestedUnenrolls UnenrollRequest[] @relation("RequestedUnenrolls")
+  unenrollRequests   UnenrollRequest[] @relation("StudentUnenrolls")
+  reviewedUnenrolls  UnenrollRequest[] @relation("ReviewedUnenrolls")
+}
+
+model Subject {
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  code             String            @unique
+  program          String?
+  semester         Int?
+  credits          Int?
+  teacher          User              @relation("TeacherSubjects", fields: [teacherId], references: [id])
+  teacherId        String            @db.ObjectId
+  studentIds       String[]          @db.ObjectId
+  classes          Class[]
+  events           SubjectEvent[]
+  reports          Report[]
+  unenrollRequests UnenrollRequest[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model Class {
+  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
+  date               DateTime
+  startTime          DateTime? // Hora de inicio opcional
+  endTime            DateTime? // Hora de fin opcional
+  topic              String?
+  description        String?
+  status             ClassStatus  @default(PROGRAMADA)
+  cancellationReason String? // Motivo de la cancelación
+  subject            Subject      @relation(fields: [subjectId], references: [id])
+  subjectId          String       @db.ObjectId
+  classroom          String? // Aula o ubicación física
+  attendances        Attendance[]
+  qrToken            String? // Token QR para la clase
+  qrTokenExpiresAt   DateTime? // Fecha de expiración del token QR
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  // Métricas de asistencia (cached para mejor rendimiento)
+  totalStudents  Int @default(0)
+  presentCount   Int @default(0)
+  absentCount    Int @default(0)
+  lateCount      Int @default(0)
+  justifiedCount Int @default(0)
+}
+
+enum ClassStatus {
+  PROGRAMADA
+  REALIZADA
+  CANCELADA
+}
+
+
+enum ReportStatus {
+  PENDIENTE
+  EN_PROCESO
+  COMPLETADO
+  FALLIDO
+}
+
+enum ReportFormat {
+  PDF
+  CSV
+}
+
+model Report {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  subject       Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  subjectId     String       @db.ObjectId
+  requestedBy   User         @relation(fields: [requestedById], references: [id], onDelete: Cascade)
+  requestedById String       @db.ObjectId
+  status        ReportStatus @default(PENDIENTE)
+  format        ReportFormat @default(PDF)
+  fileUrl       String?
+  fileName      String?
+  error         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([subjectId])
+  @@index([requestedById])
+}
+
+enum DayOfWeek {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+}
+
+enum EventType {
+  EXAMEN
+  TRABAJO
+  LIMITE
+  ANUNCIO
+  INFO
+}
+
+model SubjectEvent {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  date        DateTime
+  type        EventType @default(INFO)
+
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  subjectId String  @db.ObjectId
+
+  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdById String @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([subjectId, date])
+}
+
+model UnenrollRequest {
+  id            String                @id @default(auto()) @map("_id") @db.ObjectId
+  student       User                  @relation("StudentUnenrolls", fields: [studentId], references: [id])
+  studentId     String                @db.ObjectId
+  subject       Subject               @relation(fields: [subjectId], references: [id])
+  subjectId     String                @db.ObjectId
+  reason        String
+  status        UnenrollRequestStatus @default(PENDIENTE)
+  requestedBy   User                  @relation("RequestedUnenrolls", fields: [requestedById], references: [id])
+  requestedById String                @db.ObjectId
+  reviewedBy    User?                 @relation("ReviewedUnenrolls", fields: [reviewedById], references: [id])
+  reviewedById  String?               @db.ObjectId
+  reviewComment String?
+  reviewedAt    DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([studentId, subjectId, status])
+}

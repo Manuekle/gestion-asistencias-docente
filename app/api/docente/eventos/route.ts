@@ -1,0 +1,136 @@
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { db } from '@/lib/prisma';
+
+// GET /api/docente/eventos?subjectId=... - Obtener todos los eventos de una asignatura
+import { z } from 'zod';
+import { DocenteEventosQuerySchema } from './schema';
+
+// Limpieza de parámetros: null, 'null', '' => undefined
+function clean(val: any) {
+  if (val === null || val === undefined || val === '' || val === 'null') return undefined;
+  return val;
+}
+
+export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== 'DOCENTE') {
+    return NextResponse.json({ message: 'No autorizado' }, { status: 403 });
+  }
+
+  const { searchParams } = new URL(request.url);
+
+  try {
+    const query = DocenteEventosQuerySchema.safeParse({
+      subjectId: clean(searchParams.get('subjectId')),
+      page: clean(searchParams.get('page')),
+      limit: clean(searchParams.get('limit')),
+      sortBy: clean(searchParams.get('sortBy')),
+      sortOrder: clean(searchParams.get('sortOrder')),
+    });
+
+    if (!query.success) {
+      return NextResponse.json(
+        { message: 'Datos de entrada inválidos', errors: query.error.errors },
+        { status: 400 }
+      );
+    }
+
+    const { subjectId, page, limit, sortBy, sortOrder } = query.data;
+
+    const subject = await db.subject.findFirst({
+      where: {
+        id: subjectId,
+        teacherId: session.user.id,
+      },
+    });
+
+    if (!subject) {
+      return NextResponse.json(
+        { message: 'Asignatura no encontrada o no tienes permiso' },
+        { status: 404 }
+      );
+    }
+
+    const totalEvents = await db.subjectEvent.count({ where: { subjectId } });
+    const events = await db.subjectEvent.findMany({
+      where: { subjectId },
+      orderBy: { [sortBy]: sortOrder },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return NextResponse.json({
+      data: events,
+      pagination: {
+        page,
+        limit,
+        total: totalEvents,
+        totalPages: Math.ceil(totalEvents / limit),
+      },
+      message: 'Eventos obtenidos correctamente',
+    });
+  } catch (error) {
+    console.error('Error al obtener los eventos:', error);
+    return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
+  }
+}
+
+// POST /api/docente/eventos - Crear un nuevo evento
+export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || session.user.role !== 'DOCENTE') {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
+  try {
+    const { title, description, date, type, subjectId } = await request.json();
+
+    if (!title || !date || !type || !subjectId) {
+      return NextResponse.json(
+        {
+          error: 'Todos los campos son requeridos: título, fecha, tipo y asignatura',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Verificar que el docente es el profesor de la asignatura
+    const subject = await db.subject.findFirst({
+      where: {
+        id: subjectId,
+        teacherId: session.user.id,
+      },
+    });
+
+    if (!subject) {
+      return NextResponse.json(
+        {
+          error: 'Asignatura no encontrada o no tienes permiso para añadir eventos',
+        },
+        { status: 404 }
+      );
+    }
+
+    const newEvent = await db.subjectEvent.create({
+      data: {
+        title,
+        description,
+        date: new Date(date),
+        type,
+        subject: { connect: { id: subjectId } },
+        createdBy: { connect: { id: session.user.id } },
+      },
+    });
+
+    return NextResponse.json(
+      { data: newEvent, message: 'Evento creado correctamente' },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('Error creating event:', error);
+    return NextResponse.json({ error: 'Error al crear el evento' }, { status: 500 });
+  }
+}

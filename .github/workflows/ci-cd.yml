@@ -1,0 +1,115 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: "0 0 * * 0" # Ejecutar todos los domingos a medianoche
+
+jobs:
+  test:
+    name: Ejecutar pruebas
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar formato
+        run: npm run format:check
+
+      - name: Ejecutar ESLint
+        run: npx eslint . --ext .js,.jsx,.ts,.tsx
+
+      - name: Verificar tipos TypeScript
+        run: npm run type-check
+
+      - name: Ejecutar pruebas unitarias
+        run: npm test -- --coverage
+        env:
+          NODE_ENV: test
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  build:
+    name: Build y documentación
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build aplicación
+        run: npm run build
+
+      - name: Generar documentación
+        run: |
+          npm install -g typedoc
+          typedoc --out ./docs/api src/
+
+      - name: Subir documentación
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs/api
+          branch: gh-pages
+          clean: true
+
+  deploy-staging:
+    name: Desplegar Staging
+    needs: [test, build]
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging-tuapp.vercel.app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Desplegar en Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: "--prod"
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+  deploy-production:
+    name: Desplegar Producción
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://tuapp.vercel.app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Desplegar en Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: "--prod"
+          scope: ${{ secrets.VERCEL_ORG_ID }}

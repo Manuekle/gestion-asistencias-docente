@@ -1,0 +1,10 @@
+.next
+node_modules
+dist
+out
+build
+*.md
+*.mdx
+*.json
+*.yaml
+*.yml
