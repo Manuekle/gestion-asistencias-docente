@@ -309,7 +309,7 @@ export default function UploadSubjectsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <a href="/templates/plantilla-asignaturas.xlsx" download>
+              <a href="/formatos/plantilla_docente_asignaturas_clases.xlsx" download>
                 <Button variant="outline">
                   <Download className="mr-2 h-4 w-4" />
                   Descargar Plantilla

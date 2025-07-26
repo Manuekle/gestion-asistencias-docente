@@ -1,8 +1,15 @@
 'use client';
 
+import { SubjectFileUpload } from '@/components/SubjectFileUpload';
 import { Button } from '@/components/ui/button';
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -11,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertCircle, CheckCircle, Download, Loader2, Upload, X } from "lucide-react";
+import { AlertCircle, CheckCircle, Download, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -49,9 +56,13 @@ export default function UploadStudentsToSubjectsPage() {
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
 
   // --- Manejadores de Eventos ---
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+  const handleFileSelect = (selectedFile: File | null) => {
+    setFile(selectedFile);
+    if (!selectedFile) {
+      setIsPreview(false);
+      setPreviewData([]);
+      setUploadResult(null);
+    } else {
       setUploadResult(null);
       setIsPreview(false);
       setPreviewData([]);
@@ -60,7 +71,7 @@ export default function UploadStudentsToSubjectsPage() {
 
   const handlePreview = async () => {
     if (!file) {
-      toast.error('Por favor, selecciona un archivo primero.');
+      toast.error('Por favor, selecciona un archivo .xlsx para continuar.');
       return;
     }
     setIsLoading(true);
@@ -76,17 +87,22 @@ export default function UploadStudentsToSubjectsPage() {
 
       const result = await res.json();
 
+      console.log('--- Respuesta del Backend ---');
+      console.log(JSON.stringify(result, null, 2));
+
       if (res.ok && result.success) {
-        setPreviewData(result.previewData);
+        console.log('--- Datos de Vista Previa a renderizar ---');
+        console.log(JSON.stringify(result.previewData, null, 2));
+        setPreviewData(result.previewData || []);
         setIsPreview(true);
         toast.success('Vista previa generada con éxito');
       } else {
         toast.error(result.message || 'Error al generar la vista previa');
-        resetForm();
+        handleCancel();
       }
     } catch {
       toast.error('Ocurrió un error inesperado al procesar el archivo.');
-      resetForm();
+      handleCancel();
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +135,9 @@ export default function UploadStudentsToSubjectsPage() {
           success: false,
           processedRows: 0,
           totalRows: result.totalRows || 0,
-          errors: result.errors || [{ codigoAsignatura: '', message: result.message || 'Error desconocido' }],
+          errors: result.errors || [
+            { codigoAsignatura: '', message: result.message || 'Error desconocido' },
+          ],
         });
         toast.error(result.message || 'Error en la carga');
       }
@@ -127,246 +145,286 @@ export default function UploadStudentsToSubjectsPage() {
       toast.error('Error de conexión o en el servidor.');
     } finally {
       setIsLoading(false);
-      setIsPreview(false); // Ocultar la vista previa después de la carga
+      setIsPreview(false);
     }
   };
 
-  const handleCancelPreview = () => {
-    setIsPreview(false);
-    setPreviewData([]);
-  };
-
-  const resetForm = () => {
+  const handleCancel = () => {
     setFile(null);
     setIsPreview(false);
     setPreviewData([]);
     setUploadResult(null);
-    const inputFile = document.getElementById('file-upload') as HTMLInputElement;
-    if (inputFile) {
-      inputFile.value = '';
-    }
   };
 
-  const requiredColumns = ['codigoAsignatura', 'documentoEstudiante'];
+  const handleNewUpload = () => {
+    handleCancel();
+  };
 
-  // --- Renderizado Condicional ---
+  // --- Renderizado ---
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Cargar Estudiantes a Asignaturas</h1>
-        <p className="text-xs text-muted-foreground">
-          Sube un archivo Excel para asignar estudiantes masivamente a las asignaturas.
+    <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-semibold tracking-heading">
+          Cargar Estudiantes a Asignaturas
+        </h1>
+        <p className="text-muted-foreground text-sm mt-2">
+          Sube un archivo .xlsx para asignar estudiantes masivamente a las asignaturas.
         </p>
       </div>
 
-      <Card className="p-8">
-        {/* 1. Vista de Resultados */} 
-        {uploadResult && (
-           <div
-            className={`p-6 rounded-lg border-2 ${uploadResult.success
-                ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-                : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
-              }`}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              {uploadResult.success ? (
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              ) : (
-                <AlertCircle className="h-6 w-6 text-red-600" />
-              )}
-              <div>
-                <h3
-                  className={`font-normal ${uploadResult.success
-                      ? 'text-green-800 dark:text-green-200'
-                      : 'text-red-800 dark:text-red-200'
-                    }`}
-                >
-                  {uploadResult.success ? 'Carga completada' : 'Error en la carga'}
-                </h3>
-                <p
-                  className={`text-sm ${uploadResult.success
-                      ? 'text-green-700 dark:text-green-300'
-                      : 'text-red-700 dark:text-red-300'
-                    }`}
-                >
-                  Se procesaron {uploadResult.processedRows} de {uploadResult.totalRows} asignaturas.
-                </p>
-              </div>
-            </div>
-
-            {uploadResult.errors.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-normal text-red-800 dark:text-red-200">Detalles y Advertencias:</p>
-                <div className="bg-white/50 dark:bg-black/20 rounded p-3 space-y-1">
-                  {uploadResult.errors.map((error, index) => (
-                     <p key={index} className="text-xs text-red-700 dark:text-red-300">
-                       • {error.codigoAsignatura ? <strong>{`Asignatura ${error.codigoAsignatura}: `}</strong> : ''}{error.message}
-                     </p>
-                  ))}
-                </div>
-              </div>
-            )}
-            <Button onClick={resetForm} variant="outline" className="w-full mt-6">
-              Cargar otro archivo
-            </Button>
-          </div>
-        )}
-
-        {/* 2. Vista Previa */} 
-        {isPreview && !uploadResult && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium text-xs">Vista previa de la carga</h3>
-              <Badge variant="outline" className="text-xs font-normal">
-                {previewData?.length || 0} asignaturas a procesar
-              </Badge>
-            </div>
-
-            <div className="border rounded-lg overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Código Asignatura</TableHead>
-                    <TableHead>Detalle de Estudiantes</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {previewData?.map((row, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-mono whitespace-nowrap">{row.codigoAsignatura}</TableCell>
-                      <TableCell>
-                        {row.error ? (
-                          <span className="text-red-500 font-bold">{row.error}</span>
-                        ) : (
-                          <div className="flex flex-col space-y-2">
-                            {row.estudiantes.map((student, sIndex) => (
-                              <div key={sIndex} className="flex items-center space-x-2">
-                                <span
-                                  className={`px-2 py-1 text-xs font-semibold rounded-full w-24 text-center ${{
-                                    success: 'bg-green-100 text-green-800',
-                                    warning: 'bg-yellow-100 text-yellow-800',
-                                    error: 'bg-red-100 text-red-800',
-                                  }[student.status]}`}
-                                >
-                                  {student.message === 'Ya inscrito' ? 'YA INSCRITO' : student.status.toUpperCase()}
-                                </span>
-                                <span className="font-mono text-sm">{student.doc}</span>
-                                <span className="text-muted-foreground">- {student.message}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={handleCancelPreview} className="flex-1 bg-transparent">
-                Volver
-              </Button>
-              <Button onClick={handleConfirmUpload} disabled={isLoading} className="flex-1">
-                {isLoading ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cargando...</>
-                ) : (
-                  'Confirmar carga'
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* 3. Archivo Seleccionado */} 
-        {file && !isPreview && !uploadResult && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
-              <CheckCircle className="h-8 w-8 text-green-600 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="font-normal text-sm">{file.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={resetForm}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={resetForm} className="flex-1 bg-transparent">
-                Cancelar
-              </Button>
-              <Button onClick={handlePreview} disabled={isLoading} className="flex-1">
-                {isLoading ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</>
-                ) : (
-                  'Vista previa'
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* 4. Vista Inicial (Upload) */} 
-        {!file && !isPreview && !uploadResult && (
-          <div className="space-y-6">
-            <div className="border-2 border-dashed border-muted rounded-lg p-12 text-center hover:border-muted-foreground/50 transition-colors">
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={handleFileChange}
-                className="hidden"
-                id="file-upload"
-                disabled={isLoading}
-              />
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-semibold tracking-card mb-2">
-                  Selecciona tu archivo Excel
-                </p>
-                <p className="text-xs text-muted-foreground">Solo archivos .xlsx o .xls hasta 10MB</p>
-              </label>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-medium text-xs mb-3">Formato requerido</h3>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• Un estudiante por fila</li>
-                  <li>• Columnas: {requiredColumns.join(', ')}</li>
-                  <li>• Extensión: .xlsx o .xls</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-medium text-xs mb-3">Plantilla</h3>
-                <Button variant="outline" size="sm" asChild>
-                  <a
-                    href="/plantilla_admin_estudiantes_asignatura.xlsx"
-                    download
-                    className="inline-flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Descargar ejemplo
-                  </a>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold tracking-heading">
+                Plantilla de Carga
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
+                Descarga la plantilla para asegurar que tu archivo tiene el formato correcto.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <a href="/formatos/plantilla_admin_estudiantes_asignatura.xlsx" download>
+                <Button variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Descargar Plantilla
                 </Button>
-              </div>
-            </div>
+              </a>
+            </CardContent>
+          </Card>
 
-            <div className="text-xs">
-              <h3 className="font-medium text-xs mb-3">Columnas requeridas</h3>
-              <div className="flex flex-wrap gap-2">
-                {requiredColumns.map(col => (
-                  <Badge key={col} variant="outline" className="font-mono text-xs rounded-md">
-                    {col}
-                  </Badge>
-                ))}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold tracking-heading">
+                Subir Archivo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SubjectFileUpload onFileSelect={handleFileSelect} file={file} />
+              <div className="flex gap-2 mt-4 flex-col">
+                <Button
+                  onClick={handlePreview}
+                  disabled={!file || isLoading || isPreview}
+                  className="w-full text-xs"
+                >
+                  {isLoading && !isPreview ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  Vista Previa
+                </Button>
+                {file && (
+                  <Button onClick={handleCancel} variant="destructive" className="w-full text-xs">
+                    Cancelar
+                  </Button>
+                )}
               </div>
-            </div>
-          </div>
-        )}
-      </Card>
-    </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-2">
+          {uploadResult && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold tracking-heading">
+                  Resultado de la Carga
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="p-6 rounded-lg border bg-card">
+                  <div className="flex items-center gap-3 mb-4">
+                    {uploadResult.success ? (
+                      <CheckCircle className="h-5 w-5" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5" />
+                    )}
+                    <div>
+                      <h3 className="font-medium text-sm">
+                        {uploadResult.success ? 'Carga completada' : 'Error en la carga'}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Se procesaron {uploadResult.processedRows} de {uploadResult.totalRows}{' '}
+                        asignaturas
+                      </p>
+                    </div>
+                  </div>
+
+                  {uploadResult.errors.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium">Detalles:</p>
+                      <div className="bg-muted/50 rounded-md p-3 max-h-40 overflow-y-auto">
+                        <div className="space-y-1 text-sm">
+                          {uploadResult.errors.map((error, index) => (
+                            <div key={index} className="text-muted-foreground">
+                              {error.codigoAsignatura && (
+                                <span className="font-mono font-medium text-foreground">
+                                  {error.codigoAsignatura}:{' '}
+                                </span>
+                              )}
+                              {error.message}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button onClick={handleNewUpload} variant="outline" className="w-full mt-6">
+                    Cargar otro archivo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {isPreview && !uploadResult && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold tracking-heading">
+                  Vista Previa de la Carga
+                </CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
+                  Revisa los datos antes de confirmar la carga. Las filas con errores no serán
+                  procesadas.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {previewData && previewData.length > 0 ? (
+                  <>
+                    {/* aqui */}
+                    <div className="rounded-lg border max-h-[60vh] overflow-y-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="px-4 py-3 w-32">Código</TableHead>
+                            <TableHead className="px-4 py-3">Estudiantes</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {previewData.map((row, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="font-mono px-4 py-3 font-medium">
+                                {row.codigoAsignatura}
+                              </TableCell>
+                              <TableCell className="px-4 py-3">
+                                {row.error ? (
+                                  <span className="text-muted-foreground">{row.error}</span>
+                                ) : (
+                                  (() => {
+                                    const groupedStudents = (row.estudiantes || []).reduce(
+                                      (acc, student) => {
+                                        const status = student.status;
+                                        if (!acc[status]) {
+                                          acc[status] = [];
+                                        }
+                                        acc[status].push(student);
+                                        return acc;
+                                      },
+                                      {} as Record<string, PreviewStudentDetail[]>
+                                    );
+
+                                    const successCount = (groupedStudents['success'] || []).length;
+                                    const warningCount = (groupedStudents['warning'] || []).length;
+                                    const errorCount = (groupedStudents['error'] || []).length;
+                                    const totalCount = successCount + warningCount + errorCount;
+
+                                    if (totalCount === 0) {
+                                      return (
+                                        <span className="text-muted-foreground">
+                                          Sin estudiantes
+                                        </span>
+                                      );
+                                    }
+
+                                    return (
+                                      <Dialog>
+                                        <DialogTrigger asChild>
+                                          <button className="text-left text-sm hover:underline">
+                                            {successCount > 0 && `${successCount} listos`}
+                                            {successCount > 0 &&
+                                              (warningCount > 0 || errorCount > 0) &&
+                                              ', '}
+                                            {warningCount > 0 &&
+                                              `${warningCount} ya están inscritos`}
+                                            {warningCount > 0 && errorCount > 0 && ', '}
+                                            {errorCount > 0 && `${errorCount} errores`}
+                                          </button>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-2xl max-h-[80vh]">
+                                          <DialogHeader>
+                                            <DialogTitle className="text-xl font-semibold tracking-heading">
+                                              {row.codigoAsignatura}
+                                            </DialogTitle>
+                                          </DialogHeader>
+                                          <div className="overflow-y-auto space-y-4">
+                                            {Object.entries(groupedStudents).map(
+                                              ([status, students]) => {
+                                                if (students.length === 0) return null;
+
+                                                const statusTitle = {
+                                                  success: 'Listos para inscribir',
+                                                  warning: 'Ya están inscritos',
+                                                  error: 'Con errores',
+                                                }[status];
+
+                                                return (
+                                                  <div key={status}>
+                                                    <h4 className="font-medium text-sm mb-2">
+                                                      {statusTitle} ({students.length})
+                                                    </h4>
+                                                    <div className="space-y-1 text-sm">
+                                                      {students.map((student, sIndex) => (
+                                                        <div key={sIndex} className="flex gap-3">
+                                                          <span className="font-mono">
+                                                            {student.doc}
+                                                          </span>
+                                                          <span className="text-muted-foreground">
+                                                            {student.message}
+                                                          </span>
+                                                        </div>
+                                                      ))}
+                                                    </div>
+                                                  </div>
+                                                );
+                                              }
+                                            )}
+                                          </div>
+                                        </DialogContent>
+                                      </Dialog>
+                                    );
+                                  })()
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    {/* acaba tabla */}
+                    <div className="flex justify-end gap-2 mt-4">
+                      <Button
+                        onClick={handleConfirmUpload}
+                        disabled={isLoading || previewData.length === 0}
+                      >
+                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Confirmar Carga
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-sm text-gray-500 mt-4">
+                      {previewData.every(row => row.estudiantes.every(e => e.status === 'warning'))
+                        ? 'Todos los estudiantes en el archivo ya están inscritos en sus respectivas asignaturas.'
+                        : 'No hay datos válidos para previsualizar. Verifica el archivo o los logs del servidor si el problema persiste.'}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </main>
   );
 }

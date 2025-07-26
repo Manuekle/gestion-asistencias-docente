@@ -48,13 +48,14 @@ export async function POST(request: Request) {
 
   let filePath = '';
   try {
+    const url = new URL(request.url);
+    const isPreview = url.searchParams.get('preview') === 'true';
+
     const data = await request.formData();
     const file = data.get('file') as File;
 
     if (!file) {
-      return new NextResponse('No se ha subido ningún archivo', {
-        status: 400,
-      });
+      return new NextResponse('No se subió ningún archivo', { status: 400 });
     }
     if (!file.name.endsWith('.xlsx')) {
       return new NextResponse('Tipo de archivo no válido, se requiere un Excel (.xlsx)', {
@@ -77,6 +78,8 @@ export async function POST(request: Request) {
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows: ExcelRow[] = XLSX.utils.sheet_to_json(sheet);
+    console.log('--- Filas crudas del Excel ---');
+    console.log(rows);
     if (!rows || rows.length === 0) {
       return NextResponse.json(
         {
@@ -86,24 +89,30 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    // Detectar modo preview
-    const isPreview = data.get('preview') === 'true';
+    // Modo preview detectado desde la URL
     // Validar columnas mínimas
     const headers = Object.keys(rows[0]);
-    const requiredHeaders = ['codigoAsignatura'];
+    const requiredHeaders = ['codigoAsignatura', 'documentoEstudiante'];
     const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
     if (missingHeaders.length > 0) {
-      return new NextResponse(`Faltan columnas requeridas: ${missingHeaders.join(', ')}`, {
-        status: 400,
-      });
+      return NextResponse.json(
+        {
+          success: false,
+          message: `El archivo no tiene el formato correcto. Faltan las columnas: ${missingHeaders.join(', ')}`,
+        },
+        { status: 400 }
+      );
     }
-        const excelData: RowCargaEstudiantes[] = rows.map((row: ExcelRow) => {
-      const estudiantes = String(row.estudiantes || '')
+
+    const excelData: RowCargaEstudiantes[] = rows.map((row: ExcelRow) => {
+      const estudiantes = String(row.documentoEstudiante || '')
         .split(',')
         .map((e: string) => e.trim())
         .filter(Boolean);
       return { codigoAsignatura: String(row.codigoAsignatura || ''), estudiantes };
     });
+    console.log('--- Datos procesados (excelData) ---');
+    console.log(JSON.stringify(excelData, null, 2));
 
     if (isPreview) {
       const previewResults: PreviewRow[] = [];
@@ -138,17 +147,21 @@ export async function POST(request: Request) {
 
         previewResults.push({ codigoAsignatura, estudiantes: previewDetails });
       }
+      console.log('--- Vista previa final (previewResults) ---');
+      console.log(JSON.stringify(previewResults, null, 2));
       return NextResponse.json({ success: true, previewData: previewResults });
     } else {
-      // Lógica de carga final
+      // --- Lógica de Carga Final ---
       const resultados: ResultRow[] = [];
+      const errors: { codigoAsignatura: string; message: string }[] = [];
+
       for (const row of excelData) {
         const { codigoAsignatura, estudiantes } = row;
         if (!codigoAsignatura || estudiantes.length === 0) continue;
 
         const subject = await db.subject.findUnique({ where: { code: codigoAsignatura } });
         if (!subject) {
-          resultados.push({ codigoAsignatura, status: 'error', error: 'Asignatura no encontrada' });
+          errors.push({ codigoAsignatura, message: 'Asignatura no encontrada' });
           continue;
         }
 
@@ -156,19 +169,14 @@ export async function POST(request: Request) {
           where: { document: { in: estudiantes }, role: 'ESTUDIANTE' },
           select: { id: true, document: true },
         });
-        
+
         const currentStudentIds = subject.studentIds || [];
         const validStudentIds = foundStudents.map(s => s.id);
         const newStudentIds = validStudentIds.filter(id => !currentStudentIds.includes(id));
 
         const invalidDocs = estudiantes.filter(doc => !foundStudents.some(s => s.document === doc));
-        let warning = '';
         if (invalidDocs.length > 0) {
-          warning += ` Documentos no encontrados: ${invalidDocs.join(', ')}.`;
-        }
-        const alreadyEnrolledCount = validStudentIds.length - newStudentIds.length;
-        if (alreadyEnrolledCount > 0) {
-          warning += ` ${alreadyEnrolledCount} estudiante(s) ya estaban inscritos.`;
+          errors.push({ codigoAsignatura, message: `Documentos no encontrados: ${invalidDocs.join(', ')}` });
         }
 
         if (newStudentIds.length > 0) {
@@ -176,12 +184,17 @@ export async function POST(request: Request) {
             where: { id: subject.id },
             data: { studentIds: { set: [...currentStudentIds, ...newStudentIds] } },
           });
-          resultados.push({ codigoAsignatura, status: 'updated', updated: true, error: warning.trim() });
-        } else {
-          resultados.push({ codigoAsignatura, status: 'skipped', error: warning.trim() || 'No se agregaron nuevos estudiantes.' });
         }
+        resultados.push({ codigoAsignatura, status: 'updated' });
       }
-      return NextResponse.json({ success: true, resultados });
+
+      return NextResponse.json({
+        success: true,
+        message: 'Carga completada.',
+        resultados,
+        errors,
+        totalRows: excelData.length,
+      });
     }
   } catch (error) {
     console.error('Error en la carga de estudiantes:', error);
