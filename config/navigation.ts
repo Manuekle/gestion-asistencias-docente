@@ -100,6 +100,13 @@ export const navLinkGroups: NavLinkGroup[] = [
         roles: ['ADMIN'],
         description: 'Solicitudes de desmatriculación',
       },
+      {
+        href: '/dashboard/admin/cargar-estudiantes-asignatura',
+        icon: TrendingUp,
+        label: 'Cargar Estudiantes a Asignaturas',
+        roles: ['ADMIN'],
+        description: 'Cargar estudiantes a asignaturas desde un archivo Excel',
+      },
     ],
   },
 ];
