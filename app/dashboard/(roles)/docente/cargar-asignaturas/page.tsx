@@ -1,8 +1,19 @@
 'use client';
 
+import { SubjectFileUpload } from '@/components/SubjectFileUpload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -11,400 +22,611 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertCircle, CheckCircle, Download, Loader2, Upload, X } from 'lucide-react';
-import { type ChangeEvent, useState } from 'react';
+import { ChevronDown, Download, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 
-interface PreviewDataItem {
+// Interface for the raw data from the API/Excel file
+interface RawApiPreviewItem {
   codigoAsignatura: string;
   nombreAsignatura: string;
+  creditosClase: number;
   fechaClase: string;
   horaInicio: string;
   horaFin: string;
-  creditosClase: number | null;
-  programa: string | null;
-  semestreAsignatura: string | null;
-  status: 'success' | 'error';
+  temaClase?: string; // Optional
+  descripcionClase?: string; // Optional
+  semestreAsignatura: number;
+  programa: string;
   error?: string;
+  isDuplicate?: boolean;
+}
+
+// Interface for a class's data within the component's state
+interface ClassDataItem {
+  id: number; // Temporary unique ID for React keys
+  fechaClase: string;
+  horaInicio: string;
+  horaFin: string;
+  temaClase: string;
+  descripcionClase: string;
+}
+
+// Interface for a subject, including its classes, for the preview
+interface PreviewItem {
+  codigoAsignatura: string;
+  nombreAsignatura: string;
+  creditosClase: number;
+  semestreAsignatura: number;
+  programa: string;
+  status: 'success' | 'error' | 'duplicate';
+  classes: ClassDataItem[];
+  error?: string;
+}
+
+// Interface for the data being edited in the dialog
+interface EditableClass {
+  subjectCodigo: string;
+  subjectName: string;
+  classId: string;
+  fechaClase: string;
+  horaInicio: string;
+  horaFin: string;
+  temaClase: string;
+  descripcionClase: string;
 }
 
 export default function UploadSubjectsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
-  const [previewData, setPreviewData] = useState<PreviewDataItem[]>([]);
+  const [previewData, setPreviewData] = useState<PreviewItem[]>([]);
+  const [expandedSubjects, setExpandedSubjects] = useState<Set<string>>(new Set());
   const [uploadResult, setUploadResult] = useState<{
-    success: boolean;
-    processedRows: number;
-    totalRows: number;
+    processed: number;
     errors: string[];
   } | null>(null);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingClass, setEditingClass] = useState<EditableClass | null>(null);
+
+  const handleFileSelect = (selectedFile: File | null) => {
+    setFile(selectedFile);
+    // Reset preview state if file is deselected
+    if (!selectedFile) {
+      setIsPreview(false);
+      setPreviewData([]);
       setUploadResult(null);
     }
   };
 
   const handlePreview = async () => {
     if (!file) {
-      toast.error('Selecciona un archivo .xlsx');
+      toast.error('Por favor, selecciona un archivo .xlsx para continuar.');
       return;
     }
 
+    setIsLoading(true);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('preview', 'true');
 
     try {
-      setIsLoading(true);
-      const res = await fetch('/api/docente/cargar-asignaturas', {
+      const response = await fetch('/api/docente/cargar-asignaturas', {
         method: 'POST',
         body: formData,
       });
 
-      const result = await res.json();
+      const result = await response.json();
 
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error(result.error || 'Error al obtener la vista previa');
       }
 
-      const previewItems: PreviewDataItem[] = Array.isArray(result.previewData)
-        ? result.previewData.map((item: any) => ({
-            codigoAsignatura: String(item.codigoAsignatura || ''),
-            nombreAsignatura: String(item.nombreAsignatura || ''),
-            fechaClase: item.fechaClase ? String(item.fechaClase) : new Date().toISOString(),
-            horaInicio: String(item.horaInicio || ''),
-            horaFin: String(item.horaFin || ''),
-            creditosClase: typeof item.creditosClase === 'number' ? item.creditosClase : null,
-            programa: item.programa ? String(item.programa) : null,
-            semestreAsignatura: item.semestreAsignatura ? String(item.semestreAsignatura) : null,
-            status: item.status === 'success' ? 'success' : 'error',
-            error: item.error ? String(item.error) : undefined,
-          }))
-        : [];
+      const groupedBySubject: Record<string, PreviewItem> = {};
 
-      setPreviewData(previewItems);
+      for (const item of result.previewData as RawApiPreviewItem[]) {
+        const subjectCode = item.codigoAsignatura;
+
+        if (!groupedBySubject[subjectCode]) {
+          let status: 'success' | 'error' | 'duplicate' = 'success';
+          if (item.error) {
+            status = 'error';
+          } else if (item.isDuplicate) {
+            status = 'duplicate';
+          }
+
+          groupedBySubject[subjectCode] = {
+            codigoAsignatura: subjectCode,
+            nombreAsignatura: item.nombreAsignatura ?? '',
+            creditosClase: item.creditosClase ?? 0,
+            semestreAsignatura: item.semestreAsignatura ?? 0,
+            programa: item.programa ?? '',
+            status,
+            classes: [],
+            error: item.error,
+          };
+        }
+
+        // Add class only if the row itself doesn't have an error about the class fields
+        if (!item.error) {
+          groupedBySubject[subjectCode].classes.push({
+            id: groupedBySubject[subjectCode].classes.length,
+            fechaClase: item.fechaClase ? item.fechaClase.split('T')[0] : '', // Format to YYYY-MM-DD
+            horaInicio: item.horaInicio ?? '',
+            horaFin: item.horaFin ?? '',
+            temaClase: item.temaClase ?? '',
+            descripcionClase: item.descripcionClase ?? '',
+          });
+        }
+      }
+
+      setPreviewData(Object.values(groupedBySubject));
       setIsPreview(true);
-      setUploadResult(null);
-      toast.success('Vista previa generada');
     } catch (error) {
-      console.error('Error:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al procesar el archivo');
+      let errorMessage = 'An unknown error occurred';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleConfirmUpload = async () => {
-    if (!file) return;
+  const handleUpload = async () => {
+    if (!file) {
+      toast.error('No hay archivo para cargar.');
+      return;
+    }
 
+    setIsLoading(true);
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      setIsLoading(true);
-      const res = await fetch('/api/docente/cargar-asignaturas', {
+      const response = await fetch('/api/docente/cargar-asignaturas', {
         method: 'POST',
         body: formData,
       });
 
-      const result = await res.json();
+      const result = await response.json();
 
-      if (res.ok) {
-        setUploadResult({
-          success: true,
-          processedRows: result.processedRows || 0,
-          totalRows: result.totalRows || 0,
-          errors: [],
-        });
-        setFile(null);
-        setPreviewData([]);
-        setIsPreview(false);
-        toast.success('Archivo cargado exitosamente');
-      } else {
+      if (!response.ok) {
         throw new Error(result.error || 'Error al cargar el archivo');
       }
-    } catch (error) {
-      console.error('Error:', error);
+
       setUploadResult({
-        success: false,
-        processedRows: 0,
-        totalRows: 0,
-        errors: [error instanceof Error ? error.message : 'Error desconocido'],
+        processed: result.processed || 0,
+        errors: result.errors || [],
       });
-      toast.error('Error al cargar el archivo');
+      toast.success('Archivo cargado exitosamente!');
+      setIsPreview(false);
+      setPreviewData([]);
+    } catch (error) {
+      let errorMessage = 'An unknown error occurred';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCancelPreview = () => {
-    setIsPreview(false);
-    setPreviewData([]);
-  };
-
-  const resetForm = () => {
+  const handleCancel = () => {
     setFile(null);
+    setIsPreview(false);
     setPreviewData([]);
     setUploadResult(null);
-    setIsPreview(false);
   };
 
-  const requiredColumns = [
-    'codigoAsignatura',
-    'nombreAsignatura',
-    'fechaClase',
-    'horaInicio',
-    'horaFin',
-    'temaClase',
-    'descripcionClase',
-    'creditosClase',
-    'programa',
-    'semestreAsignatura',
-  ];
+  const toggleSubjectExpansion = (subjectCode: string) => {
+    setExpandedSubjects(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(subjectCode)) {
+        newSet.delete(subjectCode);
+      } else {
+        newSet.add(subjectCode);
+      }
+      return newSet;
+    });
+  };
+
+  const handleEditClick = (subject: PreviewItem, classItem: ClassDataItem) => {
+    setEditingClass({
+      subjectCodigo: subject.codigoAsignatura,
+      subjectName: subject.nombreAsignatura,
+      classId: String(classItem.id),
+      fechaClase: classItem.fechaClase,
+      horaInicio: classItem.horaInicio,
+      horaFin: classItem.horaFin,
+      temaClase: classItem.temaClase,
+      descripcionClase: classItem.descripcionClase,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveClass = () => {
+    if (!editingClass) return;
+
+    const updatedPreviewData = previewData.map(subject => {
+      if (subject.codigoAsignatura === editingClass.subjectCodigo) {
+        const updatedClasses = subject.classes.map(classItem => {
+          if (String(classItem.id) === editingClass.classId) {
+            return {
+              ...classItem,
+              fechaClase: editingClass.fechaClase,
+              horaInicio: editingClass.horaInicio,
+              horaFin: editingClass.horaFin,
+              temaClase: editingClass.temaClase,
+              descripcionClase: editingClass.descripcionClase,
+            };
+          }
+          return classItem;
+        });
+        return { ...subject, classes: updatedClasses };
+      }
+      return subject;
+    });
+
+    setPreviewData(updatedPreviewData);
+    setIsEditDialogOpen(false);
+    setEditingClass(null);
+    toast.success('Clase actualizada correctamente.');
+  };
+
+  const handleEditingClassChange = (field: keyof EditableClass, value: string) => {
+    if (editingClass) {
+      setEditingClass({ ...editingClass, [field]: value });
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
+    <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Cargar Asignaturas</h1>
-        <p className="text-xs text-muted-foreground">
-          Sube un archivo Excel con la información de las asignaturas
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-semibold tracking-heading">Cargar Asignaturas y Clases</h1>
+        <p className="text-muted-foreground text-sm mt-2">
+          Sube un archivo .xlsx para cargar masivamente las asignaturas y sus respectivas clases.
         </p>
       </div>
 
-      {/* Main Upload Card */}
-      <Card className="p-8">
-        {!file && !isPreview && !uploadResult && (
-          <div className="space-y-6">
-            {/* Upload Area */}
-            <div className="border-2 border-dashed border-muted rounded-lg p-12 text-center hover:border-muted-foreground/50 transition-colors">
-              <input
-                type="file"
-                accept=".xlsx"
-                onChange={handleFileChange}
-                className="hidden"
-                id="file-upload"
-                disabled={isLoading}
-              />
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-semibold tracking-card mb-2">
-                  Selecciona tu archivo Excel
-                </p>
-                <p className="text-xs text-muted-foreground">Solo archivos .xlsx hasta 10MB</p>
-              </label>
-            </div>
-
-            {/* Quick Info */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-medium text-xs mb-3">Formato requerido</h3>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• Fechas: YYYY-MM-DD</li>
-                  <li>• Horas: HH:MM</li>
-                  <li>• Extensión: .xlsx</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-medium text-xs mb-3">Plantilla</h3>
-                <Button variant="outline" size="sm" asChild>
-                  <a
-                    href="/formatos/plantilla_docente_asignaturas_clases.xlsx"
-                    download="plantilla_docente_asignaturas_clases.xlsx"
-                    className="inline-flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Descargar ejemplo
-                  </a>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1 space-y-6">
+          {/* Download Template */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold tracking-heading">
+                Plantilla de Carga
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
+                Descarga la plantilla para asegurar que tu archivo tiene el formato correcto.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <a href="/templates/plantilla-asignaturas.xlsx" download>
+                <Button variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Descargar Plantilla
                 </Button>
+              </a>
+            </CardContent>
+          </Card>
+
+          {/* Upload Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold tracking-heading">
+                Subir Archivo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SubjectFileUpload onFileSelect={handleFileSelect} file={file} />
+              <div className="flex gap-2 mt-4 flex-col">
+                <Button
+                  onClick={handlePreview}
+                  disabled={!file || isLoading}
+                  className="w-full text-xs"
+                >
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <></>}
+                  Vista Previa
+                </Button>
+                {isPreview && (
+                  <Button onClick={handleCancel} variant="destructive" className="w-full text-xs">
+                    Cancelar
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-2">
+          {/* Preview */}
+          {isPreview && previewData.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold tracking-heading">
+                  Vista Previa de la Carga
+                </CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
+                  Revisa los datos antes de confirmar la carga. Las filas con errores no serán
+                  procesadas.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-lg border bg-card">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/60">
+                        <TableHead className="text-xs font-normal px-4 py-2">Código</TableHead>
+                        <TableHead className="text-xs font-normal px-4 py-2">
+                          Nombre Asignatura
+                        </TableHead>
+                        <TableHead className="text-xs font-normal px-4 py-2">Créditos</TableHead>
+                        <TableHead className="text-xs font-normal px-4 py-2">Estado</TableHead>
+                        <TableHead className="w-12"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {previewData.map(subject => (
+                        <React.Fragment key={subject.codigoAsignatura}>
+                          <TableRow className="hover:bg-muted/50 transition-colors">
+                            <TableCell className="text-xs font-normal px-4 py-2 font-mono">
+                              {subject.codigoAsignatura}
+                            </TableCell>
+                            <TableCell className="text-xs font-normal px-4 py-2">
+                              {subject.nombreAsignatura}
+                            </TableCell>
+                            <TableCell className="text-xs font-normal px-4 py-2">
+                              {subject.creditosClase}
+                            </TableCell>
+                            <TableCell>
+                              {subject.status === 'duplicate' ? (
+                                <Badge variant="destructive" className="text-xs">
+                                  Duplicado
+                                </Badge>
+                              ) : subject.status === 'error' ? (
+                                <Badge
+                                  variant="destructive"
+                                  className="text-xs font-normal text-white"
+                                >
+                                  Error
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-xs font-normal">
+                                  Correcto
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {subject.classes.length > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleSubjectExpansion(subject.codigoAsignatura)}
+                                  className="h-8 w-8 p-0 hover:bg-muted"
+                                >
+                                  <ChevronDown
+                                    className={`h-4 w-4 transition-transform duration-200 ${
+                                      expandedSubjects.has(subject.codigoAsignatura)
+                                        ? 'rotate-180'
+                                        : ''
+                                    }`}
+                                  />
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+
+                          {expandedSubjects.has(subject.codigoAsignatura) && (
+                            <TableRow className="hover:bg-none">
+                              <TableCell colSpan={5} className="p-0">
+                                <div className="bg-muted/20 px-4 py-3">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <h4 className="font-medium text-sm">Clases Programadas</h4>
+                                    <Badge variant="outline" className="text-xs font-normal">
+                                      {subject.classes.length} clases
+                                    </Badge>
+                                  </div>
+
+                                  {subject.classes.length > 0 ? (
+                                    <div className="space-y-3">
+                                      {subject.classes.map(cls => (
+                                        <div
+                                          key={cls.id}
+                                          className="bg-background rounded-md border p-4 hover:bg-muted/30 transition-colors"
+                                        >
+                                          <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-6">
+                                              <div>
+                                                <p className="text-xs text-muted-foreground mb-1">
+                                                  Fecha
+                                                </p>
+                                                <p className="text-sm font-medium">
+                                                  {cls.fechaClase}
+                                                </p>
+                                              </div>
+                                              <div>
+                                                <p className="text-xs text-muted-foreground mb-1">
+                                                  Inicio
+                                                </p>
+                                                <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
+                                                  {cls.horaInicio}
+                                                </code>
+                                              </div>
+                                              <div>
+                                                <p className="text-xs text-muted-foreground mb-1">
+                                                  Fin
+                                                </p>
+                                                <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
+                                                  {cls.horaFin}
+                                                </code>
+                                              </div>
+                                            </div>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => handleEditClick(subject, cls)}
+                                              className="h-8 px-3 text-xs"
+                                            >
+                                              Editar
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="bg-background rounded-md border p-8 text-center">
+                                      <div className="text-muted-foreground">
+                                        <p className="text-sm">No hay clases programadas</p>
+                                        <p className="text-xs mt-1">
+                                          Las clases aparecerán aquí cuando sean agregadas
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="mt-6 flex justify-end">
+                  <Button
+                    onClick={handleUpload}
+                    disabled={isLoading || previewData.every(s => s.status !== 'success')}
+                  >
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <></>}
+                    Confirmar Carga
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Results */}
+          {uploadResult && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold tracking-heading">
+                  Resultado de la Carga
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Se procesaron <span className="font-semibold">{uploadResult.processed}</span>{' '}
+                  asignaturas.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {uploadResult?.errors?.length > 0 && (
+                  <div className="mt-4">
+                    <p className="font-semibold text-red-600">Errores encontrados:</p>
+                    <ul className="list-disc list-inside text-red-500 mt-2">
+                      {uploadResult.errors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Edit Dialog */}
+      {editingClass && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle className="font-sans text-xl font-semibold tracking-tight">
+                Editar Clase
+              </DialogTitle>
+              <DialogDescription className="font-sans text-xs text-muted-foreground">
+                Modifica los detalles de la clase para la asignatura{' '}
+                <span className="font-semibold">
+                  {editingClass.subjectName} ({editingClass.subjectCodigo})
+                </span>
+                .
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="fechaClase" className="text-right">
+                  Fecha
+                </Label>
+                <Input
+                  id="fechaClase"
+                  type="date"
+                  value={editingClass.fechaClase}
+                  onChange={e => handleEditingClassChange('fechaClase', e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="horaInicio" className="text-right">
+                  Hora Inicio
+                </Label>
+                <Input
+                  id="horaInicio"
+                  type="time"
+                  value={editingClass.horaInicio}
+                  onChange={e => handleEditingClassChange('horaInicio', e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="horaFin" className="text-right">
+                  Hora Fin
+                </Label>
+                <Input
+                  id="horaFin"
+                  type="time"
+                  value={editingClass.horaFin}
+                  onChange={e => handleEditingClassChange('horaFin', e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="temaClase" className="text-right">
+                  Tema
+                </Label>
+                <Input
+                  id="temaClase"
+                  value={editingClass.temaClase}
+                  onChange={e => handleEditingClassChange('temaClase', e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="descripcionClase" className="text-right">
+                  Descripción
+                </Label>
+                <Input
+                  id="descripcionClase"
+                  value={editingClass.descripcionClase}
+                  onChange={e => handleEditingClassChange('descripcionClase', e.target.value)}
+                  className="col-span-3"
+                />
               </div>
             </div>
-
-            {/* Required Columns */}
-            <div className="text-xs">
-              <h3 className="font-medium text-xs mb-3">Columnas requeridas</h3>
-              <div className="flex flex-wrap gap-2">
-                {requiredColumns.map(col => (
-                  <Badge key={col} variant="outline" className="font-mono text-xs rounded-md">
-                    {col}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* File Selected */}
-        {file && !isPreview && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
-              <CheckCircle className="h-8 w-8 text-green-600 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="font-normal text-sm">{file.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                </p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={resetForm}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={resetForm} className="flex-1 bg-transparent">
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handlePreview} disabled={isLoading} className="flex-1">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Procesando...
-                  </>
-                ) : (
-                  'Vista previa'
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Preview */}
-        {isPreview && previewData.length > 0 && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium text-xs">Vista previa</h3>
-              <Badge variant="outline" className="text-xs font-normal">
-                {previewData.length} registros
-              </Badge>
-            </div>
-
-            <div className="border rounded-lg overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">Estado</TableHead>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Asignatura</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Horario</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {previewData.slice(0, 5).map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        {item.status === 'success' ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <AlertCircle className="h-4 w-4 text-red-600" />
-                        )}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">{item.codigoAsignatura}</TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-normal">{item.nombreAsignatura}</p>
-                          {item.error && <p className="text-xs text-red-600 mt-1">{item.error}</p>}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">{item.fechaClase}</TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {item.horaInicio} - {item.horaFin}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            {previewData.length > 5 && (
-              <p className="text-sm text-muted-foreground text-center">
-                Mostrando 5 de {previewData.length} registros
-              </p>
-            )}
-
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={handleCancelPreview}
-                className="flex-1 bg-transparent"
-              >
-                Volver
-              </Button>
-              <Button onClick={handleConfirmUpload} disabled={isLoading} className="flex-1">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Cargando...
-                  </>
-                ) : (
-                  'Confirmar carga'
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Results */}
-        {uploadResult && (
-          <div
-            className={`p-6 rounded-lg border-2 ${
-              uploadResult.success
-                ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-                : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
-            }`}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              {uploadResult.success ? (
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              ) : (
-                <AlertCircle className="h-6 w-6 text-red-600" />
-              )}
-              <div>
-                <h3
-                  className={`font-normal ${
-                    uploadResult.success
-                      ? 'text-green-800 dark:text-green-200'
-                      : 'text-red-800 dark:text-red-200'
-                  }`}
-                >
-                  {uploadResult.success ? 'Carga completada' : 'Error en la carga'}
-                </h3>
-                <p
-                  className={`text-sm ${
-                    uploadResult.success
-                      ? 'text-green-700 dark:text-green-300'
-                      : 'text-red-700 dark:text-red-300'
-                  }`}
-                >
-                  {uploadResult.success
-                    ? `${uploadResult.processedRows} de ${uploadResult.totalRows} registros procesados`
-                    : 'Se encontraron errores al procesar el archivo'}
-                </p>
-              </div>
-            </div>
-
-            {!uploadResult.success && uploadResult.errors.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-normal text-red-800 dark:text-red-200">Errores:</p>
-                <div className="bg-white/50 dark:bg-black/20 rounded p-3">
-                  {uploadResult.errors.map((error: string, index: number) => (
-                    <p key={index} className="text-xs text-red-700 dark:text-red-300">
-                      • {error}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <Button onClick={resetForm} className="mt-4 w-full bg-transparent" variant="outline">
-              Cargar otro archivo
-            </Button>
-          </div>
-        )}
-      </Card>
-    </div>
+              <Button onClick={handleSaveClass}>Guardar Cambios</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </main>
   );
 }
