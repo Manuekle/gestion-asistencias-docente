@@ -1,9 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { CheckCircle, Trash2, UploadCloud, XCircle } from 'lucide-react';
+import { CircleCheck, Trash2, UploadCloud, XCircle } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { ComponentPropsWithRef } from 'react';
 import { useId, useRef, useState } from 'react';
@@ -342,8 +341,8 @@ export const FileListItemProgressBar = ({
               <div className="h-4 w-px bg-border" />
 
               <div className="flex items-center gap-1">
-                {isComplete && <CheckCircle className="h-4 w-4 text-green-600" />}
-                {isComplete && <p className="text-xs font-medium text-green-600">Completado</p>}
+                {isComplete && <CircleCheck className="h-4 w-4 text-green-600" />}
+                {isComplete && <p className="text-xs font-normal">100%</p>}
 
                 {!isComplete && !failed && (
                   <UploadCloud className="h-4 w-4 text-muted-foreground" />
@@ -353,7 +352,7 @@ export const FileListItemProgressBar = ({
                 )}
 
                 {failed && <XCircle className="h-4 w-4 text-destructive" />}
-                {failed && <p className="text-xs font-medium text-destructive">Error</p>}
+                {failed && <p className="text-xs font-normal text-destructive">Error</p>}
               </div>
             </div>
           </div>
@@ -367,12 +366,6 @@ export const FileListItemProgressBar = ({
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-
-        {!failed && (
-          <div className="mt-2 w-full">
-            <Progress value={progress} className="h-2" />
-          </div>
-        )}
 
         {failed && (
           <div className="mt-2 flex gap-3">
@@ -487,7 +480,7 @@ export const FileListItemProgressFill = ({
                 <>
                   <div className="h-4 w-px bg-border" />
                   <div className="flex items-center gap-1">
-                    {isComplete && <CheckCircle className="h-4 w-4 text-green-600" />}
+                    {isComplete && <CircleCheck className="h-4 w-4 text-green-600" />}
                     {!isComplete && <UploadCloud className="h-4 w-4 text-muted-foreground" />}
 
                     <p className="text-xs text-muted-foreground">{progress}%</p>
