@@ -142,7 +142,8 @@ export default function ProfilePage() {
       setConfirmPassword('');
       toast.success('Contraseña actualizada correctamente');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al cambiar la contraseña';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error al cambiar la contraseña';
       toast.error(errorMessage);
     } finally {
       setIsPasswordLoading(false);

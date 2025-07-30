@@ -35,7 +35,8 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
                 Restablece tu contraseña
               </Heading>
               <Text className="text-gray-600 mb-6">
-                Hola {userEmail}, hemos recibido una solicitud para restablecer la contraseña de tu cuenta.
+                Hola {userEmail}, hemos recibido una solicitud para restablecer la contraseña de tu
+                cuenta.
               </Text>
 
               <Button

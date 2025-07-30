@@ -59,10 +59,20 @@ const ReportStatusBadge = ({ status }: { status: Report['status'] }) => {
   const { variant, text, icon } = statusConfig[status] || statusConfig.PENDING;
 
   // Define a type that matches the expected variant values for the Badge component
-  type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info';
-  
+  type BadgeVariant =
+    | 'default'
+    | 'secondary'
+    | 'destructive'
+    | 'outline'
+    | 'success'
+    | 'warning'
+    | 'info';
+
   return (
-    <Badge variant={variant as BadgeVariant} className="flex items-center gap-1.5 whitespace-nowrap w-1/2">
+    <Badge
+      variant={variant as BadgeVariant}
+      className="flex items-center gap-1.5 whitespace-nowrap w-1/2"
+    >
       {icon}
       <span>{text}</span>
     </Badge>
@@ -131,7 +141,8 @@ const SubjectReportPage = () => {
       toast.success('Solicitud de reporte enviada. Aparecerá en el historial en breve.');
       await fetchReports(); // Actualizar la lista inmediatamente
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error al generar el reporte';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Ocurrió un error al generar el reporte';
       toast.error(errorMessage);
     } finally {
       setIsGenerating(false);

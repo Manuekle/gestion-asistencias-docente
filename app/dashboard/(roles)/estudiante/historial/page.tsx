@@ -131,7 +131,10 @@ export default function HistorialAsistenciasPage() {
                           const responseData = await response.json();
                           setAttendances(responseData.data || []);
                         } catch (error: unknown) {
-                          const errorMessage = error instanceof Error ? error.message : 'Error al cargar el historial de asistencias';
+                          const errorMessage =
+                            error instanceof Error
+                              ? error.message
+                              : 'Error al cargar el historial de asistencias';
                           setError(errorMessage);
                         } finally {
                           setIsLoading(false);

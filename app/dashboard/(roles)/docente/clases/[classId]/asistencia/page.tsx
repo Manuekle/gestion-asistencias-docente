@@ -92,7 +92,8 @@ export default function AttendancePage() {
       const attendanceResponse = await attendanceRes.json();
       setStudents(attendanceResponse.data); // Corregido: usar response.data
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al cargar los datos de la clase';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error al cargar los datos de la clase';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -148,7 +149,8 @@ export default function AttendancePage() {
 
       toast.success('Asistencia guardada con éxito.');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al guardar la asistencia';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error al guardar la asistencia';
       toast.error(errorMessage);
     } finally {
       setIsSaving(false);

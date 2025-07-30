@@ -47,7 +47,10 @@ export default function ResetPasswordPage() {
         setIsValidToken(false);
         setMessage({
           type: 'error',
-          text: error instanceof Error ? error.message : 'El enlace de restablecimiento no es válido o ha expirado.',
+          text:
+            error instanceof Error
+              ? error.message
+              : 'El enlace de restablecimiento no es válido o ha expirado.',
         });
       }
     };
@@ -102,7 +105,10 @@ export default function ResetPasswordPage() {
     } catch (error: unknown) {
       setMessage({
         type: 'error',
-        text: error instanceof Error ? error.message : 'Error al restablecer la contraseña. Por favor, inténtalo de nuevo.',
+        text:
+          error instanceof Error
+            ? error.message
+            : 'Error al restablecer la contraseña. Por favor, inténtalo de nuevo.',
       });
     } finally {
       setIsLoading(false);
