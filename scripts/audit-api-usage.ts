@@ -67,10 +67,9 @@ function findEndpointUsages(
   // Detectar si el endpoint tiene [param]
   // Detectar si el endpoint tiene uno o varios [param]
   const paramRegex = /\[([\w]+)\]/g;
-  let templatePatterns: RegExp[] = [];
+  const templatePatterns: RegExp[] = [];
   let match;
-  let endpointPattern = endpoint;
-  let paramNames: string[] = [];
+  const paramNames: string[] = [];
   while ((match = paramRegex.exec(endpoint)) !== null) {
     paramNames.push(match[1]);
   }
@@ -85,8 +84,8 @@ function findEndpointUsages(
     templatePatterns.push(new RegExp(patternExact));
     // 2. Coincidencia genérica con cualquier variable JS
     let patternGeneric = endpoint;
-    paramNames.forEach(_ => {
-      patternGeneric = patternGeneric.replace(/\[[\w]+\]/, `\\$\\{[^}]+\\}`);
+    paramNames.forEach(() => {
+      patternGeneric = patternGeneric.replace(/\[\w+\]/, `\\$\\{[^}]+\\}`);
     });
     templatePatterns.push(new RegExp(patternGeneric));
     // 3. Coincidencia exacta con llaves solas {param}
@@ -97,8 +96,8 @@ function findEndpointUsages(
     templatePatterns.push(new RegExp(patternCurlyExact));
     // 4. Coincidencia genérica con llaves solas {variable}
     let patternCurlyGeneric = endpoint;
-    paramNames.forEach(_ => {
-      patternCurlyGeneric = patternCurlyGeneric.replace(/\[[\w]+\]/, `{[^}]+}`);
+    paramNames.forEach(() => {
+      patternCurlyGeneric = patternCurlyGeneric.replace(/\[\w+\]/, `{[^}]+}`);
     });
     templatePatterns.push(new RegExp(patternCurlyGeneric));
   }
