@@ -1,13 +1,7 @@
 import { z } from 'zod';
 
 // Enum for event types, aligned with Prisma schema
-export const EventTypeEnum = z.enum([
-  'EXAMEN',
-  'TRABAJO',
-  'LIMITE',
-  'ANUNCIO',
-  'INFO',
-]);
+export const EventTypeEnum = z.enum(['EXAMEN', 'TRABAJO', 'LIMITE', 'ANUNCIO', 'INFO']);
 
 // Schema for querying events
 export const DocenteEventosQuerySchema = z.object({

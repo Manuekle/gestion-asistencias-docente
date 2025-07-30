@@ -121,7 +121,7 @@ export async function GET() {
       },
       {} as SubjectAccumulator
     );
-        type SubjectAttendanceData = {
+    type SubjectAttendanceData = {
       subjectId: string;
       subjectName: string;
       subjectCode: string;
@@ -139,7 +139,7 @@ export async function GET() {
       let subjectAbsent = 0;
       let subjectLate = 0;
       let subjectJustified = 0;
-            subj.attendances.forEach((att: { status: AttendanceStatus }) => {
+      subj.attendances.forEach((att: { status: AttendanceStatus }) => {
         switch (att.status) {
           case AttendanceStatus.PRESENTE:
             subjectPresent++;

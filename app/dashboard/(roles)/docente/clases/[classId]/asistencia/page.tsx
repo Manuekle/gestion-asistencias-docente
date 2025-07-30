@@ -91,9 +91,10 @@ export default function AttendancePage() {
       if (!attendanceRes.ok) throw new Error('No se pudo cargar la lista de asistencia.');
       const attendanceResponse = await attendanceRes.json();
       setStudents(attendanceResponse.data); // Corregido: usar response.data
-    } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al cargar los datos de la clase';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

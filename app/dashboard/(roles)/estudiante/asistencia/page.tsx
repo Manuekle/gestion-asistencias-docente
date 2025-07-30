@@ -50,7 +50,7 @@ export default function StudentAttendancePage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/attendances/scan', {
+      const response = await fetch('/api/asistencia/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qrToken: token.trim() }),

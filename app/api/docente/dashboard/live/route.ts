@@ -40,7 +40,7 @@ export async function GET() {
 
     // Get total number of students enrolled in the subject
     const totalStudents = await db.user.count({
-      where: { role: 'ESTUDIANTE' }
+      where: { role: 'ESTUDIANTE' },
     });
 
     // Get attendance stats for the live class

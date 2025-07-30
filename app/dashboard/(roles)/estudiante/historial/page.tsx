@@ -130,8 +130,9 @@ export default function HistorialAsistenciasPage() {
                           }
                           const responseData = await response.json();
                           setAttendances(responseData.data || []);
-                        } catch (err: any) {
-                          setError(err.message);
+                        } catch (error: unknown) {
+                          const errorMessage = error instanceof Error ? error.message : 'Error al cargar el historial de asistencias';
+                          setError(errorMessage);
                         } finally {
                           setIsLoading(false);
                         }
@@ -222,7 +223,7 @@ export default function HistorialAsistenciasPage() {
                     </PaginationItem>
                     {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                       // Show first page, last page, and pages around current page
-                      let pageNum;
+                      let pageNum: number;
                       if (totalPages <= 5) {
                         pageNum = i + 1;
                       } else if (currentPage <= 3) {

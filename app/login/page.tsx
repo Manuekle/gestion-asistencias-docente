@@ -41,7 +41,7 @@ export default function LoginPage() {
       } else {
         router.push('/dashboard'); // Redirigir a un dashboard después del login
       }
-    } catch (err) {
+    } catch {
       setError('Ha ocurrido un error inesperado.');
     } finally {
       setIsLoading(false);

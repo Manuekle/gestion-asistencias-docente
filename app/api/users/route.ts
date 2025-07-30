@@ -147,11 +147,11 @@ export async function POST(req: NextRequest) {
       where: {
         OR: [
           { correoInstitucional: data.correoInstitucional },
-          { correoPersonal: data.correoInstitucional }
-        ]
+          { correoPersonal: data.correoInstitucional },
+        ],
       },
     });
-    
+
     if (existingUser) {
       return NextResponse.json(
         { message: 'El correo electrónico ya está en uso' },
@@ -221,7 +221,7 @@ export async function PUT(req: NextRequest) {
       role?: Role;
       password?: string;
     } = {};
-    
+
     if (data.name) updateData.name = data.name;
     if (data.correoInstitucional) updateData.correoInstitucional = data.correoInstitucional;
     if (data.correoPersonal !== undefined) updateData.correoPersonal = data.correoPersonal;

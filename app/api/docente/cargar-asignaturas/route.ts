@@ -56,15 +56,11 @@ export async function POST(request: Request) {
       'semestreAsignatura',
     ];
     const headers = Object.keys(rows[0] || {});
-    const missingHeaders = requiredHeaders.filter(
-      (header) => !headers.includes(header)
-    );
+    const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
 
     if (missingHeaders.length > 0) {
       return new NextResponse(
-        `Faltan los siguientes encabezados requeridos: ${missingHeaders.join(
-          ', '
-        )}`,
+        `Faltan los siguientes encabezados requeridos: ${missingHeaders.join(', ')}`,
         {
           status: 400,
         }
@@ -79,10 +75,10 @@ export async function POST(request: Request) {
         code: true,
       },
     });
-    const existingSubjectCodes = new Set(existingSubjects.map((s) => s.code));
+    const existingSubjectCodes = new Set(existingSubjects.map(s => s.code));
 
     if (isPreview) {
-      const previewData = rows.map((row) => {
+      const previewData = rows.map(row => {
         try {
           const codigoAsignatura = row['codigoAsignatura']?.toString().trim();
           const nombreAsignatura = row['nombreAsignatura']?.toString().trim();
@@ -100,8 +96,7 @@ export async function POST(request: Request) {
             return {
               ...row,
               status: 'error',
-              error:
-                'Faltan datos requeridos (código, nombre, fecha u hora de inicio).',
+              error: 'Faltan datos requeridos (código, nombre, fecha u hora de inicio).',
             };
           }
 
@@ -119,9 +114,7 @@ export async function POST(request: Request) {
             fechaClase: fechaClase.toISOString(),
             horaInicio,
             horaFin,
-            creditosClase: row['creditosClase']
-              ? Number(row['creditosClase'])
-              : null,
+            creditosClase: row['creditosClase'] ? Number(row['creditosClase']) : null,
             programa: row['programa']?.toString(),
             semestreAsignatura: row['semestreAsignatura']?.toString(),
             temaClase: row['temaClase']?.toString(),
@@ -144,7 +137,7 @@ export async function POST(request: Request) {
     let processed = 0;
     const errors: string[] = [];
 
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async tx => {
       for (const row of rows) {
         try {
           const codigoAsignatura = row['codigoAsignatura']?.toString().trim();
@@ -171,9 +164,7 @@ export async function POST(request: Request) {
             data: {
               code: codigoAsignatura,
               name: nombreAsignatura,
-              credits: row['creditosClase']
-                ? Number(row['creditosClase'])
-                : 0,
+              credits: row['creditosClase'] ? Number(row['creditosClase']) : 0,
               teacherId: session.user.id,
               program: row['programa']?.toString(),
               semester: row['semestreAsignatura'] ? Number(row['semestreAsignatura']) : 0,
@@ -202,8 +193,7 @@ export async function POST(request: Request) {
 
           processed++;
         } catch (error) {
-          const errorMessage =
-            error instanceof Error ? error.message : 'Error desconocido';
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
           errors.push(`Fila ${rows.indexOf(row) + 2}: ${errorMessage}`);
         }
       }
@@ -212,9 +202,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ processed, errors });
   } catch (error) {
     const errorMessage =
-      error instanceof Error
-        ? error.message
-        : 'Error desconocido en el servidor';
+      error instanceof Error ? error.message : 'Error desconocido en el servidor';
     return new NextResponse(errorMessage, {
       status: 500,
     });

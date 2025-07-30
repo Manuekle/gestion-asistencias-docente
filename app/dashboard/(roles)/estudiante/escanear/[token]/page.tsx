@@ -186,7 +186,7 @@ export default function ScanPage() {
     setScanState({ status: 'loading', message: 'Registrando asistencia...' });
 
     try {
-      const response = await fetch('/api/attendances/scan', {
+      const response = await fetch('/api/asistencia/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qrToken: token }),
@@ -194,7 +194,7 @@ export default function ScanPage() {
 
       const data: ApiData = await response.json();
       handleApiResponse(data, response.ok);
-    } catch (err) {
+    } catch {
       handleApiResponse(
         {
           message: 'No se pudo conectar con el servidor. Revisa tu conexión a internet.',

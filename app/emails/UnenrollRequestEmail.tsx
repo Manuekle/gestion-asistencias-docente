@@ -83,7 +83,8 @@ const UnenrollRequestEmail = ({
 
             <Section>
               <Text className="text-gray-600">
-                Por favor, ingrese al sistema para revisar y gestionar esta solicitud de desmatriculación.
+                Por favor, ingrese al sistema para revisar y gestionar esta solicitud de
+                desmatriculación.
               </Text>
               <Text className="text-sm text-gray-500 mt-4">
                 Para cualquier consulta, puede escribir a:{' '}

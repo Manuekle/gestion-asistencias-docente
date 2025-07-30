@@ -187,12 +187,13 @@ async function sendStatusEmail(request: UnenrollRequestWithRelations, isApproved
 
     const resend = new Resend(RESEND_API_KEY);
     const supportEmail = process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co';
-    
+
     // Use a verified domain for testing or the actual recipient
-    const recipient = process.env.NODE_ENV === 'production' 
-      ? request.requestedBy.correoInstitucional 
-      : 'delivered@resend.dev';
-    
+    const recipient =
+      process.env.NODE_ENV === 'production'
+        ? request.requestedBy.correoInstitucional
+        : 'delivered@resend.dev';
+
     // Use a verified sender domain from your Resend dashboard
     const senderEmail = 'notificaciones@resend.dev'; // Replace with your verified domain
 

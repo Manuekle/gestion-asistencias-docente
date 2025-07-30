@@ -24,7 +24,7 @@ interface PreviewStudentDetail {
 
 interface PreviewRow {
   codigoAsignatura: string;
-  estudiantes: (PreviewStudentDetail)[];
+  estudiantes: PreviewStudentDetail[];
   error?: string;
 }
 
@@ -119,13 +119,21 @@ export async function POST(request: Request) {
       for (const row of excelData) {
         const { codigoAsignatura, estudiantes } = row;
         if (!codigoAsignatura || estudiantes.length === 0) {
-          previewResults.push({ codigoAsignatura, estudiantes: [], error: 'Faltan datos en la fila' });
+          previewResults.push({
+            codigoAsignatura,
+            estudiantes: [],
+            error: 'Faltan datos en la fila',
+          });
           continue;
         }
 
         const subject = await db.subject.findUnique({ where: { code: codigoAsignatura } });
         if (!subject) {
-          previewResults.push({ codigoAsignatura, estudiantes: [], error: 'Asignatura no encontrada' });
+          previewResults.push({
+            codigoAsignatura,
+            estudiantes: [],
+            error: 'Asignatura no encontrada',
+          });
           continue;
         }
 
@@ -176,7 +184,10 @@ export async function POST(request: Request) {
 
         const invalidDocs = estudiantes.filter(doc => !foundStudents.some(s => s.document === doc));
         if (invalidDocs.length > 0) {
-          errors.push({ codigoAsignatura, message: `Documentos no encontrados: ${invalidDocs.join(', ')}` });
+          errors.push({
+            codigoAsignatura,
+            message: `Documentos no encontrados: ${invalidDocs.join(', ')}`,
+          });
         }
 
         if (newStudentIds.length > 0) {

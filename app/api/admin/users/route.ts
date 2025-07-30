@@ -70,11 +70,20 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (!name || !password || !role) {
-      return NextResponse.json({ message: 'Faltan campos requeridos: nombre, contraseña y rol.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Faltan campos requeridos: nombre, contraseña y rol.' },
+        { status: 400 }
+      );
     }
 
     if (!correoPersonal && !correoInstitucional) {
-      return NextResponse.json({ message: 'Se debe proporcionar al menos un correo electrónico (personal o institucional).' }, { status: 400 });
+      return NextResponse.json(
+        {
+          message:
+            'Se debe proporcionar al menos un correo electrónico (personal o institucional).',
+        },
+        { status: 400 }
+      );
     }
 
     // Verificar unicidad de los correos
@@ -88,7 +97,10 @@ export async function POST(req: NextRequest) {
       });
 
       if (existingUser) {
-        return NextResponse.json({ message: 'Uno de los correos electrónicos ya está en uso.' }, { status: 409 });
+        return NextResponse.json(
+          { message: 'Uno de los correos electrónicos ya está en uso.' },
+          { status: 409 }
+        );
       }
     }
 

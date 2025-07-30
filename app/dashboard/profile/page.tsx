@@ -103,8 +103,9 @@ export default function ProfilePage() {
       });
 
       toast.success('Perfil actualizado correctamente');
-    } catch (error: any) {
-      toast.error(error.message || 'Error al actualizar el perfil');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar el perfil';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -139,8 +140,9 @@ export default function ProfilePage() {
       setNewPassword('');
       setConfirmPassword('');
       toast.success('Contraseña actualizada correctamente');
-    } catch (error: any) {
-      toast.error(error.message || 'Error al cambiar la contraseña');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al cambiar la contraseña';
+      toast.error(errorMessage);
     } finally {
       setIsPasswordLoading(false);
     }
@@ -168,8 +170,9 @@ export default function ProfilePage() {
       const data = await response.json();
       await update({ signatureUrl: data.url });
       toast.success('Firma actualizada correctamente');
-    } catch (error: any) {
-      toast.error(error.message || 'Error al subir la firma');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al subir la firma';
+      toast.error(errorMessage);
     } finally {
       setIsSignatureLoading(false);
     }

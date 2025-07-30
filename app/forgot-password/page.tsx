@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Mail } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+// Removed unused router import
 import { useState } from 'react';
 
 export default function ForgotPasswordPage() {
@@ -17,7 +17,6 @@ export default function ForgotPasswordPage() {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,12 +40,13 @@ export default function ForgotPasswordPage() {
         type: 'success',
         text: 'Si el correo existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       setMessage({
         type: 'error',
         text:
-          error.message ||
-          'Error al enviar el correo de recuperación. Por favor, inténtalo de nuevo.',
+          error instanceof Error
+            ? error.message
+            : 'Error al enviar el correo de recuperación. Por favor, inténtalo de nuevo.',
       });
     } finally {
       setIsLoading(false);

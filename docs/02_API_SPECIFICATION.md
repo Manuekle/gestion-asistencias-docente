@@ -161,10 +161,10 @@ Obtiene el reporte de asistencia personal del estudiante.
 
 ## 🔄 Endpoints Comunes
 
-#### `GET, POST /api/attendances`
+#### `GET, POST /api/asistencia`
 
 Obtiene o registra asistencias.
 
-#### `POST /api/attendances/scan`
+#### `POST /api/asistencia/scan`
 
 Registra la asistencia mediante escaneo de QR.

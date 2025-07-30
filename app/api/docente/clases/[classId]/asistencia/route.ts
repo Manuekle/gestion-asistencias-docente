@@ -2,10 +2,7 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
-import {
-    AttendanceListResponseSchema,
-    AttendanceUpsertSchema
-} from './schema';
+import { AttendanceListResponseSchema, AttendanceUpsertSchema } from './schema';
 
 // Función para verificar que el docente es dueño de la clase
 async function verifyTeacherOwnership(classId: string, teacherId: string) {

@@ -24,19 +24,13 @@ export function QRViewer({
   isRefreshing = false,
 }: QRViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // Removed unused isDarkMode state as it's not being used in the component
   const [copied, setCopied] = useState(false);
   const qrContainerRef = useRef<HTMLDivElement>(null);
 
   const qrSize = isFullscreen ? 400 : 240;
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-    setIsDarkMode(mediaQuery.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+  // Removed unused dark mode detection effect
 
   const toggleFullscreen = () => {
     if (!qrContainerRef.current) return;
@@ -67,7 +61,9 @@ export function QRViewer({
       await navigator.clipboard.writeText(qrToken);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    } catch (err) {}
+    } catch (error) {
+      console.error('Failed to copy token:', error);
+    }
   };
 
   return (

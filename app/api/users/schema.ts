@@ -21,20 +21,22 @@ export const UserSearchQuerySchema = z.object({
 
 export type UserSearchQuery = z.infer<typeof UserSearchQuerySchema>;
 
-export const UserCreateSchema = z.object({
-  name: z.string().min(1),
-  correoInstitucional: z.string().email(),
-  correoPersonal: z.string().email().optional(),
-  password: z.string().min(6),
-  role: z.nativeEnum(Role),
-  document: z.string().optional(),
-  telefono: z.string().optional(),
-  codigoEstudiantil: z.string().optional(),
-  codigoDocente: z.string().optional(),
-}).refine(data => data.correoInstitucional || data.correoPersonal, {
-  message: 'Al menos un correo debe ser proporcionado',
-  path: ['correoInstitucional'],
-});
+export const UserCreateSchema = z
+  .object({
+    name: z.string().min(1),
+    correoInstitucional: z.string().email(),
+    correoPersonal: z.string().email().optional(),
+    password: z.string().min(6),
+    role: z.nativeEnum(Role),
+    document: z.string().optional(),
+    telefono: z.string().optional(),
+    codigoEstudiantil: z.string().optional(),
+    codigoDocente: z.string().optional(),
+  })
+  .refine(data => data.correoInstitucional || data.correoPersonal, {
+    message: 'Al menos un correo debe ser proporcionado',
+    path: ['correoInstitucional'],
+  });
 
 export type UserCreate = z.infer<typeof UserCreateSchema>;
 

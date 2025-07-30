@@ -4,7 +4,6 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { AttendanceStatus, Role } from '@prisma/client';
 
-
 /**
  * Convierte un identificador de periodo académico (ej: "2025-1" o "2025-2")
  * en un rango de fechas.
@@ -33,7 +32,7 @@ function periodToDateRange(period?: string) {
 
 /**
  * GET /api/admin/docentes/[docenteId]/historico?period=2025-1
- * 
+ *
  * Devuelve las estadísticas históricas de asistencia y clases impartidas por un docente
  * durante el período académico indicado. Si no se envía periodo se utilizará todo el histórico.
  *

@@ -1,5 +1,7 @@
 'use client';
 
+import { getErrorMessage, EventType, SubjectEvent } from '@/types';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,7 +46,6 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { EventType, type SubjectEvent } from '@prisma/client';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -82,8 +83,8 @@ export function EventsCard({ subjectId }: EventsCardProps) {
       }
       const data = await response.json();
       setEvents(data.data);
-    } catch (err: any) {
-      toast.error(err.message || 'Error al cargar los eventos');
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     } finally {
       setIsLoadingEvents(false);
     }
@@ -130,9 +131,9 @@ export function EventsCard({ subjectId }: EventsCardProps) {
       toast.success('Evento creado con éxito', { id: toastId });
       setIsCreateEventDialogOpen(false);
       resetEventForm();
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      toast.error(error.message || 'No se pudo crear el evento.', {
+      toast.error(getErrorMessage(error), {
         id: toastId,
       });
     }
@@ -178,9 +179,9 @@ export function EventsCard({ subjectId }: EventsCardProps) {
       toast.success('Evento actualizado con éxito', { id: toastId });
       setIsEditEventDialogOpen(false);
       resetEventForm();
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      toast.error(error.message || 'No se pudo actualizar el evento.', {
+      toast.error(getErrorMessage(error), {
         id: toastId,
       });
     }
@@ -200,9 +201,9 @@ export function EventsCard({ subjectId }: EventsCardProps) {
       setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
       toast.success('Evento eliminado con éxito', { id: toastId });
       setEventToDelete(null); // Cerrar diálogo
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      toast.error(error.message || 'No se pudo eliminar el evento.', {
+      toast.error(getErrorMessage(error), {
         id: toastId,
       });
       setEventToDelete(null); // Cerrar diálogo en caso de error

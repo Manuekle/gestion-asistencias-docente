@@ -31,7 +31,7 @@ sequenceDiagram
     participant DB as Base de Datos
 
     E->>FE: Escanea Código QR
-    FE->>BE: POST /api/attendances/scan (con token del QR)
+    FE->>BE: POST /api/asistencia/scan (con token del QR)
     BE->>DB: Buscar token QR en la base de datos
     alt Token Válido y Activo
         DB-->>BE: Token encontrado y válido

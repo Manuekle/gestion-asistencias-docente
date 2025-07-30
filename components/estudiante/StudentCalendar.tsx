@@ -20,9 +20,12 @@ const localizer = dateFnsLocalizer({
 
 // Definimos un tipo extendido para nuestros eventos
 export interface CalendarEvent extends BigCalendarEvent {
-  // Podemos añadir propiedades personalizadas si es necesario
-  // por ejemplo: type: 'class' | 'exam' | 'assignment';
-  // description?: string;
+  type: 'class' | 'exam' | 'assignment' | 'other';
+  description?: string;
+  subject?: string;
+  location?: string;
+  allDay?: boolean;
+  resource?: Record<string, unknown>; // Para datos adicionales
 }
 
 interface StudentCalendarProps {

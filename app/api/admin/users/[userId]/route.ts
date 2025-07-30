@@ -28,7 +28,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
 
     // Validar que al menos un correo esté presente
     if (body.correoPersonal === '' && body.correoInstitucional === '') {
-        return NextResponse.json({ message: 'El usuario debe tener al menos un correo electrónico.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'El usuario debe tener al menos un correo electrónico.' },
+        { status: 400 }
+      );
     }
 
     // Verificar unicidad de los correos si se proporcionan
@@ -44,7 +47,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
         },
       });
       if (existingUser) {
-        return NextResponse.json({ message: 'Uno de los correos electrónicos ya está en uso.' }, { status: 409 });
+        return NextResponse.json(
+          { message: 'Uno de los correos electrónicos ya está en uso.' },
+          { status: 409 }
+        );
       }
     }
 
@@ -66,7 +72,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = updatedUser;
     return NextResponse.json(userWithoutPassword);
-
   } catch (error) {
     console.error('[ADMIN_UPDATE_USER_ERROR]', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
@@ -92,12 +97,17 @@ export async function DELETE(req: NextRequest, { params }: { params: { userId: s
     });
 
     return NextResponse.json({ message: 'Usuario eliminado con éxito' }, { status: 200 });
-
   } catch (error) {
     console.error('[ADMIN_DELETE_USER_ERROR]', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2003') {
-        return NextResponse.json({ message: 'No se puede eliminar el usuario porque tiene registros asociados (ej. asignaturas, asistencias).' }, { status: 409 });
+        return NextResponse.json(
+          {
+            message:
+              'No se puede eliminar el usuario porque tiene registros asociados (ej. asignaturas, asistencias).',
+          },
+          { status: 409 }
+        );
       }
     }
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
