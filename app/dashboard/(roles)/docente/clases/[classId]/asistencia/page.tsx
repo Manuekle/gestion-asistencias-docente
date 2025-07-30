@@ -147,8 +147,9 @@ export default function AttendancePage() {
       if (!response.ok) throw new Error('Error al guardar la asistencia.');
 
       toast.success('Asistencia guardada con éxito.');
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al guardar la asistencia';
+      toast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -167,8 +168,9 @@ export default function AttendancePage() {
       setQrData(responseData.data); // Corregido: usar response.data
       setExpiresIn(300); // 5 minutos en segundos
       toast.success('Código QR generado. Los estudiantes ya pueden escanear.');
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al generar el código QR';
+      toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
     }

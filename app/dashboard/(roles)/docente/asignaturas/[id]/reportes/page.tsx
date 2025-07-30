@@ -3,6 +3,7 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -15,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -46,17 +47,22 @@ const ReportStatusBadge = ({ status }: { status: Report['status'] }) => {
     COMPLETED: {
       variant: 'success',
       text: 'Completado',
+      icon: <CheckCircle2 className="h-3 w-3" />,
     },
     FAILED: {
       variant: 'destructive',
       text: 'Fallido',
+      icon: <XCircle className="h-3 w-3" />,
     },
   };
 
   const { variant, text, icon } = statusConfig[status] || statusConfig.PENDING;
 
+  // Define a type that matches the expected variant values for the Badge component
+  type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info';
+  
   return (
-    <Badge variant={variant as any} className="flex items-center gap-1.5 whitespace-nowrap w-1/2">
+    <Badge variant={variant as BadgeVariant} className="flex items-center gap-1.5 whitespace-nowrap w-1/2">
       {icon}
       <span>{text}</span>
     </Badge>
@@ -81,9 +87,10 @@ const SubjectReportPage = () => {
       }
       const data: Report[] = await response.json();
       setReports(data);
-    } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message || 'Error al cargar los reportes.');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al cargar los reportes';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -123,8 +130,9 @@ const SubjectReportPage = () => {
 
       toast.success('Solicitud de reporte enviada. Aparecerá en el historial en breve.');
       await fetchReports(); // Actualizar la lista inmediatamente
-    } catch (err: any) {
-      toast.error(err.message || 'Ocurrió un error al generar el reporte.');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error al generar el reporte';
+      toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
     }

@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Loader2, Lock, PenLine, Upload, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -400,11 +401,16 @@ export default function ProfilePage() {
                       <Label>Vista previa</Label>
                       <div className="border-2 border-dashed rounded-lg p-6 flex items-center justify-center h-48 bg-muted/30">
                         {signaturePreview ? (
-                          <img
-                            src={signaturePreview}
-                            alt="Firma digital"
-                            className="max-h-full max-w-full object-contain"
-                          />
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={signaturePreview}
+                              alt="Firma digital"
+                              fill
+                              style={{ objectFit: 'contain' }}
+                              sizes="(max-width: 768px) 100vw, 50vw"
+                              priority
+                            />
+                          </div>
                         ) : (
                           <div className="text-center text-muted-foreground">
                             <p>No hay firma cargada</p>
