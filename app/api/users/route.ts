@@ -171,7 +171,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const { password: _, ...userWithoutPassword } = newUser;
+    const { password, ...userWithoutPassword } = newUser;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _ = password;
     const usuarioValidado = UserSchema.safeParse(userWithoutPassword);
     if (!usuarioValidado.success) {
       return NextResponse.json(
@@ -231,7 +233,9 @@ export async function PUT(req: NextRequest) {
       where: { id: data.id },
       data: updateData,
     });
-    const { password: _, ...userWithoutPassword } = updatedUser;
+    const { password, ...userWithoutPassword } = updatedUser;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _ = password;
     const usuarioValidado = UserSchema.safeParse(userWithoutPassword);
     if (!usuarioValidado.success) {
       return NextResponse.json(
@@ -250,13 +254,21 @@ export async function PUT(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (error instanceof Error && 'code' in error && (error as any).code === 'P2025') {
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      (error as { code: unknown }).code === 'P2025'
+    ) {
       return NextResponse.json(
         { message: 'No se encontró un usuario con el ID proporcionado' },
         { status: 404 }
       );
     }
-    if (error instanceof Error && 'code' in error && (error as any).code === 'P2002') {
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      (error as { code: unknown }).code === 'P2002'
+    ) {
       return NextResponse.json(
         { message: 'El correo electrónico ya está en uso por otro usuario' },
         { status: 409 }
@@ -290,7 +302,11 @@ export async function DELETE(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    if (error instanceof Error && 'code' in error && (error as any).code === 'P2025') {
+    if (
+      error instanceof Error &&
+      'code' in error &&
+      (error as { code: unknown }).code === 'P2025'
+    ) {
       return NextResponse.json(
         { message: `No se encontró un usuario con el ID ${userId}` },
         { status: 404 }

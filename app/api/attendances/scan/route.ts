@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { limiter } from '@/lib/rateLimit';
-import { z } from 'zod';
+
 import { ScanAttendanceRequestSchema, ScanAttendanceResponseSchema } from './schema';
 
 // Constantes para mensajes de error
@@ -58,7 +58,7 @@ const ERROR_MESSAGES = {
 // Función para crear respuestas de error consistentes
 function createErrorResponse(
   errorKey: keyof typeof ERROR_MESSAGES,
-  additionalData: Record<string, any> = {}
+  additionalData: Record<string, unknown> = {}
 ) {
   const error = ERROR_MESSAGES[errorKey];
   return NextResponse.json(
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
         });
       }
       qrToken = parsed.data.qrToken.trim();
-    } catch (error) {
+    } catch {
       return createErrorResponse('INVALID_REQUEST', {
         details: 'El token QR es requerido y debe ser una cadena de texto.',
       });

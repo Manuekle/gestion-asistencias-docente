@@ -4,12 +4,14 @@ import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 
 // GET /api/docente/eventos?subjectId=... - Obtener todos los eventos de una asignatura
-import { z } from 'zod';
+
 import { DocenteEventosQuerySchema } from './schema';
 
 // Limpieza de parámetros: null, 'null', '' => undefined
-function clean(val: any) {
-  if (val === null || val === undefined || val === '' || val === 'null') return undefined;
+function clean(val: string | null): string | undefined {
+  if (val === null || val === '' || val === 'null') {
+    return undefined;
+  }
   return val;
 }
 

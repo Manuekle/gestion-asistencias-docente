@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const EventTypeEnum = z.enum(['EXAM', 'HOMEWORK', 'DEADLINE', 'ANNOUNCEMENT', 'INFO']);
+export const EventTypeEnum = z.enum(['EXAMEN', 'TRABAJO', 'LIMITE', 'ANUNCIO', 'INFO']);
 
 export const DocenteEventoDetailSchema = z.object({
   id: z.string(),

@@ -356,7 +356,7 @@ export default function ProfilePage() {
                     required
                   />
                 </div>
-                <div className="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                <div className="mb-4 rounded-lg border border-gray-200 p-4 text-sm text-gray-700 dark:border-gray-800/30 dark:text-gray-300">
                   <div className="flex items-center">
                     <AlertCircle className="h-4 w-4 mr-2" />
                     <span>La contraseña debe tener al menos 6 caracteres.</span>

@@ -96,7 +96,7 @@ export async function GET() {
           classId: string;
           classDate: Date;
           classTopic: string | null;
-          status: string;
+          status: AttendanceStatus;
         }[];
       };
     };
@@ -121,13 +121,25 @@ export async function GET() {
       },
       {} as SubjectAccumulator
     );
-    const bySubjectArray = Object.values(bySubject).map((subj: any) => {
+        type SubjectAttendanceData = {
+      subjectId: string;
+      subjectName: string;
+      subjectCode: string;
+      attendances: {
+        classId: string;
+        classDate: Date;
+        classTopic: string | null;
+        status: AttendanceStatus;
+      }[];
+    };
+
+    const bySubjectArray = Object.values(bySubject).map((subj: SubjectAttendanceData) => {
       const subjectTotal = subj.attendances.length;
       let subjectPresent = 0;
       let subjectAbsent = 0;
       let subjectLate = 0;
       let subjectJustified = 0;
-      subj.attendances.forEach((att: any) => {
+            subj.attendances.forEach((att: { status: AttendanceStatus }) => {
         switch (att.status) {
           case AttendanceStatus.PRESENTE:
             subjectPresent++;

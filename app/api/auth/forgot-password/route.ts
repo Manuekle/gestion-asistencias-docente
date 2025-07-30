@@ -8,10 +8,7 @@ import { Resend } from 'resend';
 // Configuración de Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Tipo para el correo electrónico
-type EmailData = {
-  correo: string;
-};
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,7 +58,7 @@ export async function POST(request: NextRequest) {
     const isTestEmail = correo.endsWith('@gmail.com') || correo.endsWith('@hotmail.com');
 
     // Enviar correo electrónico
-    const { data, error } = await resend.emails.send({
+        const { error } = await resend.emails.send({
       from: `Sistema de Asistencias FUP <onboarding@resend.dev>`,
       to: isTestEmail ? testEmail : correo,
       subject: 'Restablece tu contraseña - Sistema de Asistencias FUP',

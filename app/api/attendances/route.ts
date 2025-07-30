@@ -1,6 +1,6 @@
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
-import { AttendanceStatus, Role } from '@prisma/client';
+import { Prisma, AttendanceStatus, Role } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
 
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       classId: searchParams.get('classId') || undefined,
       studentId: searchParams.get('studentId') || undefined,
     });
-    const whereClause: any = {};
+    const whereClause: Prisma.AttendanceWhereInput = {};
     // Filtros según el rol del usuario
     if (user.role === Role.ADMIN) {
       if (query.classId) whereClause.classId = query.classId;
@@ -95,7 +95,6 @@ export async function POST(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
   }
-  const { user } = session;
   const now = new Date();
   try {
     const body = await request.json();

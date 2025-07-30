@@ -4,7 +4,7 @@ import { AttendanceStatus } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request) {
+export async function GET() {
   const session = await getServerSession(authOptions);
 
   if (!session || session.user.role !== 'DOCENTE') {

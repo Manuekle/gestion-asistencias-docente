@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
 /**
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const filePath = path.join(signaturesDir, filename);
 
     // Asegurarse de que el directorio exista
-    await require('fs').promises.mkdir(signaturesDir, { recursive: true });
+    await mkdir(signaturesDir, { recursive: true });
 
     // Escribir el archivo en el disco
     await writeFile(filePath, buffer);

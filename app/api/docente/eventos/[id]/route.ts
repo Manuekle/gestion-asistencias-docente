@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
-import { z } from 'zod';
-import { DocenteEventoDetailSchema, DocenteEventoUpdateSchema, EventTypeEnum } from './schema';
+
+import { DocenteEventoDetailSchema, DocenteEventoUpdateSchema } from './schema';
 
 // GET /api/docente/eventos/[id] - Obtener un evento específico
 export async function GET(request: Request, { params }: { params: { id: string } }) {

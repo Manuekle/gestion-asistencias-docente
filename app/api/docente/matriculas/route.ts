@@ -128,7 +128,7 @@ export async function POST(request: Request) {
       }),
     ]);
     return NextResponse.json({ message: 'Estudiante matriculado con éxito' }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error al matricular estudiante:', error);
     return NextResponse.json({ message: 'Error al matricular al estudiante' }, { status: 500 });
   }

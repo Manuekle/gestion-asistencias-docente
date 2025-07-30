@@ -1,5 +1,5 @@
 {
-  "name": "sistema-asistencias",
+  "name": "gestion-asistencias-docente",
   "version": "1.0.0",
   "description": "> **Prototipo de software para la gestión automatizada de asistencias estudiantiles mediante códigos QR**",
   "scripts": {
@@ -14,7 +14,8 @@
     "type-check": "tsc --noEmit",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+        "test:coverage": "jest --coverage",
+    "validate": "npm run lint && npm run type-check",
     "prepare": "husky",
     "db:clean": "ts-node --compiler-options '{\"module\":\"commonjs\"}' prisma/cleanup.ts",
     "postbuild": "next-sitemap",
@@ -32,15 +33,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fup-asistencias/sistema-asistencias.git"
+    "url": "git+https://github.com/Manuekle/gestion-asistencias-docente"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/fup-asistencias/sistema-asistencias/issues"
+    "url": "https://github.com/Manuekle/gestion-asistencias-docente/issues"
   },
-  "homepage": "https://github.com/fup-asistencias/sistema-asistencias#readme",
+  "homepage": "https://github.com/Manuekle/gestion-asistencias-docente#readme",
   "resolutions": {
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1"
