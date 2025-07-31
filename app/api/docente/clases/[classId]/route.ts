@@ -119,7 +119,7 @@ export async function PUT(request: Request, { params }: { params: { classId: str
         if (studentEmails.length > 0) {
           try {
             const resend = new Resend(process.env.RESEND_API_KEY);
-            const testRecipient = 'delivered@resend.dev'; // Resend's special test email
+            // const testRecipient = 'delivered@resend.dev'; // Resend's special test email
 
             // Create the email content once to be reused
             const emailComponent = React.createElement(ClassCancellationEmail, {
@@ -136,7 +136,7 @@ export async function PUT(request: Request, { params }: { params: { classId: str
             for (const studentEmail of studentEmails) {
               const { data, error } = await resend.emails.send({
                 from: 'Sistema de Asistencias FUP <onboarding@resend.dev>',
-                to: [testRecipient], // Always send to the test address in this environment
+                to: [studentEmail],
                 subject: `Clase Cancelada: ${classToCancel.subject.name}`,
                 html: emailHtml,
               });

@@ -7,7 +7,10 @@ export async function POST(request: Request) {
     const { token, password } = await request.json();
 
     if (!token || !password) {
-      return NextResponse.json({ message: 'Token y nueva contraseña son requeridos' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Token y nueva contraseña son requeridos' },
+        { status: 400 }
+      );
     }
 
     // Validar longitud mínima de la contraseña

@@ -105,7 +105,6 @@ export async function POST(request: Request) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY);
         const supportEmail = process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co';
-        const testRecipient = 'delivered@resend.dev'; // Resend's special test email
 
         // Get subject name from the database
         const subject = await db.subject.findUnique({
@@ -127,7 +126,7 @@ export async function POST(request: Request) {
         // Send email to admin
         const { data, error } = await resend.emails.send({
           from: 'Sistema de Asistencias FUP <onboarding@resend.dev>',
-          to: [testRecipient], // In production: [process.env.ADMIN_EMAIL || 'admin@fup.edu.co']
+          to: [process.env.ADMIN_EMAIL || 'elustondo129@gmail.com'],
           subject: `Solicitud de Desmatriculación - ${subject?.name || 'Asignatura'}`,
           html: emailHtml,
         });

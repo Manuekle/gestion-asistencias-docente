@@ -204,13 +204,13 @@ model SubjectEvent {
 
 model UnenrollRequest {
   id            String                @id @default(auto()) @map("_id") @db.ObjectId
-  student       User                  @relation("StudentUnenrolls", fields: [studentId], references: [id])
+  student       User?                 @relation("StudentUnenrolls", fields: [studentId], references: [id], onDelete: Cascade)
   studentId     String                @db.ObjectId
-  subject       Subject               @relation(fields: [subjectId], references: [id])
+  subject       Subject?              @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   subjectId     String                @db.ObjectId
   reason        String
   status        UnenrollRequestStatus @default(PENDIENTE)
-  requestedBy   User                  @relation("RequestedUnenrolls", fields: [requestedById], references: [id])
+  requestedBy   User?                 @relation("RequestedUnenrolls", fields: [requestedById], references: [id], onDelete: Cascade)
   requestedById String                @db.ObjectId
   reviewedBy    User?                 @relation("ReviewedUnenrolls", fields: [reviewedById], references: [id])
   reviewedById  String?               @db.ObjectId

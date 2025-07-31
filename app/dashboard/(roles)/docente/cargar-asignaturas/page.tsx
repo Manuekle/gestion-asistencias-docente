@@ -282,7 +282,7 @@ export default function UploadSubjectsPage() {
     toast.success('Clase actualizada correctamente.');
   };
 
-    const handleEditingClassChange = (
+  const handleEditingClassChange = (
     field: keyof EditableClass,
     value: string | Date | undefined
   ) => {
@@ -571,7 +571,7 @@ export default function UploadSubjectsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="fechaClase" className="text-right">
                   Fecha
                 </Label>

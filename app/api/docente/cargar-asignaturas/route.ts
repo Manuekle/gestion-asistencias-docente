@@ -40,9 +40,12 @@ export async function POST(request: Request) {
     const rows = XLSX.utils.sheet_to_json(sheet) as RowData[];
 
     if (rows.length === 0) {
-      return NextResponse.json({ error: 'El archivo Excel está vacío' }, {
-        status: 400,
-      });
+      return NextResponse.json(
+        { error: 'El archivo Excel está vacío' },
+        {
+          status: 400,
+        }
+      );
     }
 
     const requiredHeaders = [
@@ -201,8 +204,11 @@ export async function POST(request: Request) {
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Error desconocido en el servidor';
-    return NextResponse.json({ error: errorMessage }, {
-      status: 500,
-    });
+    return NextResponse.json(
+      { error: errorMessage },
+      {
+        status: 500,
+      }
+    );
   }
 }

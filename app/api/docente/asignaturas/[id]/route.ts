@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import { DocenteSubjectSchema } from '../schema';
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const { id } = params;
   const session = await getServerSession(authOptions);
 
   if (!session || session.user.role !== Role.DOCENTE) {
@@ -15,7 +16,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   try {
     const subject = await db.subject.findUnique({
       where: {
-        id: params.id,
+        id,
         teacherId: session.user.id, // Asegurarse de que el docente sea el dueño de la asignatura
       },
     });

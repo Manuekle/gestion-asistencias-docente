@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { LoadingPage } from '@/components/ui/loading';
-import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import type { UnenrollRequestStatus } from '@prisma/client';
 import { format } from 'date-fns';
@@ -54,7 +53,7 @@ export default function UnenrollRequestsPage() {
       const response = await fetch('/api/admin/solicitudes');
       const data = await response.json();
       if (response.ok) {
-        setRequests(data.data);
+        setRequests(Array.isArray(data) ? data : []);
       } else {
         throw new Error(data.message || 'Error al cargar las solicitudes');
       }
@@ -134,8 +133,7 @@ export default function UnenrollRequestsPage() {
     return <LoadingPage />;
   }
 
-  const pendingRequests = requests.filter(req => req.status === 'PENDIENTE');
-  const processedRequests = requests.filter(req => req.status !== 'PENDIENTE');
+  const pendingRequests = (requests || []).filter(req => req.status === 'PENDIENTE');
 
   return (
     <div className="mx-auto">
@@ -151,7 +149,7 @@ export default function UnenrollRequestsPage() {
         </CardHeader>
       </div>
 
-      {requests.length === 0 ? (
+      {(requests || []).length === 0 ? (
         <Alert>
           <AlertDescription>
             No hay solicitudes de desmatriculación en este momento.
@@ -180,6 +178,9 @@ export default function UnenrollRequestsPage() {
                           </CardTitle>
                           <div className="space-y-1">
                             <p className="text-xs font-medium text-muted-foreground">
+                              Fecha: {format(new Date(request.createdAt), 'PPp', { locale: es })}
+                            </p>
+                            <p className="text-xs font-medium text-muted-foreground">
                               Materia:{' '}
                               <span className="text-foreground">{request.subject.name}</span>
                             </p>
@@ -193,9 +194,6 @@ export default function UnenrollRequestsPage() {
                               )}
                             </p>
                           </div>
-                        </div>
-                        <div className="text-xs text-muted-foreground whitespace-nowrap">
-                          {format(new Date(request.createdAt), 'PPp', { locale: es })}
                         </div>
                       </div>
                     </CardHeader>
@@ -217,7 +215,7 @@ export default function UnenrollRequestsPage() {
                               setShowRejectDialog(request.id);
                             }}
                             disabled={processing[request.id]}
-                            className="flex-1 sm:flex-none font-sans"
+                            className="font-sans"
                           >
                             Rechazar
                           </Button>
@@ -225,7 +223,7 @@ export default function UnenrollRequestsPage() {
                             size="sm"
                             onClick={() => handleAction(request.id, 'approve')}
                             disabled={processing[request.id]}
-                            className="flex-1 sm:flex-none font-sans"
+                            className="font-sans"
                           >
                             {processing[request.id] ? (
                               <>
@@ -238,48 +236,6 @@ export default function UnenrollRequestsPage() {
                           </Button>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Processed Requests */}
-          {processedRequests.length > 0 && (
-            <div className="space-y-4">
-              <Separator />
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-semibold">Solicitudes Procesadas</h2>
-                <Badge variant="outline">{processedRequests.length}</Badge>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {processedRequests.map(request => (
-                  <Card key={request.id} className="transition-all hover:shadow-md">
-                    <CardContent className="space-y-1">
-                      <div className="flex flex-col">
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs font-medium">
-                              {request.student.name || 'Estudiante'}
-                            </p>
-                            {getStatusBadge(request.status)}
-                          </div>
-                          <div className="space-y-0">
-                            <p className="text-xs text-muted-foreground">
-                              Materia:{' '}
-                              <span className="text-foreground">{request.subject.name}</span>
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Solicitado por:{' '}
-                              <span className="text-foreground">{request.requestedBy.name}</span>
-                            </p>
-                            <p className="text-xs text-muted-foreground whitespace-nowrap">
-                              {format(new Date(request.createdAt), 'PPp', { locale: es })}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
                     </CardContent>
                   </Card>
                 ))}

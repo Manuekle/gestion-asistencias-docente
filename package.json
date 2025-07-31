@@ -1,12 +1,11 @@
 {
   "name": "gestion-asistencias-docente",
   "version": "1.0.0",
-  "description": "> **Prototipo de software para la gestión automatizada de asistencias estudiantiles mediante códigos QR**",
+  "description": "Software para la gestión automatizada de asistencias estudiantiles mediante códigos QR",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "prisma generate && next build",
     "seed": "prisma db seed",
-    "db:seed": "ts-node --compiler-options '{\"module\":\"commonjs\"}' prisma/seed.ts",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
@@ -17,7 +16,6 @@
     "test:coverage": "jest --coverage",
     "validate": "npm run lint && npm run type-check",
     "prepare": "husky",
-    "db:clean": "ts-node --compiler-options '{\"module\":\"commonjs\"}' prisma/cleanup.ts",
     "postbuild": "next-sitemap",
     "postinstall": "prisma generate",
     "update": "ncu -u"

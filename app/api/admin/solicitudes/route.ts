@@ -2,17 +2,54 @@ import { renderEmail } from '@/app/emails/renderEmail';
 import UnenrollStatusEmail from '@/app/emails/UnenrollStatusEmail';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
-import { Subject, UnenrollRequest, UnenrollRequestStatus, User } from '@prisma/client';
+import { UnenrollRequest, UnenrollRequestStatus } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
 import * as React from 'react';
 import { Resend } from 'resend';
 
-type UnenrollRequestWithRelations = UnenrollRequest & {
-  student: Pick<User, 'id' | 'name' | 'correoInstitucional'>;
-  subject: Pick<Subject, 'id' | 'name'>;
-  requestedBy: Pick<User, 'name' | 'correoInstitucional'>;
-};
+// Define the shape of the included relations
+interface StudentInfo {
+  id: string;
+  name: string | null;
+  correoInstitucional: string | null;
+}
+
+interface SubjectInfo {
+  id: string;
+  name: string;
+}
+
+interface RequesterInfo {
+  name: string | null;
+  correoInstitucional: string | null;
+}
+
+// Type for the unenroll request with all its relations
+interface UnenrollRequestWithRelations extends UnenrollRequest {
+  student: StudentInfo | null;
+  subject: SubjectInfo | null;
+  requestedBy: RequesterInfo | null;
+}
+
+// Type guard to check if an object has all required properties
+function isValidRequest(request: unknown): request is UnenrollRequestWithRelations {
+  if (!request || typeof request !== 'object') return false;
+
+  const req = request as Record<string, unknown>;
+  const student = req.student as StudentInfo | null | undefined;
+  const subject = req.subject as SubjectInfo | null | undefined;
+  const requestedBy = req.requestedBy as RequesterInfo | null | undefined;
+
+  return (
+    student !== null &&
+    student !== undefined &&
+    subject !== null &&
+    subject !== undefined &&
+    requestedBy !== null &&
+    requestedBy !== undefined
+  );
+}
 
 interface EmailProps {
   studentName: string;
@@ -33,8 +70,11 @@ export async function GET() {
       return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
     }
 
-    const requests = await db.unenrollRequest.findMany({
-      where: { status: 'PENDIENTE' },
+    // First, get all pending requests with their relations
+    const allRequests = await db.unenrollRequest.findMany({
+      where: {
+        status: 'PENDIENTE',
+      },
       include: {
         student: {
           select: {
@@ -61,7 +101,10 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ data: requests });
+    // Filter out any requests with null student, subject, or requestedBy using the type guard
+    const validRequests = allRequests.filter(isValidRequest);
+
+    return NextResponse.json(validRequests);
   } catch (error) {
     console.error('Error al obtener solicitudes:', error);
     return NextResponse.json({ message: 'Error al obtener las solicitudes' }, { status: 500 });
@@ -188,14 +231,20 @@ async function sendStatusEmail(request: UnenrollRequestWithRelations, isApproved
     const resend = new Resend(RESEND_API_KEY);
     const supportEmail = process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co';
 
+    // Ensure we have all required data before proceeding
+    if (!request.requestedBy?.correoInstitucional || !request.student || !request.subject) {
+      console.warn('No se pudo enviar el correo: datos incompletos en la solicitud');
+      return;
+    }
+
     // Use a verified domain for testing or the actual recipient
     const recipient =
       process.env.NODE_ENV === 'production'
         ? request.requestedBy.correoInstitucional
-        : 'delivered@resend.dev';
+        : 'elustondo129@gmail.com';
 
     // Use a verified sender domain from your Resend dashboard
-    const senderEmail = 'notificaciones@resend.dev'; // Replace with your verified domain
+    const senderEmail = 'onboarding@resend.dev'; // Replace with your verified domain
 
     if (!recipient) {
       console.warn('No se pudo enviar el correo: destinatario no especificado');
@@ -204,12 +253,17 @@ async function sendStatusEmail(request: UnenrollRequestWithRelations, isApproved
 
     console.log('Enviando correo a:', recipient);
 
+    // At this point, we've already verified that request.student and request.subject are not null
+    // but TypeScript still needs help with type narrowing
+    const student = request.student!;
+    const subject = request.subject!;
+
     const emailProps: EmailProps = {
-      studentName: request.student.name || 'Estudiante',
-      studentEmail: request.student.correoInstitucional || 'No especificado',
-      subjectName: request.subject?.name || 'Asignatura',
+      studentName: student.name || 'Estudiante',
+      studentEmail: student.correoInstitucional || 'No especificado',
+      subjectName: subject.name,
       isApproved,
-      reason: request.reviewComment || '',
+      reason: request.reviewComment || 'No se proporcionó una razón',
       requestDate: request.createdAt.toISOString(),
       decisionDate: new Date().toISOString(),
       supportEmail,

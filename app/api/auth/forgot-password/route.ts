@@ -51,22 +51,21 @@ export async function POST(request: NextRequest) {
     });
     const emailHtml = await renderEmail(emailComponent);
 
-    // Usar el dominio de prueba de Resend temporalmente
-    const testEmail = 'delivered@resend.dev';
-    const isTestEmail = correo.endsWith('@gmail.com') || correo.endsWith('@hotmail.com');
-
     // Enviar correo electrónico
     const { error } = await resend.emails.send({
       from: `Sistema de Asistencias FUP <onboarding@resend.dev>`,
-      to: isTestEmail ? testEmail : correo,
+      to: correo,
       subject: 'Restablece tu contraseña - Sistema de Asistencias FUP',
       html: emailHtml,
     });
 
     if (error) {
-      return NextResponse.json({ error: 'Error al enviar el correo de restablecimiento' }, {
-        status: 500,
-      });
+      return NextResponse.json(
+        { error: 'Error al enviar el correo de restablecimiento' },
+        {
+          status: 500,
+        }
+      );
     }
 
     return NextResponse.json(

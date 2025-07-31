@@ -33,9 +33,12 @@ export async function GET(request: Request, context: { params: { id: string } })
     });
 
     if (!subject) {
-      return NextResponse.json({ error: 'Asignatura no encontrada o no pertenece al docente' }, {
-        status: 404,
-      });
+      return NextResponse.json(
+        { error: 'Asignatura no encontrada o no pertenece al docente' },
+        {
+          status: 404,
+        }
+      );
     }
 
     const reports = await db.report.findMany({
@@ -80,9 +83,12 @@ export async function POST(request: Request, context: { params: { id: string } }
     });
 
     if (!subject) {
-      return NextResponse.json({ error: 'Asignatura no encontrada o no pertenece al docente' }, {
-        status: 404,
-      });
+      return NextResponse.json(
+        { error: 'Asignatura no encontrada o no pertenece al docente' },
+        {
+          status: 404,
+        }
+      );
     }
 
     // Crear el registro del reporte en la base de datos
