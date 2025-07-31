@@ -1,5 +1,6 @@
 import { db } from '@/lib/prisma';
 import { Class, Subject, User } from '@prisma/client';
+import { put } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
 import puppeteer from 'puppeteer';
@@ -218,7 +219,7 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
   try {
     await db.report.update({
       where: { id: reportId },
-      data: { status: 'PROCESSING' },
+      data: { status: 'EN_PROCESO' },
     });
 
     const subjectData = await db.subject.findUnique({
@@ -299,31 +300,27 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
     });
     await browser.close();
 
-    const reportsDir = path.join(process.cwd(), 'public', 'reports');
-    if (!fs.existsSync(reportsDir)) {
-      fs.mkdirSync(reportsDir, { recursive: true });
-    }
-
     const fileName = `registro-clases_${subjectData.code || subjectId}_${Date.now()}.pdf`;
-    const filePath = path.join(reportsDir, fileName);
-    fs.writeFileSync(filePath, pdfBuffer);
+    const blob = await put(`reports/${fileName}`, pdfBuffer, {
+      access: 'public',
+    });
 
     await db.report.update({
       where: { id: reportId },
       data: {
-        status: 'COMPLETED',
-        fileUrl: `/reports/${fileName}`,
+        status: 'COMPLETADO',
+        fileUrl: blob.url,
         fileName: fileName,
       },
     });
 
-    console.log(`Reporte generado exitosamente: ${filePath}`);
+    console.log(`Reporte generado exitosamente y subido a: ${blob.url}`);
   } catch (error) {
     console.error(`Error al generar el reporte para la asignatura ${subjectId}:`, error);
     await db.report.update({
       where: { id: reportId },
       data: {
-        status: 'FAILED',
+        status: 'FALLIDO',
         error: error instanceof Error ? error.message : 'Error desconocido',
       },
     });

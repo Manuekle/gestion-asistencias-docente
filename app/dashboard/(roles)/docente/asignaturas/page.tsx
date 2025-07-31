@@ -193,9 +193,10 @@ export default function SubjectsPage() {
           // Manejar diferentes formatos de fecha
           if (typeof subject.createdAt === 'string') {
             const dateStr = subject.createdAt;
-            subjectDate = new Date(dateStr);
-            if (isNaN(subjectDate.getTime()) && !dateStr.endsWith('Z')) {
-              subjectDate = new Date(`${dateStr}Z`);
+            const dateStrAsString = String(dateStr);
+            subjectDate = new Date(dateStrAsString);
+            if (isNaN(subjectDate.getTime()) && !dateStrAsString.endsWith('Z')) {
+              subjectDate = new Date(`${dateStrAsString}Z`);
             }
           } else if (subject.createdAt instanceof Date) {
             subjectDate = subject.createdAt;

@@ -1,23 +1,17 @@
 'use client';
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, Tooltip, XAxis } from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Loader2, RefreshCw } from 'lucide-react';
+import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart';
 import { LoadingPage } from './ui/loading';
+
+import { useEffect, useState } from 'react';
 
 interface Teacher {
   id: string;
@@ -81,13 +75,6 @@ const getBadgeClass = (percentage: number) => {
 
 const NEUTRAL_PALETTE = ['#404040', '#525252', '#737373', '#a3a3a3', '#d4d4d4'] as const;
 
-// Paleta de colores más sutiles y contrastantes para el gráfico de pastel
-const PIE_COLORS = [
-  '#4CAF50', // Presente - verde suave
-  '#F44336', // Ausente - rojo vibrante
-  '#FF9800', // Justificado - naranja cálido
-] as const;
-
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     // Obtener la fecha formateada del primer payload
@@ -140,27 +127,41 @@ function SubjectDetailsPanel({
     attendanceTotals.late +
     attendanceTotals.justified;
 
-  const pieData = [
+  // Define the pie chart data for the ChartContainer config
+  const pieChartConfig = {
+    present: {
+      label: 'Presente',
+      color: '#589FD3',
+    },
+    absent: {
+      label: 'Ausente',
+      color: '#8C171D',
+    },
+    justified: {
+      label: 'Justificado',
+      color: '#4CAF50',
+    },
+  } as const;
+
+  // Create the data array for the Pie chart
+  const pieChartData = [
     {
       name: 'Presente',
       value: attendanceTotals.present,
-      fill: '#589FD3',
       percentage: calculatePercentage(attendanceTotals.present, totalAttendance),
+      fill: '#589FD3',
     },
     {
       name: 'Ausente',
       value: attendanceTotals.absent + attendanceTotals.late,
+      percentage: calculatePercentage(attendanceTotals.absent + attendanceTotals.late, totalAttendance),
       fill: '#8C171D',
-      percentage: calculatePercentage(
-        attendanceTotals.absent + attendanceTotals.late,
-        totalAttendance
-      ),
     },
     {
       name: 'Justificado',
       value: attendanceTotals.justified,
-      fill: '#FDBE0F',
       percentage: calculatePercentage(attendanceTotals.justified, totalAttendance),
+      fill: '#4CAF50',
     },
   ].filter(item => item.value > 0);
 
@@ -279,34 +280,76 @@ function SubjectDetailsPanel({
               </Badge>
             </div>
             <div className="border rounded-lg p-4">
-              <ChartContainer config={{ pieData }} className="mx-auto aspect-square max-h-[250px]">
-                <PieChart>
+              <ChartContainer config={pieChartConfig} className="mx-auto aspect-square max-h-[250px]">
+                <LineChart>
                   <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                  <Pie
-                    data={pieData}
+                  <Line
+                    type="monotone"
                     dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    label
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={PIE_COLORS[index % PIE_COLORS.length]}
-                        style={{
-                          transition: 'all 0.3s ease',
-                        }}
-                      />
-                    ))}
-                  </Pie>
-                </PieChart>
+                    name="Presente"
+                    stroke="#589FD3"
+                    strokeWidth={2}
+                    dot={{
+                      r: 3,
+                      stroke: 'currentColor',
+                      className: 'text-foreground',
+                      strokeWidth: 2,
+                    }}
+                    activeDot={{
+                      r: 3,
+                      stroke: 'currentColor',
+                      className: 'text-foreground',
+                      strokeWidth: 2,
+                    }}
+                    animationDuration={800}
+                    animationEasing="ease-in-out"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    name="Ausente"
+                    stroke="#8C171D"
+                    strokeWidth={2}
+                    dot={{
+                      r: 3,
+                      stroke: 'currentColor',
+                      className: 'text-foreground',
+                      strokeWidth: 2,
+                    }}
+                    activeDot={{
+                      r: 3,
+                      stroke: 'currentColor',
+                      className: 'text-foreground',
+                      strokeWidth: 2,
+                    }}
+                    animationDuration={800}
+                    animationEasing="ease-in-out"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    name="Justificado"
+                    stroke="#4CAF50"
+                    strokeWidth={2}
+                    dot={{
+                      r: 3,
+                      stroke: 'currentColor',
+                      className: 'text-foreground',
+                      strokeWidth: 2,
+                    }}
+                    activeDot={{
+                      r: 3,
+                      stroke: 'currentColor',
+                      className: 'text-foreground',
+                      strokeWidth: 2,
+                    }}
+                    animationDuration={800}
+                    animationEasing="ease-in-out"
+                  />
+                </LineChart>
               </ChartContainer>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-8">
-                {pieData.map((item, index) => (
+                {pieChartData.map((item, index) => (
                   <div
                     key={index}
                     className="rounded-xl p-4 border bg-muted/20 hover:bg-muted/30 transition-colors"
@@ -314,7 +357,7 @@ function SubjectDetailsPanel({
                     <div className="flex items-center gap-2 mb-1.5">
                       <div
                         className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
+                        style={{ backgroundColor: pieChartConfig[Object.keys(pieChartConfig)[index] as keyof typeof pieChartConfig]?.color || '#000' }}
                       />
                       <span className="text-sm font-normal text-foreground">{item.name}</span>
                     </div>
@@ -340,20 +383,6 @@ export function TeacherReport() {
   const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
-  const [loadingTeachers, setLoadingTeachers] = useState(true);
-  // El periodo inicial es '' y se ajusta automáticamente según los periodos disponibles
-  const [period, setPeriod] = useState('');
-  const [periodOptions, setPeriodOptions] = useState<string[]>([]);
-  const [historicData, setHistoricData] = useState<HistoricApiResponse | null>(null);
-  const [loadingData, setLoadingData] = useState(false);
-  const [chartData, setChartData] = useState<ChartRow[]>([]);
-  const [subjects, setSubjects] = useState<{ id: string; name: string; code: string }[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const TEACHERS_PER_PAGE = 5;
-
-  const lineColors = NEUTRAL_PALETTE;
 
   // Update period options based on teacher's historic data
   useEffect(() => {
@@ -397,7 +426,6 @@ export function TeacherReport() {
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        setLoadingTeachers(true);
         const response = await fetch('/api/admin/users?role=DOCENTE');
         if (!response.ok) throw new Error('No se pudo cargar la lista de docentes.');
         const data = await response.json();
@@ -406,8 +434,6 @@ export function TeacherReport() {
       } catch (err: unknown) {
         console.error('Error fetching teachers:', err);
         setError(err instanceof Error ? err.message : 'No se pudo cargar la lista de docentes.');
-      } finally {
-        setLoadingTeachers(false);
       }
     };
     fetchTeachers();
@@ -535,54 +561,27 @@ export function TeacherReport() {
           </div>
         </CardHeader>
         <CardContent className="p-2 overflow-y-auto relative [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar-track]:hidden [&::-webkit-scrollbar-thumb]:hidden">
-          {loadingTeachers ? (
-            <div className="space-y-2 p-2">
-              {Array.from({ length: TEACHERS_PER_PAGE }).map((_, i) => (
-                <Skeleton key={i} className="h-14 w-full rounded-lg" />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {paginatedTeachers.map(teacher => (
-                <Button
-                  key={teacher.id}
-                  variant={selectedTeacher?.id === teacher.id ? 'secondary' : 'ghost'}
-                  className="w-full justify-start h-auto p-3 rounded-lg"
-                  onClick={() => setSelectedTeacher(teacher)}
-                >
-                  <div className="flex items-center gap-3 w-full">
-                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
-                      {teacher.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="font-medium text-sm tracking-heading truncate">
-                        {teacher.name}
-                      </div>
-                      {teacher.codigoDocente && (
-                        <div className="text-xs text-muted-foreground/80 font-mono truncate">
-                          {teacher.codigoDocente}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          )}
           {loadingData && <LoadingPage />}
         </CardContent>
         {totalPages > 1 && (
           <CardFooter className="p-2 border-t">
             <div className="flex items-center justify-between w-full">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                disabled={currentPage === 1}
-                className="h-8 px-3"
-              >
-                Ant.
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleRefresh()}
+                    disabled={loadingData}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <CustomTooltip />
+                </TooltipContent>
+              </Tooltip>
               <span className="text-xs font-mono text-muted-foreground">
                 {currentPage}/{totalPages}
               </span>
@@ -603,10 +602,10 @@ export function TeacherReport() {
       {/* Main Content */}
       <div className="flex-1 overflow-auto px-0 md:pl-6 pt-4 md:pt-0 [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar-track]:hidden [&::-webkit-scrollbar-thumb]:hidden">
         {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error</strong>
+            <span className="block sm:inline"> {error}</span>
+          </div>
         )}
         {selectedTeacher ? (
           <div className="space-y-6">

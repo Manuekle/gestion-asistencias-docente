@@ -76,7 +76,8 @@ async function main() {
       codigoDocente: teacherCode,
       role: Role.DOCENTE,
       isActive: true,
-      signatureUrl: 'https://example.com/signature.png',
+      signatureUrl:
+        'https://rijwjlzt9wsyq7fc.public.blob.vercel-storage.com/signatures/download-Pw5ZZwP96mG9ZZNBFMCJxI3AeUB7VA.jpeg',
     },
   });
   console.log(`✅ Created teacher user: ${teacher.correoInstitucional} with code ${teacherCode}`);

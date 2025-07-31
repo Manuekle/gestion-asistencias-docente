@@ -152,7 +152,7 @@ export async function PUT(request: Request) {
     const updatedAttendance = await db.attendance.upsert({
       where: { studentId_classId: { studentId, classId } },
       update: { status },
-      create: { studentId, classId, status, recordedById: session.user.id },
+      create: { studentId, classId, status },
     });
 
     return NextResponse.json(updatedAttendance, { status: 200 });

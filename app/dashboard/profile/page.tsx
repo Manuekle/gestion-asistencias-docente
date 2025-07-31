@@ -1,7 +1,8 @@
 // app/dashboard/profile/page.tsx
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SignatureFileUpload } from '@/components/profile/SignatureFileUpload';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,11 +14,13 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LoadingPage } from '@/components/ui/loading';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, Loader2, Lock, PenLine, Upload, User } from 'lucide-react';
+import { uploadSignature } from '@/lib/actions/user.actions';
+import { AlertCircle, Loader2, Lock, PenLine, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
@@ -54,22 +57,20 @@ export default function ProfilePage() {
   }, [session]);
 
   // Handle file selection for signature
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        // 2MB limit
-        toast.error('El archivo es demasiado grande. El tamaño máximo permitido es 2MB.');
-        return;
-      }
-      setSignatureFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSignaturePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleFileSelect = (file: File) => {
+    if (file.size > 2 * 1024 * 1024) {
+      // 2MB limit
+      toast.error('El archivo es demasiado grande. El tamaño máximo es 2MB.');
+      return;
     }
-  }, []);
+    setSignatureFile(file);
+    setSignaturePreview(URL.createObjectURL(file));
+  };
+
+  const handleCancelSignature = () => {
+    setSignatureFile(null);
+    setSignaturePreview(session?.user?.signatureUrl || null);
+  };
 
   // Update profile
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -79,12 +80,7 @@ export default function ProfilePage() {
       const response = await fetch('/api/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: session?.user?.id,
-          name,
-          correoInstitucional,
-          correoPersonal: correoPersonal || null,
-        }),
+        body: JSON.stringify({ name, correoPersonal }),
       });
 
       if (!response.ok) {
@@ -92,17 +88,7 @@ export default function ProfilePage() {
         throw new Error(error.message || 'Error al actualizar el perfil');
       }
 
-      // Update session
-      await update({
-        ...session,
-        user: {
-          ...session?.user,
-          name,
-          correoInstitucional,
-          correoPersonal,
-        },
-      });
-
+      await update({ name, correoPersonal });
       toast.success('Perfil actualizado correctamente');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error al actualizar el perfil';
@@ -152,40 +138,34 @@ export default function ProfilePage() {
 
   // Upload signature
   const handleUploadSignature = async () => {
-    if (!signatureFile) return;
-
-    const formData = new FormData();
-    formData.append('signature', signatureFile);
+    if (!signatureFile || !session?.user?.id) return;
 
     setIsSignatureLoading(true);
+    const formData = new FormData();
+    formData.append('file', signatureFile);
+
     try {
-      const response = await fetch('/api/upload/signature', {
-        method: 'POST',
-        body: formData,
-      });
+      const result = await uploadSignature(formData);
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error al subir la firma');
+      if (result.success && result.url) {
+        toast.success('Firma actualizada con éxito.');
+        // Update session first to get the new data
+        await update();
+        // Then update the local state from the newly updated session
+        setSignaturePreview(result.url);
+        setSignatureFile(null);
+      } else {
+        toast.error(result.message || 'Error al subir la firma.');
       }
-
-      const data = await response.json();
-      await update({ signatureUrl: data.url });
-      toast.success('Firma actualizada correctamente');
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al subir la firma';
-      toast.error(errorMessage);
+    } catch {
+      toast.error('Ocurrió un error inesperado.');
     } finally {
       setIsSignatureLoading(false);
     }
   };
 
   if (status === 'loading') {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   return (
@@ -238,31 +218,12 @@ export default function ProfilePage() {
             <form onSubmit={handleUpdateProfile}>
               <CardContent className="space-y-6">
                 <div className="flex flex-col sm:flex-row items-center gap-6">
-                  <div className="relative group">
-                    <Avatar className="h-24 w-24">
-                      <AvatarImage
-                        src={session?.user?.image || ''}
-                        alt={session?.user?.name || 'Usuario'}
-                      />
+                  <div className="relative">
+                    <Avatar className="h-24 w-24 bg-primary/10">
                       <AvatarFallback className="text-2xl">
                         {session?.user?.name?.charAt(0) || 'U'}
                       </AvatarFallback>
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                        <Upload className="h-6 w-6 text-white" />
-                      </div>
                     </Avatar>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      onChange={e => {
-                        // Handle profile picture upload
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          // Add your profile picture upload logic here
-                        }
-                      }}
-                    />
                   </div>
                   <div className="flex-1 w-full space-y-4">
                     <div className="space-y-2">
@@ -396,79 +357,60 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex flex-col sm:flex-row items-start gap-8">
-                  <div className="space-y-2 flex-1">
-                    <div className="space-y-2">
-                      <Label>Vista previa</Label>
-                      <div className="border-2 border-dashed rounded-lg p-6 flex items-center justify-center h-48 bg-muted/30">
-                        {signaturePreview ? (
-                          <div className="relative w-full h-full">
-                            <Image
-                              src={signaturePreview}
-                              alt="Firma digital"
-                              fill
-                              style={{ objectFit: 'contain' }}
-                              sizes="(max-width: 768px) 100vw, 50vw"
-                              priority
-                            />
-                          </div>
-                        ) : (
-                          <div className="text-center text-muted-foreground">
-                            <p>No hay firma cargada</p>
-                            <p className="text-xs mt-1">La firma aparecerá aquí</p>
-                          </div>
-                        )}
+                <div className="space-y-2">
+                  <Label>Vista previa de la Firma</Label>
+                  <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center h-40 bg-muted/30 w-full">
+                    {signaturePreview ? (
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={signaturePreview}
+                          alt="Firma digital'"
+                          fill
+                          style={{ objectFit: 'contain' }}
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                        />
                       </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Formato: PNG o JPG (máx. 2MB). La firma debe estar en fondo transparente.
-                    </p>
-                  </div>
-
-                  <div className="border-l pl-6 space-y-6 w-full sm:max-w-xs">
-                    <div>
-                      <Label htmlFor="signature-upload" className="cursor-pointer">
-                        <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 space-y-2 hover:bg-muted/30 transition-colors">
-                          <Upload className="h-6 w-6 text-muted-foreground" />
-                          <p className="text-sm font-normal">Seleccionar archivo</p>
-                          <p className="text-xs text-muted-foreground text-center">
-                            Arrastra y suelta la imagen, o haz clic para seleccionar
-                          </p>
-                        </div>
-                      </Label>
-                      <input
-                        id="signature-upload"
-                        type="file"
-                        accept="image/png, image/jpeg"
-                        className="hidden"
-                        onChange={handleFileChange}
-                      />
-                      {signatureFile && (
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          Seleccionado: {signatureFile.name}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="pt-2">
-                      <Button
-                        type="button"
-                        onClick={handleUploadSignature}
-                        disabled={!signatureFile || isSignatureLoading}
-                        className="w-full"
-                      >
-                        {isSignatureLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Subiendo...
-                          </>
-                        ) : (
-                          'Guardar Firma'
-                        )}
-                      </Button>
-                    </div>
+                    ) : (
+                      <div className="text-center text-muted-foreground">
+                        <p className="text-sm">No hay firma cargada</p>
+                        <p className="text-xs mt-1">La vista previa aparecerá aquí</p>
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                <SignatureFileUpload onFileSelect={handleFileSelect} file={signatureFile} />
+
+                {signatureFile && (
+                  <div className="text-center text-sm text-muted-foreground">
+                    Archivo seleccionado:{' '}
+                    <span className="font-medium text-foreground">{signatureFile.name}</span>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-2 pt-2">
+                  <Button
+                    onClick={handleUploadSignature}
+                    disabled={!signatureFile || isSignatureLoading}
+                    className="w-full"
+                  >
+                    {isSignatureLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Subiendo...
+                      </>
+                    ) : (
+                      'Guardar Firma'
+                    )}
+                  </Button>
+                  {signatureFile && (
+                    <Button onClick={handleCancelSignature} variant="outline" className="w-full">
+                      Cancelar
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground text-center pt-2">
+                  Formato recomendado: PNG con fondo transparente (máx. 2MB).
+                </p>
               </CardContent>
             </Card>
           </TabsContent>

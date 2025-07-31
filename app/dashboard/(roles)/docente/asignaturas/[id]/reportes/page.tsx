@@ -3,8 +3,7 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -16,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -24,8 +23,8 @@ import { toast } from 'sonner';
 // Interfaz para el objeto Reporte, coincidiendo con el modelo de Prisma
 interface Report {
   id: string;
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
-  format: 'PDF' | 'CSV';
+  status: 'PENDIENTE' | 'EN_PROCESO' | 'COMPLETADO' | 'FALLIDO';
+  format: 'pdf' | 'csv';
   fileUrl: string | null;
   fileName: string | null;
   error: string | null;
@@ -34,29 +33,25 @@ interface Report {
 
 const ReportStatusBadge = ({ status }: { status: Report['status'] }) => {
   const statusConfig = {
-    PENDING: {
+    PENDIENTE: {
       variant: 'secondary',
       text: 'Pendiente',
-      icon: <Loader2 className="h-3 w-3 animate-spin" />,
     },
-    PROCESSING: {
+    EN_PROCESO: {
       variant: 'default',
       text: 'Procesando',
-      icon: <Loader2 className="h-3 w-3 animate-spin" />,
     },
-    COMPLETED: {
+    COMPLETADO: {
       variant: 'success',
       text: 'Completado',
-      icon: <CheckCircle2 className="h-3 w-3" />,
     },
-    FAILED: {
+    FALLIDO: {
       variant: 'destructive',
       text: 'Fallido',
-      icon: <XCircle className="h-3 w-3" />,
     },
   };
 
-  const { variant, text, icon } = statusConfig[status] || statusConfig.PENDING;
+  const { variant, text } = statusConfig[status] || statusConfig.PENDIENTE;
 
   // Define a type that matches the expected variant values for the Badge component
   type BadgeVariant =
@@ -73,8 +68,7 @@ const ReportStatusBadge = ({ status }: { status: Report['status'] }) => {
       variant={variant as BadgeVariant}
       className="flex items-center gap-1.5 whitespace-nowrap w-1/2"
     >
-      {icon}
-      <span>{text}</span>
+      <span className="text-xs font-normal">{text}</span>
     </Badge>
   );
 };
@@ -87,6 +81,7 @@ const SubjectReportPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null);
 
   const fetchReports = useCallback(async () => {
     if (!subjectId) return;
@@ -113,7 +108,7 @@ const SubjectReportPage = () => {
   // Polling para actualizar el estado de los reportes en proceso
   useEffect(() => {
     const hasPendingReports = reports.some(
-      r => r.status === 'PENDING' || r.status === 'PROCESSING'
+      r => r.status === 'PENDIENTE' || r.status === 'EN_PROCESO'
     );
     if (!hasPendingReports) return;
 
@@ -146,6 +141,41 @@ const SubjectReportPage = () => {
       toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleDownload = async (report: Report) => {
+    if (!report.fileUrl || !report.fileName) {
+      toast.error('La URL o el nombre del archivo no están disponibles.');
+      return;
+    }
+
+    setDownloadingReportId(report.id);
+    toast.info('Iniciando la descarga...');
+
+    try {
+      const response = await fetch(report.fileUrl);
+      if (!response.ok) {
+        throw new Error(`Error al descargar el archivo: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = report.fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Descarga completada.');
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Ocurrió un error al descargar el reporte';
+      toast.error(errorMessage);
+    } finally {
+      setDownloadingReportId(null);
     }
   };
 
@@ -185,83 +215,72 @@ const SubjectReportPage = () => {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="font-sans text-xl font-semibold tracking-card">
-              Historial de Reportes Generados
-            </span>
-            <Button variant="ghost" size="icon" onClick={fetchReports} title="Refrescar historial">
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </CardTitle>
-          <CardDescription>Aquí encontrarás todos los reportes que has solicitado.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="border rounded-md overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
-                    Fecha de Solicitud
-                  </TableHead>
-                  <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
-                    Formato
-                  </TableHead>
-                  <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
-                    Estado
-                  </TableHead>
-                  <TableHead className="text-right text-xs tracking-tight font-normal px-4 py-2">
-                    Acciones
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reports.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
-                      Aún no se ha generado ningún reporte.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  reports.map(report => (
-                    <TableRow key={report.id}>
-                      <TableCell className="text-sm px-4 py-2">
-                        {format(new Date(report.createdAt), "d 'de' MMMM, yyyy 'a las' HH:mm", {
-                          locale: es,
-                        })}
-                      </TableCell>
-                      <TableCell className="text-sm px-4 py-2">
-                        <Badge variant="outline" className="text-xs font-normal">
-                          {report.format}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm py-2 font-normal">
-                        <ReportStatusBadge status={report.status} />
-                      </TableCell>
-                      <TableCell className="text-right text-sm py-2">
-                        {report.status === 'COMPLETED' && report.fileUrl ? (
-                          <Button asChild size="sm">
-                            <a href={report.fileUrl} target="_blank" rel="noopener noreferrer">
-                              Descargar
-                            </a>
-                          </Button>
-                        ) : report.status === 'FAILED' ? (
-                          <span className="text-xs text-destructive">
-                            {report.error || 'Error desconocido'}
-                          </span>
+      <div className="border rounded-md overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
+                Fecha de Solicitud
+              </TableHead>
+              <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
+                Formato
+              </TableHead>
+              <TableHead className="text-xs tracking-tight font-normal px-4 py-2">Estado</TableHead>
+              <TableHead className="text-right text-xs tracking-tight font-normal px-4 py-2">
+                Acciones
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {reports.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  Aún no se ha generado ningún reporte.
+                </TableCell>
+              </TableRow>
+            ) : (
+              reports.map(report => (
+                <TableRow key={report.id}>
+                  <TableCell className="text-sm px-4 py-2">
+                    {format(new Date(report.createdAt), "d 'de' MMMM, yyyy 'a las' HH:mm", {
+                      locale: es,
+                    })}
+                  </TableCell>
+                  <TableCell className="text-sm px-4 py-2">
+                    <Badge variant="outline" className="text-xs font-normal lowercase">
+                      {report.format}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm py-2 font-normal">
+                    <ReportStatusBadge status={report.status} />
+                  </TableCell>
+                  <TableCell className="text-right text-sm py-2">
+                    {report.status === 'COMPLETADO' && report.fileUrl ? (
+                      <Button
+                        size="sm"
+                        onClick={() => handleDownload(report)}
+                        disabled={downloadingReportId === report.id}
+                      >
+                        {downloadingReportId === report.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <span className="text-xs text-muted-foreground">No disponible</span>
+                          'Descargar'
                         )}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                      </Button>
+                    ) : report.status === 'FALLIDO' ? (
+                      <span className="text-xs text-destructive">
+                        {report.error || 'Error desconocido'}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">No disponible</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };

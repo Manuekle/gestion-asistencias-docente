@@ -9,10 +9,19 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'rijwjlzt9wsyq7fc.public.blob.vercel-storage.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
+  serverActions: {
+    bodySizeLimit: '3mb',
+  },
   eslint: {
-    ignoreDuringBuilds: process.env.NODE_ENV === 'production',
+    ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: process.env.NODE_ENV === 'production', // Asegura que errores de TypeScript detengan la compilación

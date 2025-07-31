@@ -10,7 +10,7 @@ declare global {
 }
 
 // Evita múltiples instancias de Prisma en desarrollo
-const prisma: CustomPrismaClient = globalThis.prisma || (new PrismaClient() as CustomPrismaClient);
+export const prisma: CustomPrismaClient = globalThis.prisma || new PrismaClient() as CustomPrismaClient;
 
 if (process.env.NODE_ENV !== 'production') {
   globalThis.prisma = prisma;

@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { z } from 'zod';
-import { generateAttendanceReportPDF } from '@/lib/pdf-generator';
+import { generateAttendanceReportPDF } from '@/lib/generar-reporte-docente';
 
 // Esquema de validación para la creación de un reporte
 const createReportSchema = z.object({
@@ -90,7 +90,7 @@ export async function POST(request: Request, context: { params: { id: string } }
       data: {
         subjectId: subjectId,
         requestedById: session.user.id,
-        status: 'PENDING', // El estado inicial es pendiente
+        status: 'PENDIENTE', // El estado inicial es pendiente
         format: format,
         fileName: `Reporte_${subject.code}_${new Date().toISOString()}.pdf`,
       },

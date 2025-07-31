@@ -161,44 +161,54 @@ export async function POST(request: Request) {
     } else {
       // --- Lógica de Carga Final ---
       const resultados: ResultRow[] = [];
-      const errors: { codigoAsignatura: string; message: string }[] = [];
+      const previewData = (await request.json()) as PreviewRow[];
 
-      for (const row of excelData) {
-        const { codigoAsignatura, estudiantes } = row;
-        if (!codigoAsignatura || estudiantes.length === 0) continue;
+      for (const row of previewData) {
+        const { codigoAsignatura } = row;
+
+        // Asegurarse de que row.estudiantes es un array antes de usarlo
+        const estudiantesDetails = Array.isArray(row.estudiantes) ? row.estudiantes : [];
+
+        if (!codigoAsignatura || row.error) {
+          resultados.push({ codigoAsignatura, status: 'skipped', error: row.error });
+          continue;
+        }
 
         const subject = await db.subject.findUnique({ where: { code: codigoAsignatura } });
         if (!subject) {
-          errors.push({ codigoAsignatura, message: 'Asignatura no encontrada' });
+          resultados.push({ codigoAsignatura, status: 'error', error: 'Asignatura no encontrada' });
+          continue;
+        }
+
+        const studentDocsToUpdate = estudiantesDetails
+          .filter(e => e.status === 'success')
+          .map(e => e.doc);
+
+        if (studentDocsToUpdate.length === 0) {
+          resultados.push({ codigoAsignatura, status: 'skipped' });
           continue;
         }
 
         const foundStudents = await db.user.findMany({
-          where: { document: { in: estudiantes }, role: 'ESTUDIANTE' },
-          select: { id: true, document: true },
+          where: { document: { in: studentDocsToUpdate }, role: 'ESTUDIANTE' },
+          select: { id: true },
         });
 
+        const newStudentIds = foundStudents.map(s => s.id);
         const currentStudentIds = subject.studentIds || [];
-        const validStudentIds = foundStudents.map(s => s.id);
-        const newStudentIds = validStudentIds.filter(id => !currentStudentIds.includes(id));
+        const finalStudentIds = [...new Set([...currentStudentIds, ...newStudentIds])];
 
-        const invalidDocs = estudiantes.filter(doc => !foundStudents.some(s => s.document === doc));
-        if (invalidDocs.length > 0) {
-          errors.push({
-            codigoAsignatura,
-            message: `Documentos no encontrados: ${invalidDocs.join(', ')}`,
-          });
-        }
-
-        if (newStudentIds.length > 0) {
+        if (finalStudentIds.length > currentStudentIds.length) {
           await db.subject.update({
             where: { id: subject.id },
-            data: { studentIds: { set: [...currentStudentIds, ...newStudentIds] } },
+            data: { studentIds: { set: finalStudentIds } },
           });
+          resultados.push({ codigoAsignatura, status: 'updated', updated: true });
+        } else {
+          resultados.push({ codigoAsignatura, status: 'skipped' });
         }
-        resultados.push({ codigoAsignatura, status: 'updated' });
       }
-
+      const errors: { codigoAsignatura: string; message: string }[] = [];
       return NextResponse.json({
         success: true,
         message: 'Carga completada.',
