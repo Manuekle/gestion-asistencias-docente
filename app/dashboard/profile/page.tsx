@@ -62,13 +62,31 @@ export default function ProfilePage() {
   // Signature
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
   const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
-  const [signatureTab, setSignatureTab] = useState('upload');
 
-  const handleSignatureTabChange = (value: string) => {
-    setSignatureTab(value);
-    handleCancelSignature(); // Reset state when switching tabs
-  };
   const sigCanvas = useRef<SignatureCanvas>(null);
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
+
+  // This effect handles the resizing of the signature canvas to prevent pixelation.
+  useEffect(() => {
+    const canvas = sigCanvas.current?.getCanvas();
+    const wrapper = canvasWrapperRef.current;
+
+    if (!canvas || !wrapper) return;
+
+    const handleResize = () => {
+      const { width, height } = wrapper.getBoundingClientRect();
+      canvas.width = width;
+      canvas.height = height;
+      sigCanvas.current?.clear(); // Clearing is necessary after resize
+    };
+
+    handleResize(); // Set initial size
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   // Initialize form with session data
   useEffect(() => {
@@ -82,8 +100,6 @@ export default function ProfilePage() {
       }
     }
   }, [session, signatureFile]);
-
-
 
   // Handle file selection for signature
   const handleFileSelect = (file: File | null) => {
@@ -263,7 +279,7 @@ export default function ProfilePage() {
         <TabsContent value="profile" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg font-semibold tracking-card">
+              <CardTitle className="text-xl font-semibold tracking-card">
                 Información Personal
               </CardTitle>
               <CardDescription className="text-xs">
@@ -335,7 +351,7 @@ export default function ProfilePage() {
         <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg font-semibold tracking-card">
+              <CardTitle className="text-xl font-semibold tracking-card">
                 Cambiar Contraseña
               </CardTitle>
               <CardDescription className="text-xs">
@@ -404,51 +420,53 @@ export default function ProfilePage() {
           <TabsContent value="signature" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-semibold tracking-tight">
-                  Firma Digital
-                </CardTitle>
+                <CardTitle className="text-xl font-semibold tracking-card">Firma Digital</CardTitle>
                 <CardDescription className="text-xs">
                   Sube tu firma digital para usarla en documentos oficiales.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <Tabs
-                  value={signatureTab}
-                  onValueChange={handleSignatureTabChange}
-                  className="w-full"
-                >
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="upload">Subir Archivo</TabsTrigger>
-                    <TabsTrigger value="draw">Dibujar Firma</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="upload" className="space-y-4 pt-4">
+              {/* firma */}
+              <CardContent className="p-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Subir Archivo */}
+                  <div className="space-y-3 h-full">
+                    <Label className="text-sm font-medium">Subir Firma</Label>
                     <SignatureFileUpload onFileSelect={handleFileSelect} file={signatureFile} />
-                    <p className="text-xs text-muted-foreground text-center">
-                      Formato recomendado: PNG con fondo transparente (máx. 2MB).
+                    <p className="text-xs text-muted-foreground">
+                      PNG con fondo transparente (máx. 2MB)
                     </p>
-                  </TabsContent>
-                  <TabsContent value="draw" className="space-y-4 pt-4">
-                    <div className="w-full aspect-[2/1] bg-muted/30 rounded-lg border-2 border-dashed">
+                  </div>
+
+                  {/* Dibujar Firma */}
+                  <div className="space-y-3 h-full">
+                    <Label className="text-sm font-medium">Dibujar Firma</Label>
+                    <div
+                      ref={canvasWrapperRef}
+                      className="w-full aspect-[2.5/1] bg-muted/20 rounded-md border border-dashed border-muted-foreground/30"
+                    >
                       <SignatureCanvas
                         ref={sigCanvas}
                         penColor="black"
                         canvasProps={{
-                          className: 'w-full h-full',
+                          className: 'w-full h-full rounded-md',
                         }}
                       />
                     </div>
-                    <div className="flex justify-center gap-4">
-                      <Button variant="outline" onClick={clearCanvas}>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={clearCanvas} className="flex-1">
                         Limpiar
                       </Button>
-                      <Button onClick={saveCanvas}>Capturar Firma</Button>
+                      <Button size="sm" onClick={saveCanvas} className="flex-1">
+                        Capturar
+                      </Button>
                     </div>
-                  </TabsContent>
-                </Tabs>
+                  </div>
+                </div>
 
-                <div className="space-y-2">
-                  <Label>Vista Previa</Label>
-                  <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center h-40 bg-muted/30 w-full">
+                {/* Vista Previa */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Vista Previa</Label>
+                  <div className="border border-muted-foreground/20 rounded-md p-4 flex items-center justify-center h-56 bg-card">
                     {signaturePreview ? (
                       <div className="relative w-full h-full">
                         <Image
@@ -457,24 +475,26 @@ export default function ProfilePage() {
                           fill
                           style={{ objectFit: 'contain' }}
                           sizes="(max-width: 768px) 100vw, 50vw"
+                          className="rounded-sm"
                         />
                       </div>
                     ) : (
-                      <div className="text-center text-muted-foreground">
-                        <p className="text-sm">Aún no hay firma</p>
-                        <p className="text-xs mt-1">La vista previa aparecerá aquí.</p>
+                      <div className="text-center text-muted-foreground/60">
+                        <p className="text-sm">Sin firma</p>
                       </div>
                     )}
                   </div>
                 </div>
 
+                {/* Estado del archivo */}
                 {signatureFile && (
-                  <div className="text-center text-sm text-muted-foreground">
-                    Listo para guardar:{' '}
-                    <span className="font-medium text-foreground">{signatureFile.name}</span>
+                  <div className="flex items-center gap-3 text-sm bg-muted/30 border border-muted-foreground/20 rounded-md px-3 py-2">
+                    <span className="font-medium">{signatureFile.name}</span>
+                    <span className="text-muted-foreground text-xs ml-auto">Listo</span>
                   </div>
                 )}
               </CardContent>
+              {/* fin firma */}
               <CardFooter className="flex flex-col gap-2 pt-4">
                 <Button
                   onClick={handleUploadSignature}
