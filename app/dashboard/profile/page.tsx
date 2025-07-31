@@ -20,8 +20,25 @@ import { uploadSignature } from '@/lib/actions/user.actions';
 import { AlertCircle, Loader2, Lock, PenLine, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import SignatureCanvas from 'react-signature-canvas';
 import { toast } from 'sonner';
+
+function dataURLtoFile(dataurl: string, filename: string): File {
+  const arr = dataurl.split(',');
+  const mimeMatch = arr[0].match(/:(.*?);/);
+  if (!mimeMatch) {
+    throw new Error('Invalid data URL');
+  }
+  const mime = mimeMatch[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, { type: mime });
+}
 
 export default function ProfilePage() {
   const { data: session, status, update } = useSession();
@@ -38,38 +55,75 @@ export default function ProfilePage() {
   // Password form
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+
+  // Password form
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // Signature
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
   const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
+  const [signatureTab, setSignatureTab] = useState('upload');
+
+  const handleSignatureTabChange = (value: string) => {
+    setSignatureTab(value);
+    handleCancelSignature(); // Reset state when switching tabs
+  };
+  const sigCanvas = useRef<SignatureCanvas>(null);
 
   // Initialize form with session data
   useEffect(() => {
     if (session?.user) {
       setName(session.user.name || '');
-      setCorreoInstitucional(session.user.correoInstitucional || '');
-      setCorreoPersonal(session.user.correoPersonal || '');
-      if (session.user.signatureUrl) {
-        setSignaturePreview(session.user.signatureUrl);
+      setCorreoInstitucional(session.user?.email || '');
+      setCorreoPersonal(session.user?.correoPersonal || '');
+      // Set initial preview from session
+      if (!signatureFile) {
+        setSignaturePreview(session.user?.signatureUrl || null);
       }
     }
-  }, [session]);
+  }, [session, signatureFile]);
+
+
 
   // Handle file selection for signature
-  const handleFileSelect = (file: File) => {
-    if (file.size > 2 * 1024 * 1024) {
-      // 2MB limit
-      toast.error('El archivo es demasiado grande. El tamaño máximo es 2MB.');
-      return;
+  const handleFileSelect = (file: File | null) => {
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        // 2MB limit
+        toast.error('El archivo es demasiado grande. El tamaño máximo es 2MB.');
+        return;
+      }
+      setSignatureFile(file);
+      setSignaturePreview(URL.createObjectURL(file));
+    } else {
+      setSignatureFile(null);
+      setSignaturePreview(session?.user?.signatureUrl || null);
     }
-    setSignatureFile(file);
-    setSignaturePreview(URL.createObjectURL(file));
   };
 
   const handleCancelSignature = () => {
     setSignatureFile(null);
     setSignaturePreview(session?.user?.signatureUrl || null);
+    sigCanvas.current?.clear();
+  };
+
+  const clearCanvas = () => {
+    sigCanvas.current?.clear();
+    setSignatureFile(null);
+    setSignaturePreview(session?.user?.signatureUrl || null);
+  };
+
+  const saveCanvas = () => {
+    if (sigCanvas.current?.isEmpty()) {
+      toast.error('Por favor, dibuja tu firma antes de guardar.');
+      return;
+    }
+    const dataUrl = sigCanvas.current?.getTrimmedCanvas().toDataURL('image/png') || '';
+    setSignaturePreview(dataUrl);
+    const filename = `${crypto.randomUUID().replace(/-/g, '')}.png`;
+    const newFile = dataURLtoFile(dataUrl, filename);
+    setSignatureFile(newFile);
+    toast.success('Firma capturada. Ahora puedes guardarla.');
   };
 
   // Update profile
@@ -140,6 +194,8 @@ export default function ProfilePage() {
   const handleUploadSignature = async () => {
     if (!signatureFile || !session?.user?.id) return;
 
+    console.log('Vista previa ANTES de subir:', signaturePreview);
+
     setIsSignatureLoading(true);
     const formData = new FormData();
     formData.append('file', signatureFile);
@@ -148,17 +204,16 @@ export default function ProfilePage() {
       const result = await uploadSignature(formData);
 
       if (result.success && result.url) {
-        toast.success('Firma actualizada con éxito.');
-        // Update session first to get the new data
-        await update();
-        // Then update the local state from the newly updated session
-        setSignaturePreview(result.url);
+        await update(); // Refresh the session in the background
+        toast.success('Firma guardada con éxito.');
+        setSignaturePreview(result.url); // Directly update the preview for immediate feedback
         setSignatureFile(null);
       } else {
-        toast.error(result.message || 'Error al subir la firma.');
+        toast.error(result.message || 'Error al guardar la firma.');
       }
-    } catch {
-      toast.error('Ocurrió un error inesperado.');
+    } catch (error) {
+      console.error('Error uploading signature:', error);
+      toast.error('Ocurrió un error inesperado al subir la firma.');
     } finally {
       setIsSignatureLoading(false);
     }
@@ -357,14 +412,48 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <Tabs
+                  value={signatureTab}
+                  onValueChange={handleSignatureTabChange}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="upload">Subir Archivo</TabsTrigger>
+                    <TabsTrigger value="draw">Dibujar Firma</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="upload" className="space-y-4 pt-4">
+                    <SignatureFileUpload onFileSelect={handleFileSelect} file={signatureFile} />
+                    <p className="text-xs text-muted-foreground text-center">
+                      Formato recomendado: PNG con fondo transparente (máx. 2MB).
+                    </p>
+                  </TabsContent>
+                  <TabsContent value="draw" className="space-y-4 pt-4">
+                    <div className="w-full aspect-[2/1] bg-muted/30 rounded-lg border-2 border-dashed">
+                      <SignatureCanvas
+                        ref={sigCanvas}
+                        penColor="black"
+                        canvasProps={{
+                          className: 'w-full h-full',
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-center gap-4">
+                      <Button variant="outline" onClick={clearCanvas}>
+                        Limpiar
+                      </Button>
+                      <Button onClick={saveCanvas}>Capturar Firma</Button>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
                 <div className="space-y-2">
-                  <Label>Vista previa de la Firma</Label>
+                  <Label>Vista Previa</Label>
                   <div className="border-2 border-dashed rounded-lg p-4 flex items-center justify-center h-40 bg-muted/30 w-full">
                     {signaturePreview ? (
                       <div className="relative w-full h-full">
                         <Image
                           src={signaturePreview}
-                          alt="Firma digital'"
+                          alt="Vista previa de la firma"
                           fill
                           style={{ objectFit: 'contain' }}
                           sizes="(max-width: 768px) 100vw, 50vw"
@@ -372,46 +461,40 @@ export default function ProfilePage() {
                       </div>
                     ) : (
                       <div className="text-center text-muted-foreground">
-                        <p className="text-sm">No hay firma cargada</p>
-                        <p className="text-xs mt-1">La vista previa aparecerá aquí</p>
+                        <p className="text-sm">Aún no hay firma</p>
+                        <p className="text-xs mt-1">La vista previa aparecerá aquí.</p>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <SignatureFileUpload onFileSelect={handleFileSelect} file={signatureFile} />
-
                 {signatureFile && (
                   <div className="text-center text-sm text-muted-foreground">
-                    Archivo seleccionado:{' '}
+                    Listo para guardar:{' '}
                     <span className="font-medium text-foreground">{signatureFile.name}</span>
                   </div>
                 )}
-
-                <div className="flex flex-col gap-2 pt-2">
-                  <Button
-                    onClick={handleUploadSignature}
-                    disabled={!signatureFile || isSignatureLoading}
-                    className="w-full"
-                  >
-                    {isSignatureLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Subiendo...
-                      </>
-                    ) : (
-                      'Guardar Firma'
-                    )}
-                  </Button>
-                  {signatureFile && (
-                    <Button onClick={handleCancelSignature} variant="outline" className="w-full">
-                      Cancelar
-                    </Button>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground text-center pt-2">
-                  Formato recomendado: PNG con fondo transparente (máx. 2MB).
-                </p>
               </CardContent>
+              <CardFooter className="flex flex-col gap-2 pt-4">
+                <Button
+                  onClick={handleUploadSignature}
+                  disabled={!signatureFile || isSignatureLoading}
+                  className="w-full"
+                >
+                  {isSignatureLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...
+                    </>
+                  ) : (
+                    'Guardar Firma'
+                  )}
+                </Button>
+                {signatureFile && (
+                  <Button onClick={handleCancelSignature} variant="outline" className="w-full">
+                    Cancelar
+                  </Button>
+                )}
+              </CardFooter>
             </Card>
           </TabsContent>
         )}

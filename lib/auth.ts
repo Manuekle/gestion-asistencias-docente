@@ -55,7 +55,8 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // Al iniciar sesión, se agrega la información del usuario al token
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -63,9 +64,23 @@ export const authOptions: NextAuthOptions = {
         token.correoPersonal = user.correoPersonal;
         token.correoInstitucional = user.correoInstitucional;
         token.signatureUrl = user.signatureUrl;
-        // Incluir el token JWT en el token de sesión
-        // Usamos el token firmado que se generará automáticamente
       }
+
+      // Cuando se actualiza la sesión (por ejemplo, al cambiar la firma)
+      if (trigger === 'update') {
+        const dbUser = await db.user.findUnique({
+          where: { id: token.id as string },
+        });
+
+        if (dbUser) {
+          // Actualizar el token con la nueva información de la base de datos
+          token.name = dbUser.name;
+          token.correoPersonal = dbUser.correoPersonal;
+          token.correoInstitucional = dbUser.correoInstitucional;
+          token.signatureUrl = dbUser.signatureUrl;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {

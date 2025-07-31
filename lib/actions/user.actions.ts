@@ -28,6 +28,7 @@ export async function uploadSignature(formData: FormData) {
   try {
     const blob = await put(filename, file, {
       access: 'public',
+      allowOverwrite: true, // Permitir sobrescribir la firma existente
     });
 
     await prisma.user.update({
