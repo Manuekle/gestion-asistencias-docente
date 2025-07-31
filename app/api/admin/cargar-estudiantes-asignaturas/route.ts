@@ -167,7 +167,14 @@ export async function POST(request: Request) {
     } else {
       // --- Lógica de Carga Final ---
       const resultados: ResultRow[] = [];
-      const previewData = (await request.json()) as PreviewRow[];
+      const { previewData } = (await request.json()) as { previewData: PreviewRow[] };
+
+      if (!Array.isArray(previewData)) {
+        return NextResponse.json(
+          { success: false, message: 'Formato de datos inválido.' },
+          { status: 400 }
+        );
+      }
 
       for (const row of previewData) {
         const { codigoAsignatura } = row;

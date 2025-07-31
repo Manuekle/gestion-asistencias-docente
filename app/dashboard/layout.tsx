@@ -1,6 +1,12 @@
 import SidebarLayout from '@/components/SidebarLayout';
 import { ReactNode } from 'react';
 
+export const metadata = {
+  title: 'Dashboard - FUP',
+  description: 'Panel de control para gestionar tus datos',
+  keywords: 'dashboard, panel de control, FUP',
+};
+
 interface DashboardLayoutProps {
   children: ReactNode;
 }
