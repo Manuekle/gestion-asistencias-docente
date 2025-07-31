@@ -13,7 +13,8 @@ export const metadata: Metadata = {
     default: 'Sistema de Asistencias FUP',
     template: `%s | Asistencias FUP`,
   },
-  description: 'Optimiza la gestión de asistencias en la FUP con códigos QR. Eficiencia para docentes y estudiantes.',
+  description:
+    'Optimiza la gestión de asistencias en la FUP con códigos QR. Eficiencia para docentes y estudiantes.',
   robots: { index: true, follow: true },
   alternates: {
     canonical: '/',
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
     google: '0RPzGmepK5heQ-2axeEVsJ9o2FVPXcNp67TZSjmjF0E',
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: '/vercel.svg',
   },
 };
 
