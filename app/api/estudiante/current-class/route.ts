@@ -8,7 +8,7 @@ export async function GET() {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get current time and calculate time range (current time ± 4 hours)
@@ -129,6 +129,6 @@ export async function GET() {
     return NextResponse.json({ liveClass: response });
   } catch (error) {
     console.error('Error fetching current class:', error);
-    return new NextResponse('Internal Error', { status: 500 });
+    return NextResponse.json({ error: 'Internal Error' }, { status: 500 });
   }
 }

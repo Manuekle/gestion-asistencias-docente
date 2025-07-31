@@ -21,10 +21,7 @@ export async function GET() {
     const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== 'DOCENTE') {
-      return new NextResponse(JSON.stringify({ error: 'No autorizado' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     // Obtener las asignaturas del docente
@@ -100,9 +97,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error en la API del dashboard del docente:', error);
-    return new NextResponse(JSON.stringify({ error: 'Error interno del servidor' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

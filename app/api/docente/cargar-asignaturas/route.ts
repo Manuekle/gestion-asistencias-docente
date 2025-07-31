@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.id) {
-      return new NextResponse('No autorizado', { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const data = await request.formData();
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const isPreview = data.get('preview') === 'true';
 
     if (!file) {
-      return new NextResponse('No se encontró el archivo', { status: 400 });
+      return NextResponse.json({ error: 'No se encontró el archivo' }, { status: 400 });
     }
 
     const buffer = await file.arrayBuffer();
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     const rows = XLSX.utils.sheet_to_json(sheet) as RowData[];
 
     if (rows.length === 0) {
-      return new NextResponse('El archivo Excel está vacío', {
+      return NextResponse.json({ error: 'El archivo Excel está vacío' }, {
         status: 400,
       });
     }
@@ -59,11 +59,9 @@ export async function POST(request: Request) {
     const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
 
     if (missingHeaders.length > 0) {
-      return new NextResponse(
-        `Faltan los siguientes encabezados requeridos: ${missingHeaders.join(', ')}`,
-        {
-          status: 400,
-        }
+      return NextResponse.json(
+        { error: `Faltan los siguientes encabezados requeridos: ${missingHeaders.join(', ')}` },
+        { status: 400 }
       );
     }
 
@@ -203,7 +201,7 @@ export async function POST(request: Request) {
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Error desconocido en el servidor';
-    return new NextResponse(errorMessage, {
+    return NextResponse.json({ error: errorMessage }, {
       status: 500,
     });
   }

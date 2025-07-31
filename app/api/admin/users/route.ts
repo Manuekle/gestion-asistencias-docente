@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user?.role !== Role.ADMIN) {
-      return new NextResponse('Acceso denegado', { status: 403 });
+      return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 });
     }
 
     const { searchParams } = new URL(req.url);

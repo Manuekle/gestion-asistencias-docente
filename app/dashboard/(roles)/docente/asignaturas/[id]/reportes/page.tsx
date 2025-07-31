@@ -4,7 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingPage } from '@/components/ui/loading';
 import {
   Table,
   TableBody,
@@ -180,11 +180,7 @@ const SubjectReportPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="p-6">
-        <Skeleton className="h-64 w-full" />
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   if (error) {

@@ -64,20 +64,20 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      return new NextResponse('Error al enviar el correo de restablecimiento', {
+      return NextResponse.json({ error: 'Error al enviar el correo de restablecimiento' }, {
         status: 500,
       });
     }
 
-    return new NextResponse(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         message:
           'Si el correo existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.',
-      }),
+      },
       { status: 200 }
     );
   } catch (error) {
     console.error('Error en forgot-password:', error);
-    return new NextResponse('Error interno del servidor', { status: 500 });
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

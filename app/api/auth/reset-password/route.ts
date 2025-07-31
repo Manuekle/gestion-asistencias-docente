@@ -7,18 +7,13 @@ export async function POST(request: Request) {
     const { token, password } = await request.json();
 
     if (!token || !password) {
-      return new NextResponse(
-        JSON.stringify({ message: 'Token y nueva contraseña son requeridos' }),
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'Token y nueva contraseña son requeridos' }, { status: 400 });
     }
 
     // Validar longitud mínima de la contraseña
     if (password.length < 8) {
-      return new NextResponse(
-        JSON.stringify({
-          message: 'La contraseña debe tener al menos 8 caracteres',
-        }),
+      return NextResponse.json(
+        { message: 'La contraseña debe tener al menos 8 caracteres' },
         { status: 400 }
       );
     }
@@ -34,10 +29,8 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      return new NextResponse(
-        JSON.stringify({
-          message: 'El token de restablecimiento no es válido o ha expirado.',
-        }),
+      return NextResponse.json(
+        { message: 'El token de restablecimiento no es válido o ha expirado.' },
         { status: 400 }
       );
     }
@@ -55,17 +48,15 @@ export async function POST(request: Request) {
       },
     });
 
-    return new NextResponse(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         message:
           'Contraseña restablecida con éxito. Ahora puedes iniciar sesión con tu nueva contraseña.',
-      }),
+      },
       { status: 200 }
     );
   } catch (error) {
     console.error('Error en reset-password:', error);
-    return new NextResponse(JSON.stringify({ message: 'Error interno del servidor' }), {
-      status: 500,
-    });
+    return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }

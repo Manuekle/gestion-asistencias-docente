@@ -1,6 +1,6 @@
 'use client';
 
-import { Upload } from 'lucide-react';
+import { UploadCloud } from 'lucide-react';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 
@@ -36,7 +36,9 @@ export function SignatureFileUpload({ onFileSelect }: SignatureFileUploadProps) 
       }`}
     >
       <input {...getInputProps()} />
-      <Upload className="h-6 w-6 text-muted-foreground" />
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+        <UploadCloud className="h-6 w-6 text-muted-foreground" />
+      </div>
       <p className="text-sm font-medium text-center">
         {isDragActive ? 'Suelta la imagen aquí' : 'Seleccionar archivo'}
       </p>

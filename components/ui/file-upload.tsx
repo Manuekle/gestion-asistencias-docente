@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { AnimatePresence, motion, type HTMLMotionProps } from 'framer-motion';
 import { CircleCheck, Trash2, UploadCloud, XCircle } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
 import type { ComponentPropsWithRef } from 'react';
 import { useId, useRef, useState } from 'react';
 
@@ -315,8 +315,8 @@ export const FileListItemProgressBar = ({
           y2="33.055"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0" stop-color="#18884f"></stop>
-          <stop offset="1" stop-color="#0b6731"></stop>
+          <stop offset="0" stopColor="#18884f"></stop>
+          <stop offset="1" stopColor="#0b6731"></stop>
         </linearGradient>
         <path
           fill="url(#flEJnwg7q~uKUdkX0KCyBa_UECmBSgBOvPT_gr1)"
@@ -400,23 +400,15 @@ export const FileListItemProgressFill = ({
       layout="position"
       className={cn('relative flex gap-3 overflow-hidden rounded-lg border bg-card p-4', className)}
     >
-      {/* Progress fill */}
-      <div
-        style={{ transform: `translateX(-${100 - progress}%)` }}
-        className={cn(
-          'absolute inset-0 size-full bg-muted transition-transform duration-75 ease-linear',
-          isComplete && 'opacity-0'
-        )}
-        role="progressbar"
-        aria-valuenow={progress}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      />
-
-      {/* Border overlay for failed state */}
-      {failed && (
-        <div className="absolute inset-0 size-full rounded-[inherit] border-2 border-destructive" />
-      )}
+      <div className="absolute inset-0 z-0">
+        <div
+          className={cn(
+            'h-full w-full origin-left bg-green-50 transition-transform',
+            failed && 'bg-destructive/10'
+          )}
+          style={{ transform: `scaleX(${progress / 100})` }}
+        />
+      </div>
 
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -425,7 +417,7 @@ export const FileListItemProgressFill = ({
         width="40"
         height="40"
         viewBox="0 0 48 48"
-        className="shrink-0 text-muted-foreground"
+        className="relative shrink-0 text-muted-foreground"
       >
         <rect width="16" height="9" x="28" y="15" fill="#21a366"></rect>
         <path fill="#185c37" d="M44,24H12v16c0,1.105,0.895,2,2,2h28c1.105,0,2-0.895,2-2V24z"></path>
@@ -446,18 +438,18 @@ export const FileListItemProgressFill = ({
           opacity=".09"
         ></path>
         <linearGradient
-          id="flEJnwg7q~uKUdkX0KCyBa_UECmBSgBOvPT_gr1"
+          id="flEJnwg7q~uKUdkX0KCyBb_UECmBSgBOvPT_gr2"
           x1="4.725"
           x2="23.055"
           y1="14.725"
           y2="33.055"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0" stop-color="#18884f"></stop>
-          <stop offset="1" stop-color="#0b6731"></stop>
+          <stop offset="0" stopColor="#18884f"></stop>
+          <stop offset="1" stopColor="#0b6731"></stop>
         </linearGradient>
         <path
-          fill="url(#flEJnwg7q~uKUdkX0KCyBa_UECmBSgBOvPT_gr1)"
+          fill="url(#flEJnwg7q~uKUdkX0KCyBb_UECmBSgBOvPT_gr2)"
           d="M22,34H6c-1.105,0-2-0.895-2-2V16c0-1.105,0.895-2,2-2h16c1.105,0,2,0.895,2,2v16	C24,33.105,23.105,34,22,34z"
         ></path>
         <path
@@ -466,67 +458,80 @@ export const FileListItemProgressFill = ({
         ></path>
       </svg>
 
-      <div className="relative flex min-w-0 flex-1">
-        <div className="relative flex min-w-0 flex-1 flex-col items-start">
-          <div className="w-full min-w-0 flex-1">
-            <p className="truncate text-xs font-medium">{name}</p>
+      <div className="relative flex min-w-0 flex-1 flex-col items-start">
+        <div className="flex w-full max-w-full min-w-0 flex-1">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-normal">{name}</p>
 
             <div className="mt-1 flex items-center gap-2">
-              <p className="text-xs text-muted-foreground">
-                {failed ? 'Subida fallida, por favor intenta de nuevo' : getReadableFileSize(size)}
+              <p className="truncate text-xs text-muted-foreground whitespace-nowrap">
+                {getReadableFileSize(size)}
               </p>
 
-              {!failed && (
-                <>
-                  <div className="h-4 w-px bg-border" />
-                  <div className="flex items-center gap-1">
-                    {isComplete && <CircleCheck className="h-4 w-4 text-green-600" />}
-                    {!isComplete && <UploadCloud className="h-4 w-4 text-muted-foreground" />}
+              <div className="h-4 w-px bg-border" />
 
-                    <p className="text-xs text-muted-foreground">{progress}%</p>
-                  </div>
-                </>
-              )}
+              <div className="flex items-center gap-1">
+                {isComplete && <CircleCheck className="h-4 w-4 text-green-600" />}
+                {isComplete && <p className="text-xs font-normal">100%</p>}
+
+                {!isComplete && !failed && (
+                  <UploadCloud className="h-4 w-4 text-muted-foreground" />
+                )}
+                {!isComplete && !failed && (
+                  <p className="text-xs text-muted-foreground">Subiendo...</p>
+                )}
+
+                {failed && <XCircle className="h-4 w-4 text-destructive" />}
+                {failed && <p className="text-xs font-normal text-destructive">Error</p>}
+              </div>
             </div>
           </div>
 
-          {failed && (
-            <div className="mt-2 flex gap-3">
+          <AnimatePresence>
+            <motion.div
+              key="delete-button"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.2 }}
+            >
               <Button
-                variant="link"
+                variant="ghost"
                 size="sm"
-                onClick={onRetry}
-                className="h-auto p-0 text-destructive"
+                onClick={onDelete}
+                className="relative h-8 w-8 p-0 -mt-1 -mr-1 self-start"
               >
-                Intentar de nuevo
+                <Trash2 className="h-4 w-4" />
               </Button>
-            </div>
-          )}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onDelete}
-          className="h-8 w-8 p-0 -mt-1 -mr-1 self-start"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {failed && (
+          <div className="relative mt-2 flex gap-3">
+            <Button
+              variant="link"
+              size="sm"
+              onClick={onRetry}
+              className="h-auto p-0 text-destructive text-xs"
+            >
+              Intentar de nuevo
+            </Button>
+          </div>
+        )}
       </div>
     </motion.li>
   );
 };
 
 const FileUploadRoot = (props: ComponentPropsWithRef<'div'>) => (
-  <div {...props} className={cn('flex flex-col gap-4', props.className)}>
-    {props.children}
-  </div>
+  <div {...props} className={cn('flex flex-col gap-4', props.className)} />
 );
 
-const FileUploadList = (props: ComponentPropsWithRef<'ul'>) => (
-  <ul {...props} className={cn('flex flex-col gap-3', props.className)}>
-    <AnimatePresence initial={false}>{props.children}</AnimatePresence>
-  </ul>
+const FileUploadList = (props: HTMLMotionProps<'ul'>) => (
+  <AnimatePresence>
+    <motion.ul {...props} className={cn('flex flex-col gap-3', props.className)} />
+  </AnimatePresence>
 );
 
 export const FileUpload = {

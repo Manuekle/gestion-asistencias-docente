@@ -55,17 +55,23 @@ export async function POST(request: Request) {
     const file = data.get('file') as File;
 
     if (!file) {
-      return new NextResponse('No se subió ningún archivo', { status: 400 });
+      return NextResponse.json({ error: 'No se subió ningún archivo' }, { status: 400 });
     }
     if (!file.name.endsWith('.xlsx')) {
-      return new NextResponse('Tipo de archivo no válido, se requiere un Excel (.xlsx)', {
-        status: 400,
-      });
+      return NextResponse.json(
+        { error: 'Tipo de archivo no válido, se requiere un Excel (.xlsx)' },
+        {
+          status: 400,
+        }
+      );
     }
     if (file.size > 10 * 1024 * 1024) {
-      return new NextResponse('El archivo es demasiado grande (máximo 10MB)', {
-        status: 400,
-      });
+      return NextResponse.json(
+        { error: 'El archivo es demasiado grande (máximo 10MB)' },
+        {
+          status: 400,
+        }
+      );
     }
     // Guardar temporalmente
     const buffer = Buffer.from(await file.arrayBuffer());

@@ -128,16 +128,16 @@ export default function DocenteDashboard() {
       {liveClass && (
         <Card className="mb-8 border shadow-sm">
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <CardTitle className="text-xl font-semibold tracking-card">Clase en Vivo</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {liveClass.subjectName} • {liveClass.topic}
                 </p>
               </div>
-              <div className="flex items-center space-x-2 bg-foreground/5 px-3 py-1 rounded-full">
+              <div className="flex items-center md:space-x-2 bg-foreground/5 px-2 md:px-3 py-1 rounded-full">
                 <div className="w-2 h-2 rounded-full bg-foreground animate-pulse"></div>
-                <span className="text-xs font-medium">En curso</span>
+                <span className="text-xs font-medium hidden md:block">En curso</span>
               </div>
             </div>
           </CardHeader>

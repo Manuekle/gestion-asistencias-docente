@@ -18,7 +18,7 @@ export async function GET(request: Request, context: { params: { id: string } })
   const session = await getServerSession(authOptions);
 
   if (!session || session.user.role !== 'DOCENTE') {
-    return new NextResponse('No autorizado', { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   const subjectId = context.params.id;
@@ -33,7 +33,7 @@ export async function GET(request: Request, context: { params: { id: string } })
     });
 
     if (!subject) {
-      return new NextResponse('Asignatura no encontrada o no pertenece al docente', {
+      return NextResponse.json({ error: 'Asignatura no encontrada o no pertenece al docente' }, {
         status: 404,
       });
     }
@@ -50,7 +50,7 @@ export async function GET(request: Request, context: { params: { id: string } })
     return NextResponse.json(reports);
   } catch (error) {
     console.error('[REPORTS_GET]', error);
-    return new NextResponse('Error interno del servidor', { status: 500 });
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
 
@@ -62,7 +62,7 @@ export async function POST(request: Request, context: { params: { id: string } }
   const session = await getServerSession(authOptions);
 
   if (!session || session.user.role !== 'DOCENTE') {
-    return new NextResponse('No autorizado', { status: 401 });
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
   const subjectId = context.params.id;
@@ -80,7 +80,7 @@ export async function POST(request: Request, context: { params: { id: string } }
     });
 
     if (!subject) {
-      return new NextResponse('Asignatura no encontrada o no pertenece al docente', {
+      return NextResponse.json({ error: 'Asignatura no encontrada o no pertenece al docente' }, {
         status: 404,
       });
     }
@@ -99,12 +99,12 @@ export async function POST(request: Request, context: { params: { id: string } }
     // Invocar la generación del PDF en segundo plano (sin await)
     generateAttendanceReportPDF(subjectId, newReport.id);
 
-    return new NextResponse(JSON.stringify(newReport), { status: 202 }); // 202 Accepted: La solicitud ha sido aceptada para procesamiento
+    return NextResponse.json(newReport, { status: 202 }); // 202 Accepted: La solicitud ha sido aceptada para procesamiento
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new NextResponse(JSON.stringify(error.errors), { status: 400 });
+      return NextResponse.json({ errors: error.errors }, { status: 400 });
     }
     console.error('[REPORTS_POST]', error);
-    return new NextResponse('Error interno del servidor', { status: 500 });
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

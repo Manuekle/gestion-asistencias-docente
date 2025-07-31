@@ -23,6 +23,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ChevronDown, Download, Loader2 } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
+import { TimePicker } from '@/components/ui/time-picker';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -280,20 +282,30 @@ export default function UploadSubjectsPage() {
     toast.success('Clase actualizada correctamente.');
   };
 
-  const handleEditingClassChange = (field: keyof EditableClass, value: string) => {
+    const handleEditingClassChange = (
+    field: keyof EditableClass,
+    value: string | Date | undefined
+  ) => {
     if (editingClass) {
-      setEditingClass({ ...editingClass, [field]: value });
+      let finalValue = value;
+      if (field === 'fechaClase' && value instanceof Date) {
+        // Formatear la fecha a YYYY-MM-DD para mantener la consistencia del estado
+        finalValue = value.toISOString().split('T')[0];
+      }
+      setEditingClass({ ...editingClass, [field]: finalValue });
     }
   };
 
   return (
-    <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <main className="space-y-4">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold tracking-heading">Cargar Asignaturas y Clases</h1>
-        <p className="text-muted-foreground text-sm mt-2">
+      <div className="pb-4 col-span-1 w-full">
+        <CardTitle className="text-2xl font-semibold tracking-tight">
+          Cargar Asignaturas y Clases
+        </CardTitle>
+        <CardDescription className="text-xs">
           Sube un archivo .xlsx para cargar masivamente las asignaturas y sus respectivas clases.
-        </p>
+        </CardDescription>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -559,15 +571,13 @@ export default function UploadSubjectsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="fechaClase" className="text-right">
                   Fecha
                 </Label>
-                <Input
-                  id="fechaClase"
-                  type="date"
-                  value={editingClass.fechaClase}
-                  onChange={e => handleEditingClassChange('fechaClase', e.target.value)}
+                <DatePicker
+                  value={editingClass.fechaClase ? new Date(editingClass.fechaClase) : undefined}
+                  onChange={date => handleEditingClassChange('fechaClase', date)}
                   className="col-span-3"
                 />
               </div>
@@ -575,11 +585,9 @@ export default function UploadSubjectsPage() {
                 <Label htmlFor="horaInicio" className="text-right">
                   Hora Inicio
                 </Label>
-                <Input
-                  id="horaInicio"
-                  type="time"
+                <TimePicker
                   value={editingClass.horaInicio}
-                  onChange={e => handleEditingClassChange('horaInicio', e.target.value)}
+                  onChange={time => handleEditingClassChange('horaInicio', time)}
                   className="col-span-3"
                 />
               </div>
@@ -587,11 +595,9 @@ export default function UploadSubjectsPage() {
                 <Label htmlFor="horaFin" className="text-right">
                   Hora Fin
                 </Label>
-                <Input
-                  id="horaFin"
-                  type="time"
+                <TimePicker
                   value={editingClass.horaFin}
-                  onChange={e => handleEditingClassChange('horaFin', e.target.value)}
+                  onChange={time => handleEditingClassChange('horaFin', time)}
                   className="col-span-3"
                 />
               </div>
