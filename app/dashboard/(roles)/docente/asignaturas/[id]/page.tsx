@@ -574,7 +574,7 @@ export default function SubjectDetailPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg tracking-card font-semibold">
+            <CardTitle className="text-xl font-semibold tracking-heading">
               Gestión de Estudiantes
             </CardTitle>
             <CardDescription className="text-sm">
@@ -791,7 +791,9 @@ export default function SubjectDetailPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold tracking-card">Gestión de Clases</CardTitle>
+            <CardTitle className="text-xl font-semibold tracking-heading">
+              Gestión de Clases
+            </CardTitle>
             <CardDescription className="text-sm">
               Crea y administra las sesiones de clase para esta asignatura.
             </CardDescription>

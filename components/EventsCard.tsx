@@ -216,7 +216,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-lg font-semibold tracking-card font-sans">
+              <CardTitle className="text-xl font-semibold tracking-heading font-sans">
                 Eventos Especiales
               </CardTitle>
               <CardDescription className="text-sm font-sans">

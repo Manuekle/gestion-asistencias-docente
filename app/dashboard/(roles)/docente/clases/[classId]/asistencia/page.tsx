@@ -253,11 +253,13 @@ export default function AttendancePage() {
                 {students.map(student => (
                   <div
                     key={student.studentId}
-                    className="flex items-center justify-between p-3 border rounded-lg"
+                    className="flex flex-col md:flex-row items-start md:items-center justify-between p-3 border rounded-lg gap-4 md:gap-2"
                   >
-                    <div>
+                    <div className="w-full md:w-auto">
                       <p className="font-medium tracking-card text-sm">{student.name}</p>
-                      <p className="text-xs text-muted-foreground">{student.email}</p>
+                      <p className="text-xs text-muted-foreground truncate md:overflow-visible md:whitespace-normal md:max-w-full max-w-[220px]">
+                        {student.email}
+                      </p>
                     </div>
                     <Select
                       value={student.status} // e.g., 'PRESENTE'
@@ -266,7 +268,7 @@ export default function AttendancePage() {
                       }
                       disabled={isClassPast}
                     >
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-full md:w-[180px]">
                         <SelectValue placeholder="Seleccionar estado" />
                       </SelectTrigger>
                       <SelectContent>
@@ -274,7 +276,7 @@ export default function AttendancePage() {
                           <SelectItem
                             key={key}
                             value={key}
-                            className="font-sans text-xs font-medium"
+                            className="font-sans text-xs font-normal"
                           >
                             {value}
                           </SelectItem>
