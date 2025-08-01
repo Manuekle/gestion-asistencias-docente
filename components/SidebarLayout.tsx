@@ -2,7 +2,7 @@
 
 import { navLinkGroups } from '@/config/navigation';
 import type { Role } from '@/types';
-import { ChevronDown, GraduationCap, LogOut, Moon, Settings, Sun } from 'lucide-react';
+import { ChevronDown, LogOut, Moon, Settings, Sun } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
@@ -42,6 +42,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import Image from 'next/image';
 
 function AppSidebar({ homePath }: { homePath: string }) {
   const pathname = usePathname();
@@ -96,8 +97,16 @@ function AppSidebar({ homePath }: { homePath: string }) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href={homePath}>
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <GraduationCap className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground overflow-hidden">
+                  <Image
+                    src="/icons/favicon-192x192.png"
+                    alt="Sistema de Gestión de Asistencias"
+                    width={32}
+                    height={32}
+                    priority
+                    className="h-full w-auto"
+                    quality={100}
+                  />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Gestion de Asistencias</span>

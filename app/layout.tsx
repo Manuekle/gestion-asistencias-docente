@@ -46,7 +46,30 @@ export const metadata: Metadata = {
     google: '0RPzGmepK5heQ-2axeEVsJ9o2FVPXcNp67TZSjmjF0E',
   },
   icons: {
-    icon: '/vercel.svg',
+    icon: [
+      { url: '/icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/favicon.ico', sizes: '48x48', type: 'image/x-icon' },
+    ],
+    apple: [{ url: '/icons/apple-touch-icon.png' }],
+    other: [
+      {
+        rel: 'apple-touch-icon-precomposed',
+        url: '/icons/apple-touch-icon.png',
+      },
+      {
+        rel: 'mask-icon',
+        url: '/icons/safari-pinned-tab.svg',
+        color: '#000000',
+      },
+    ],
+  },
+  manifest: '/icons/manifest.json',
+  other: {
+    'msapplication-config': '/icons/browserconfig.xml',
+    'msapplication-TileColor': '#ffffff',
+    'msapplication-TileImage': '/icons/mstile-144x144.png',
+    'theme-color': '#ffffff',
   },
 };
 
