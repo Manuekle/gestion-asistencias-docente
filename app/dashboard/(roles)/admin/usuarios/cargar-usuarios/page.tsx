@@ -214,7 +214,6 @@ export default function CargarUsuariosPage() {
                           <TableHead className="px-4 py-3">Documento</TableHead>
                           <TableHead className="px-4 py-3">Correo</TableHead>
                           <TableHead className="px-4 py-3">Rol</TableHead>
-                          <TableHead className="px-4 py-3">Mensaje</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -231,11 +230,9 @@ export default function CargarUsuariosPage() {
                                 <TableCell className="px-4 py-3">
                                   {item.data.correoPersonal}
                                 </TableCell>
-                                <TableCell className="px-4 py-3">{item.data.role}</TableCell>
-                                <TableCell className="px-4 py-3">
-                                  {item.data.codigoInstitucional}
+                                <TableCell className="px-4 py-3 lowercase">
+                                  {item.data.role}
                                 </TableCell>
-                                <TableCell className="px-4 py-3 text-xs">{item.message}</TableCell>
                               </>
                             )}
                           </TableRow>
@@ -251,7 +248,7 @@ export default function CargarUsuariosPage() {
                       }
                     >
                       {isConfirming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Confirmar y Crear Usuarios
+                      Confirmar Carga
                     </Button>
                   </div>
                 </>

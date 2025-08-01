@@ -239,15 +239,15 @@ export default function UploadStudentsToSubjectsPage() {
                   <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 </div>
               ) : uploadResult ? (
-                <div className="bg-card text-center">
+                <div className="bg-card text-center mt-4">
                   <div className="flex items-center justify-center gap-3 mb-4">
                     {uploadResult.success ? (
-                      <CheckCircle className="h-12 w-12 text-green-500" />
+                      <CheckCircle className="h-16 w-16 text-green-500" />
                     ) : (
-                      <AlertCircle className="h-12 w-12 text-red-500" />
+                      <AlertCircle className="h-16 w-16 text-red-500" />
                     )}
                   </div>
-                  <h3 className="font-medium text-lg">
+                  <h3 className="mt-4 text-xl font-semibold tracking-heading">
                     {uploadResult.success ? 'Carga completada' : 'Error en la carga'}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-2">
@@ -275,7 +275,7 @@ export default function UploadStudentsToSubjectsPage() {
                     </div>
                   )}
 
-                  <Button onClick={handleNewUpload} variant="outline" className="w-full mt-6">
+                  <Button onClick={handleNewUpload} className="mt-6">
                     Cargar otro archivo
                   </Button>
                 </div>
