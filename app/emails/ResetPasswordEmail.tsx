@@ -39,29 +39,29 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
           />
         </Head>
         <Preview>{previewText}</Preview>
-        <Body className="bg-slate-50 font-sans py-[40px]">
-          <Container className="mx-auto max-w-[580px] bg-white border border-slate-200 rounded-[12px] overflow-hidden">
+        <Body className="bg-zinc-50 font-sans py-[40px]">
+          <Container className="mx-auto max-w-[580px] bg-white border border-zinc-200 rounded-[12px] overflow-hidden">
             {/* Header */}
             <Section className="bg-black px-[32px] py-[24px]">
               <Heading className="text-[20px] font-semibold text-white m-0 leading-[28px]">
                 Restablecer Contraseña
               </Heading>
-              <Text className="text-slate-300 text-[14px] m-0 mt-[4px] leading-[20px]">
+              <Text className="text-zinc-300 text-sm m-0 mt-[4px] leading-[20px]">
                 Solicitud de cambio de contraseña
               </Text>
             </Section>
 
             {/* Content */}
             <Section className="px-[32px] py-[32px] text-center">
-              <Text className="text-slate-600 text-[12px] leading-[24px] m-0 mb-[24px]">
+              <Text className="text-zinc-600 text-xs leading-[24px] m-0 mb-[24px]">
                 Hola, hemos recibido una solicitud para restablecer la contraseña de tu cuenta
                 asociada a:
               </Text>
 
               {/* Email Display */}
               <Section className="mb-[32px]">
-                <div className="bg-slate-50 border border-slate-200 rounded-[8px] px-[16px] py-[12px] inline-block">
-                  <Text className="text-[14px] font-medium text-slate-900 m-0">{userEmail}</Text>
+                <div className="bg-zinc-50 border border-zinc-200 rounded-[8px] px-[16px] py-[12px] inline-block">
+                  <Text className="text-sm font-medium text-zinc-900 m-0">{userEmail}</Text>
                 </div>
               </Section>
 
@@ -69,7 +69,7 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
               <Section className="mb-[32px]">
                 <Button
                   href={resetUrl}
-                  className="bg-black text-white text-[14px] font-medium py-[12px] px-[24px] rounded-[8px] box-border no-underline inline-block"
+                  className="bg-black text-white text-sm font-medium py-[12px] px-[24px] rounded-[8px] box-border no-underline inline-block"
                 >
                   Restablecer Contraseña
                 </Button>
@@ -77,46 +77,46 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
 
               {/* Alternative URL */}
               <Section className="mb-[32px]">
-                <Text className="text-slate-500 text-[12px] m-0 mb-[8px]">
+                <Text className="text-zinc-500 text-xs m-0 mb-[8px]">
                   O copia y pega este enlace en tu navegador:
                 </Text>
-                <div className="bg-slate-50 border border-slate-200 rounded-[6px] px-[12px] py-[8px] text-left">
-                  <Text className="text-[11px] text-slate-700 m-0 break-all font-sans">
+                <div className="bg-zinc-50 border border-zinc-200 rounded-[6px] px-[12px] py-[8px] text-left">
+                  <Text className="text-[11px] text-zinc-700 m-0 break-all font-sans">
                     {resetUrl}
                   </Text>
                 </div>
               </Section>
 
-              <Hr className="border-slate-200 my-[24px]" />
+              <Hr className="border-zinc-200 my-[24px]" />
 
               {/* Security Notice */}
               <Section className="mb-[24px]">
                 <div className="bg-amber-50 border border-amber-200 rounded-[8px] px-[16px] py-[12px]">
-                  <Text className="text-[12px] text-amber-800 m-0 leading-[18px]">
+                  <Text className="text-xs text-amber-800 m-0 leading-[18px]">
                     <strong>Importante:</strong> Este enlace expirará en 24 horas por seguridad.
                   </Text>
                 </div>
               </Section>
 
-              <Text className="text-slate-500 text-[14px] leading-[20px] m-0 mb-[16px]">
+              <Text className="text-zinc-500 text-sm leading-[20px] m-0 mb-[16px]">
                 Si no solicitaste este restablecimiento, puedes ignorar este correo de manera
                 segura.
               </Text>
 
-              <Text className="text-[12px] text-slate-500 m-0">
+              <Text className="text-xs text-zinc-500 m-0">
                 ¿Necesitas ayuda? Contáctanos en{' '}
-                <Link href={`mailto:${supportEmail}`} className="text-slate-700 underline">
+                <Link href={`mailto:${supportEmail}`} className="text-zinc-700 underline">
                   {supportEmail}
                 </Link>
               </Text>
             </Section>
 
             {/* Footer */}
-            <Section className="bg-slate-50 px-[32px] py-[16px] border-t border-slate-200">
-              <Text className="text-[11px] text-slate-400 text-center m-0">
+            <Section className="bg-zinc-50 px-[32px] py-[16px] border-t border-zinc-200">
+              <Text className="text-[11px] text-zinc-400 text-center m-0">
                 Este es un correo automático, por favor no respondas a este mensaje.
               </Text>
-              <Text className="text-[11px] text-slate-400 text-center m-0 mt-[4px]">
+              <Text className="text-[11px] text-zinc-400 text-center m-0 mt-[4px]">
                 © {new Date().getFullYear()} Sistema de Gestión de Asistencias. Todos los derechos
                 reservados.
               </Text>

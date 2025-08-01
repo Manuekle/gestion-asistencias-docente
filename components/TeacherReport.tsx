@@ -226,9 +226,7 @@ function SubjectDetailsPanel({
                             {dayName}
                           </span>
                           <span className="text-lg font-semibold">{day}</span>
-                          <span className="text-[10px] text-muted-foreground uppercase">
-                            {month}
-                          </span>
+                          <span className="text-xs text-muted-foreground uppercase">{month}</span>
                         </div>
                         <div>
                           <h5 className="text-sm font-normal text-foreground">
