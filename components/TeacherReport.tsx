@@ -545,7 +545,7 @@ export function TeacherReport() {
               placeholder="Buscar..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-ring h-9"
+              className="bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-ring h-9 text-xs"
             />
           </div>
         </CardHeader>

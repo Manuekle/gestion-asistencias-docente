@@ -136,7 +136,7 @@ export default function StudentAttendancePage() {
                   placeholder="Código de asistencia"
                   value={token}
                   onChange={e => setToken(e.target.value.toLowerCase())}
-                  className="text-center font-mono text-sm"
+                  className="text-center font-mono text-xs"
                   autoComplete="off"
                   autoFocus
                   disabled={isLoading}

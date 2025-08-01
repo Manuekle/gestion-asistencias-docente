@@ -166,6 +166,7 @@ export default function ResetPasswordPage() {
                 placeholder="Ingresa tu correo electrónico"
                 value={correo}
                 onChange={e => setCorreo(e.target.value)}
+                className="text-xs"
               />
             </div>
 
@@ -180,7 +181,7 @@ export default function ResetPasswordPage() {
                   onChange={e => setPassword(e.target.value)}
                   required
                   minLength={8}
-                  className="pr-10" // Add right padding for the eye icon
+                  className="pr-10 text-xs" // Add right padding for the eye icon
                 />
                 <button
                   type="button"
@@ -204,7 +205,7 @@ export default function ResetPasswordPage() {
                   onChange={e => setConfirmPassword(e.target.value)}
                   required
                   minLength={8}
-                  className="pr-10" // Add right padding for the eye icon
+                  className="pr-10 text-xs" // Add right padding for the eye icon
                 />
                 <button
                   type="button"

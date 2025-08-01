@@ -1,6 +1,6 @@
 'use client';
 
-import { getErrorMessage, EventType, SubjectEvent } from '@/types';
+import { EventType, SubjectEvent, getErrorMessage } from '@/types';
 
 import {
   AlertDialog,
@@ -242,6 +242,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
                     <Input
                       id="event-title"
                       value={eventTitle}
+                      className="text-xs"
                       onChange={e => setEventTitle(e.target.value)}
                     />
                   </div>
@@ -439,6 +440,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
               <Input
                 id="edit-event-title"
                 value={eventTitle}
+                className="text-xs"
                 onChange={e => setEventTitle(e.target.value)}
               />
             </div>

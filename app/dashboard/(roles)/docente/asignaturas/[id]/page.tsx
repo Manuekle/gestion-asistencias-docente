@@ -689,6 +689,7 @@ export default function SubjectDetailPage() {
                                     id="reason"
                                     placeholder="Ingrese el motivo de la solicitud"
                                     value={unenrollReason}
+                                    className="text-xs"
                                     onChange={e => setUnenrollReason(e.target.value)}
                                     required
                                   />
@@ -1254,7 +1255,7 @@ export default function SubjectDetailPage() {
                   id="topic-edit"
                   value={classTopic}
                   onChange={e => setClassTopic(e.target.value)}
-                  className="h-11"
+                  className="h-11 text-xs"
                   placeholder="Ej: Introducción a las Derivadas"
                 />
               </div>

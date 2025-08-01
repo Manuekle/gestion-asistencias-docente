@@ -46,8 +46,8 @@ import {
   UserCheck,
   UserCog,
   User as UserIcon,
-  Users,
   UserX,
+  Users,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -275,7 +275,7 @@ export default function GestionUsuariosPage() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nombre o email..."
-                className="pl-9 w-full md:w-[300px]"
+                className="pl-9 w-full md:w-[300px] text-xs"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
               />

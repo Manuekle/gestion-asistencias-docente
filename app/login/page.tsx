@@ -72,6 +72,7 @@ export default function LoginPage() {
                 type="email"
                 placeholder="tu@email.com"
                 required
+                className="text-xs"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -88,7 +89,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   disabled={isLoading}
-                  className="pr-10" // Add right padding for the eye icon
+                  className="pr-10 text-xs" // Add right padding for the eye icon
                 />
                 <button
                   type="button"

@@ -114,6 +114,7 @@ export function CreateUserModal({ isOpen, onClose, onUserCreated }: CreateUserMo
                 id="correoPersonal"
                 name="correoPersonal"
                 type="email"
+                className="text-xs"
                 value={newUser.correoPersonal}
                 onChange={handleChange}
               />
@@ -124,6 +125,7 @@ export function CreateUserModal({ isOpen, onClose, onUserCreated }: CreateUserMo
                 id="correoInstitucional"
                 name="correoInstitucional"
                 type="email"
+                className="text-xs"
                 value={newUser.correoInstitucional}
                 onChange={handleChange}
               />
@@ -135,6 +137,7 @@ export function CreateUserModal({ isOpen, onClose, onUserCreated }: CreateUserMo
               id="password"
               name="password"
               type="password"
+              className="text-xs"
               value={newUser.password}
               onChange={handleChange}
               required
@@ -146,6 +149,7 @@ export function CreateUserModal({ isOpen, onClose, onUserCreated }: CreateUserMo
               <Input
                 id="document"
                 name="document"
+                className="text-xs"
                 value={newUser.document}
                 onChange={handleChange}
               />
@@ -155,6 +159,7 @@ export function CreateUserModal({ isOpen, onClose, onUserCreated }: CreateUserMo
               <Input
                 id="telefono"
                 name="telefono"
+                className="text-xs"
                 value={newUser.telefono}
                 onChange={handleChange}
               />
@@ -181,6 +186,7 @@ export function CreateUserModal({ isOpen, onClose, onUserCreated }: CreateUserMo
               <Input
                 id="codigoEstudiantil"
                 name="codigoEstudiantil"
+                className="text-xs"
                 value={newUser.codigoEstudiantil}
                 onChange={handleChange}
               />
@@ -193,6 +199,7 @@ export function CreateUserModal({ isOpen, onClose, onUserCreated }: CreateUserMo
               <Input
                 id="codigoDocente"
                 name="codigoDocente"
+                className="text-xs"
                 value={newUser.codigoDocente}
                 onChange={handleChange}
               />

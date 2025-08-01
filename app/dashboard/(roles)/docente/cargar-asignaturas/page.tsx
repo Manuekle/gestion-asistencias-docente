@@ -609,7 +609,7 @@ export default function UploadSubjectsPage() {
                   id="temaClase"
                   value={editingClass.temaClase}
                   onChange={e => handleEditingClassChange('temaClase', e.target.value)}
-                  className="col-span-3"
+                  className="col-span-3 text-xs"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -620,7 +620,7 @@ export default function UploadSubjectsPage() {
                   id="descripcionClase"
                   value={editingClass.descripcionClase}
                   onChange={e => handleEditingClassChange('descripcionClase', e.target.value)}
-                  className="col-span-3"
+                  className="col-span-3 text-xs"
                 />
               </div>
             </div>

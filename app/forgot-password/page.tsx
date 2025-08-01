@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
                   id="correo"
                   type="email"
                   placeholder="tu@correo.com"
-                  className="pl-10"
+                  className="pl-10 text-xs"
                   value={correo}
                   onChange={e => setCorreo(e.target.value)}
                   required

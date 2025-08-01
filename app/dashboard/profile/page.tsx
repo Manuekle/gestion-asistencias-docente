@@ -305,6 +305,7 @@ export default function ProfilePage() {
                         value={name}
                         onChange={e => setName(e.target.value)}
                         placeholder="Tu nombre completo"
+                        className="text-xs"
                       />
                     </div>
                     <div className="space-y-2">
@@ -317,6 +318,7 @@ export default function ProfilePage() {
                         onChange={e => setCorreoInstitucional(e.target.value)}
                         placeholder="correo@institucion.edu"
                         required
+                        className="text-xs"
                       />
                     </div>
                     <div className="space-y-2">
@@ -327,6 +329,7 @@ export default function ProfilePage() {
                         value={correoPersonal}
                         onChange={e => setCorreoPersonal(e.target.value)}
                         placeholder="correo@personal.com"
+                        className="text-xs"
                       />
                     </div>
                   </div>
@@ -369,6 +372,7 @@ export default function ProfilePage() {
                     onChange={e => setCurrentPassword(e.target.value)}
                     placeholder="Ingresa tu contraseña actual"
                     required
+                    className="text-xs"
                   />
                 </div>
                 <div className="space-y-2">
@@ -380,6 +384,7 @@ export default function ProfilePage() {
                     onChange={e => setNewPassword(e.target.value)}
                     placeholder="Ingresa tu nueva contraseña"
                     required
+                    className="text-xs"
                   />
                 </div>
                 <div className="space-y-2">
@@ -391,9 +396,10 @@ export default function ProfilePage() {
                     onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="Confirma tu nueva contraseña"
                     required
+                    className="text-xs"
                   />
                 </div>
-                <div className="mb-4 rounded-lg border border-gray-200 p-4 text-sm text-gray-700 dark:border-gray-800/30 dark:text-gray-300">
+                <div className="mb-4 rounded-lg border border-gray-200 p-4 text-xs text-gray-700 dark:border-gray-800/30 dark:text-gray-300">
                   <div className="flex items-center">
                     <AlertCircle className="h-4 w-4 mr-2" />
                     <span>La contraseña debe tener al menos 6 caracteres.</span>
@@ -430,7 +436,7 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Subir Archivo */}
                   <div className="space-y-3 h-full">
-                    <Label className="text-sm font-medium">Subir Firma</Label>
+                    <Label className="text-xs font-medium">Subir Firma</Label>
                     <SignatureFileUpload onFileSelect={handleFileSelect} file={signatureFile} />
                     <p className="text-xs text-muted-foreground">
                       PNG con fondo transparente (máx. 2MB)
@@ -439,7 +445,7 @@ export default function ProfilePage() {
 
                   {/* Dibujar Firma */}
                   <div className="space-y-3 h-full">
-                    <Label className="text-sm font-medium">Dibujar Firma</Label>
+                    <Label className="text-xs font-medium">Dibujar Firma</Label>
                     <div
                       ref={canvasWrapperRef}
                       className="w-full aspect-[2.5/1] bg-muted/20 rounded-md border border-dashed border-muted-foreground/30"
@@ -465,7 +471,7 @@ export default function ProfilePage() {
 
                 {/* Vista Previa */}
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium">Vista Previa</Label>
+                  <Label className="text-xs font-medium">Vista Previa</Label>
                   <div className="border border-muted-foreground/20 rounded-md p-4 flex items-center justify-center h-56 bg-card">
                     {signaturePreview ? (
                       <div className="relative w-full h-full">
