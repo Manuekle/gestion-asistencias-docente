@@ -2,15 +2,16 @@ import {
   Body,
   Button,
   Container,
+  Font,
   Head,
   Heading,
   Hr,
   Html,
   Preview,
   Section,
+  Tailwind,
   Text,
 } from '@react-email/components';
-import { Tailwind } from '@react-email/tailwind';
 
 interface ResetPasswordEmailProps {
   resetUrl: string;
@@ -23,11 +24,21 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
 
   return (
     <Html>
-      <Head>
-        <title>Restablecer contraseña - Sistema de Asistencias FUP</title>
-      </Head>
-      <Preview>{previewText}</Preview>
       <Tailwind>
+        <Head>
+          <Font
+            fontFamily="Geist"
+            fallbackFontFamily="Helvetica"
+            webFont={{
+              url: 'https://cdn.jsdelivr.net/npm/@vercel/style-guide@6.0.0/fonts/GeistVF.woff2',
+              format: 'woff2',
+            }}
+            fontWeight={400}
+            fontStyle="normal"
+          />
+        </Head>
+        <Preview>{previewText}</Preview>
+
         <Body className="bg-gray-50 font-sans">
           <Container className="mx-auto max-w-2xl p-6 bg-white rounded-lg shadow-sm mt-8">
             <Section className="text-center">
@@ -41,7 +52,7 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
 
               <Button
                 href={resetUrl}
-                className="bg-blue-600 text-white font-normal py-2 px-6 rounded-md hover:bg-blue-700 transition-colors"
+                className="bg-black text-white font-normal py-2 px-6 rounded-md hover:bg-black/80 transition-colors"
               >
                 Restablecer contraseña
               </Button>
@@ -49,7 +60,7 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
               <Text className="text-gray-500 text-sm mt-6">
                 O copia y pega esta URL en tu navegador:
               </Text>
-              <Text className="text-blue-600 text-sm break-all mb-6">
+              <Text className="text-black text-sm break-all mb-6">
                 {resetUrl.replace('http://', '').replace('https://', '')}
               </Text>
 
@@ -62,7 +73,7 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
 
               <Text className="text-gray-500 text-xs mt-8">
                 Si tienes alguna pregunta, contáctanos en{' '}
-                <a href={`mailto:${supportEmail}`} className="text-blue-600 hover:underline">
+                <a href={`mailto:${supportEmail}`} className="text-black hover:underline">
                   {supportEmail}
                 </a>
               </Text>

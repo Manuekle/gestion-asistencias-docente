@@ -1,11 +1,10 @@
-import { renderEmail } from '@/app/emails/renderEmail';
 import UnenrollRequestEmail from '@/app/emails/UnenrollRequestEmail';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
 import React from 'react';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
@@ -103,8 +102,8 @@ export async function POST(request: Request) {
 
       // Notificar al administrador por correo electrónico
       try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
         const supportEmail = process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co';
+        const adminEmail = process.env.ADMIN_EMAIL || 'elustondo129@gmail.com';
 
         // Get subject name from the database
         const subject = await db.subject.findUnique({
@@ -112,30 +111,21 @@ export async function POST(request: Request) {
           select: { name: true },
         });
 
-        // Create the email content
-        const emailComponent = React.createElement(UnenrollRequestEmail, {
-          studentName: unenrollRequest.student.name || 'Estudiante',
-          studentEmail: unenrollRequest.student.correoInstitucional || 'No especificado',
-          subjectName: subject?.name || 'Asignatura',
-          reason: unenrollRequest.reason,
-          requestDate: unenrollRequest.createdAt.toISOString(),
-          supportEmail: supportEmail,
-        });
-        const emailHtml = await renderEmail(emailComponent);
-
         // Send email to admin
-        const { data, error } = await resend.emails.send({
-          from: 'Sistema de Asistencias FUP <onboarding@resend.dev>',
-          to: [process.env.ADMIN_EMAIL || 'elustondo129@gmail.com'],
+        await sendEmail({
+          to: adminEmail,
           subject: `Solicitud de Desmatriculación - ${subject?.name || 'Asignatura'}`,
-          html: emailHtml,
+          react: React.createElement(UnenrollRequestEmail, {
+            studentName: unenrollRequest.student.name || 'Estudiante',
+            studentEmail: unenrollRequest.student.correoInstitucional || 'No especificado',
+            subjectName: subject?.name || 'Asignatura',
+            reason: unenrollRequest.reason,
+            requestDate: unenrollRequest.createdAt.toISOString(),
+            supportEmail: supportEmail,
+          }),
         });
-
-        if (error) {
-          console.error('Error al enviar el correo de notificación:', error);
-        } else {
-          console.log('Correo de notificación enviado con éxito. ID:', data?.id);
-        }
+        
+        console.log('Correo de notificación enviado con éxito al administrador');
       } catch (emailError) {
         console.error('Error en el proceso de envío de correo:', emailError);
       }

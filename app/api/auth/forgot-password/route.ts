@@ -1,12 +1,8 @@
 import ResetPasswordEmail from '@/app/emails/ResetPasswordEmail';
-import { renderEmail } from '@/app/emails/renderEmail';
 import { db } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import React from 'react';
-import { Resend } from 'resend';
-
-// Configuración de Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,28 +39,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Renderizar el correo electrónico con React Email
-    const emailComponent = React.createElement(ResetPasswordEmail, {
-      resetUrl: `${process.env.NEXTAUTH_URL}/reset-password/${resetToken}`,
-      userEmail: user.correoInstitucional || user.correoPersonal || '',
-      supportEmail: process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co',
-    });
-    const emailHtml = await renderEmail(emailComponent);
-
-    // Enviar correo electrónico
-    const { error } = await resend.emails.send({
-      from: `Sistema de Asistencias FUP <onboarding@resend.dev>`,
-      to: correo,
-      subject: 'Restablece tu contraseña - Sistema de Asistencias FUP',
-      html: emailHtml,
-    });
-
-    if (error) {
+    // Renderizar y enviar el correo electrónico
+    try {
+      await sendEmail({
+        to: correo,
+        subject: 'Restablece tu contraseña - Sistema de Asistencias FUP',
+        react: React.createElement(ResetPasswordEmail, {
+          resetUrl: `${process.env.NEXTAUTH_URL}/reset-password/${resetToken}`,
+          userEmail: user.correoInstitucional || user.correoPersonal || '',
+          supportEmail: process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co',
+        }),
+      });
+    } catch (error) {
+      console.error('Error al enviar el correo de restablecimiento:', error);
       return NextResponse.json(
         { error: 'Error al enviar el correo de restablecimiento' },
-        {
-          status: 500,
-        }
+        { status: 500 }
       );
     }
 

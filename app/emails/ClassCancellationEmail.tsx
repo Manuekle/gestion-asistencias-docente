@@ -1,15 +1,16 @@
 import {
   Body,
   Container,
+  Font,
   Head,
   Heading,
   Hr,
   Html,
   Preview,
   Section,
+  Tailwind,
   Text,
 } from '@react-email/components';
-import { Tailwind } from '@react-email/tailwind';
 
 interface ClassCancellationEmailProps {
   studentName?: string; // Optional, in case you want to personalize
@@ -31,11 +32,20 @@ const ClassCancellationEmail = ({
 
   return (
     <Html>
-      <Head>
-        <title>Cancelación de Clase - Sistema de Asistencias FUP</title>
-      </Head>
-      <Preview>{previewText}</Preview>
       <Tailwind>
+        <Head>
+          <Font
+            fontFamily="Geist"
+            fallbackFontFamily="Helvetica"
+            webFont={{
+              url: 'https://cdn.jsdelivr.net/npm/@vercel/style-guide@6.0.0/fonts/GeistVF.woff2',
+              format: 'woff2',
+            }}
+            fontWeight={400}
+            fontStyle="normal"
+          />
+        </Head>
+        <Preview>{previewText}</Preview>
         <Body className="bg-gray-50 font-sans">
           <Container className="mx-auto max-w-2xl p-6 bg-white rounded-lg shadow-sm mt-8">
             <Section className="text-center">

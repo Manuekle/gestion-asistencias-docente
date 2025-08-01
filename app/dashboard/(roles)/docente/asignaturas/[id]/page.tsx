@@ -832,14 +832,16 @@ export default function SubjectDetailPage() {
                     return (
                       <TableRow
                         key={cls.id}
-                        className={cls.status === 'CANCELADA' ? 'opacity-70 bg-gray-50' : ''}
+                        className={
+                          cls.status === 'CANCELADA' ? 'opacity-70 bg-gray-50 dark:bg-zinc-900' : ''
+                        }
                         data-state={cls.status === 'CANCELADA' ? 'cancelled' : undefined}
                       >
                         <TableCell className="text-sm px-4 py-2">
                           <div className="flex flex-col">
                             <span>{formatClassDate(cls)}</span>
                             {cls.status === 'CANCELADA' && cls.cancellationReason && (
-                              <span className="text-xs text-amber-600 mt-1">
+                              <span className="text-xs text-amber-600 mt-1 dark:text-amber-400">
                                 Motivo: {cls.cancellationReason}
                               </span>
                             )}
@@ -849,7 +851,7 @@ export default function SubjectDetailPage() {
                         <TableCell className="px-4 py-2">
                           <Badge
                             variant="outline"
-                            className={cn('font-light text-xs', statusInfo.color)}
+                            className={cn('font-light text-xs dark:text-white', statusInfo.color)}
                           >
                             {statusInfo.label}
                           </Badge>

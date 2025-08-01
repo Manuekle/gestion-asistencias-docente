@@ -1,11 +1,10 @@
 import ClassCancellationEmail from '@/app/emails/ClassCancellationEmail';
-import { renderEmail } from '@/app/emails/renderEmail';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import React from 'react';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { DocenteClaseDetailSchema, DocenteClaseUpdateSchema } from './schema';
 
 async function verifyTeacherOwnership(classId: string, teacherId: string) {
@@ -118,9 +117,6 @@ export async function PUT(request: Request, { params }: { params: { classId: str
 
         if (studentEmails.length > 0) {
           try {
-            const resend = new Resend(process.env.RESEND_API_KEY);
-            // const testRecipient = 'delivered@resend.dev'; // Resend's special test email
-
             // Create the email content once to be reused
             const emailComponent = React.createElement(ClassCancellationEmail, {
               subjectName: classToCancel.subject.name,
@@ -129,25 +125,27 @@ export async function PUT(request: Request, { params }: { params: { classId: str
               reason: reason,
               supportEmail: process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co',
             });
-            const emailHtml = await renderEmail(emailComponent);
 
-            // For testing with a non-verified domain, we send one email per student to a test address.
-            // In production, you could send to all students at once: `to: studentEmails`
-            for (const studentEmail of studentEmails) {
-              const { data, error } = await resend.emails.send({
-                from: 'Sistema de Asistencias FUP <onboarding@resend.dev>',
-                to: [studentEmail],
+            // Send email to all students
+            const emailPromises = studentEmails.map(studentEmail => 
+              sendEmail({
+                to: studentEmail,
                 subject: `Clase Cancelada: ${classToCancel.subject.name}`,
-                html: emailHtml,
-              });
+                react: emailComponent,
+              }).catch(error => {
+                console.error(`Error sending email to ${studentEmail}:`, error);
+                return { success: false, email: studentEmail, error };
+              })
+            );
 
-              if (error) {
-                console.error(`Error simulating email for ${studentEmail}:`, error);
-              } else {
-                console.log(
-                  `Successfully simulated email for ${studentEmail}. Resend ID: ${data?.id}`
-                );
-              }
+            // Wait for all emails to be sent
+            const results = await Promise.all(emailPromises);
+            const failedEmails = results.filter(r => !r.success);
+            
+            if (failedEmails.length > 0) {
+              console.error(`Failed to send ${failedEmails.length} cancellation emails`);
+            } else {
+              console.log(`Successfully sent ${results.length} cancellation emails`);
             }
           } catch (emailError) {
             console.error('A general error occurred during the email sending process:', emailError);

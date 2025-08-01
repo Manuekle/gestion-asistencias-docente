@@ -1,4 +1,3 @@
-import { renderEmail } from '@/app/emails/renderEmail';
 import UnenrollStatusEmail from '@/app/emails/UnenrollStatusEmail';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
@@ -6,7 +5,7 @@ import { UnenrollRequest, UnenrollRequestStatus } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
 import * as React from 'react';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 
 // Define the shape of the included relations
 interface StudentInfo {
@@ -221,65 +220,49 @@ export async function POST(request: Request) {
 }
 
 async function sendStatusEmail(request: UnenrollRequestWithRelations, isApproved: boolean) {
+  const supportEmail = process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co';
+
+  // Ensure we have all required data before proceeding
+  if (!request.requestedBy?.correoInstitucional || !request.student || !request.subject) {
+    console.warn('No se pudo enviar el correo: datos incompletos en la solicitud');
+    return;
+  }
+
+  // Use the actual recipient in production, or a test email in development
+  const recipient = process.env.NODE_ENV === 'production'
+    ? request.requestedBy.correoInstitucional
+    : 'elustondo129@gmail.com';
+
+  if (!recipient) {
+    console.warn('No se pudo enviar el correo: destinatario no especificado');
+    return;
+  }
+
+  console.log('Enviando correo a:', recipient);
+
+  // At this point, we've already verified that request.student and request.subject are not null
+  const student = request.student!;
+  const subject = request.subject!;
+
+  const emailProps: EmailProps = {
+    studentName: student.name || 'Estudiante',
+    studentEmail: student.correoInstitucional || 'No especificado',
+    subjectName: subject.name,
+    isApproved,
+    reason: request.reviewComment || 'No se proporcionó una razón',
+    requestDate: request.createdAt.toISOString(),
+    decisionDate: new Date().toISOString(),
+    supportEmail,
+  };
+
+  console.log('Props del correo:', JSON.stringify(emailProps, null, 2));
+
   try {
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    if (!RESEND_API_KEY) {
-      console.error('RESEND_API_KEY no está configurado en las variables de entorno');
-      return;
-    }
-
-    const resend = new Resend(RESEND_API_KEY);
-    const supportEmail = process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co';
-
-    // Ensure we have all required data before proceeding
-    if (!request.requestedBy?.correoInstitucional || !request.student || !request.subject) {
-      console.warn('No se pudo enviar el correo: datos incompletos en la solicitud');
-      return;
-    }
-
-    // Use a verified domain for testing or the actual recipient
-    const recipient =
-      process.env.NODE_ENV === 'production'
-        ? request.requestedBy.correoInstitucional
-        : 'elustondo129@gmail.com';
-
-    // Use a verified sender domain from your Resend dashboard
-    const senderEmail = 'onboarding@resend.dev'; // Replace with your verified domain
-
-    if (!recipient) {
-      console.warn('No se pudo enviar el correo: destinatario no especificado');
-      return;
-    }
-
-    console.log('Enviando correo a:', recipient);
-
-    // At this point, we've already verified that request.student and request.subject are not null
-    // but TypeScript still needs help with type narrowing
-    const student = request.student!;
-    const subject = request.subject!;
-
-    const emailProps: EmailProps = {
-      studentName: student.name || 'Estudiante',
-      studentEmail: student.correoInstitucional || 'No especificado',
-      subjectName: subject.name,
-      isApproved,
-      reason: request.reviewComment || 'No se proporcionó una razón',
-      requestDate: request.createdAt.toISOString(),
-      decisionDate: new Date().toISOString(),
-      supportEmail,
-    };
-
-    console.log('Props del correo:', JSON.stringify(emailProps, null, 2));
-
-    // Render the email component
-    const emailComponent = React.createElement(UnenrollStatusEmail, emailProps);
-    const emailHtml = await renderEmail(emailComponent);
-
-    const response = await resend.emails.send({
-      from: `Sistema de Asistencias FUP <${senderEmail}>`,
-      to: [recipient],
+    // Send the email using our email utility
+    const response = await sendEmail({
+      to: recipient,
       subject: `Solicitud de Desmatriculación ${isApproved ? 'Aprobada' : 'Rechazada'}`,
-      html: emailHtml,
+      react: React.createElement(UnenrollStatusEmail, emailProps),
     });
 
     console.log('Correo enviado exitosamente:', response);
@@ -288,10 +271,6 @@ async function sendStatusEmail(request: UnenrollRequestWithRelations, isApproved
     console.error('Error al enviar el correo de notificación:', error);
     if (error instanceof Error) {
       console.error('Mensaje de error:', error.message);
-      const errorWithResponse = error as Error & { response?: unknown };
-      if (errorWithResponse.response) {
-        console.error('Respuesta del error:', JSON.stringify(errorWithResponse.response, null, 2));
-      }
     }
     throw error; // Propagate the error to be handled by the caller
   }
