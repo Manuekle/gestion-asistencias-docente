@@ -310,7 +310,7 @@ export default function UploadSubjectsPage() {
     <main className="space-y-4">
       {/* Header */}
       <div className="pb-4 col-span-1 w-full">
-        <CardTitle className="text-2xl font-semibold tracking-tight">
+        <CardTitle className="text-2xl font-semibold tracking-heading">
           Cargar Asignaturas y Clases
         </CardTitle>
         <CardDescription className="text-xs">
