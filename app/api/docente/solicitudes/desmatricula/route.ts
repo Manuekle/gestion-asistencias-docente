@@ -124,7 +124,7 @@ export async function POST(request: Request) {
             supportEmail: supportEmail,
           }),
         });
-        
+
         console.log('Correo de notificación enviado con éxito al administrador');
       } catch (emailError) {
         console.error('Error en el proceso de envío de correo:', emailError);

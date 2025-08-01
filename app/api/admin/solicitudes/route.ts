@@ -229,9 +229,10 @@ async function sendStatusEmail(request: UnenrollRequestWithRelations, isApproved
   }
 
   // Use the actual recipient in production, or a test email in development
-  const recipient = process.env.NODE_ENV === 'production'
-    ? request.requestedBy.correoInstitucional
-    : 'elustondo129@gmail.com';
+  const recipient =
+    process.env.NODE_ENV === 'production'
+      ? request.requestedBy.correoInstitucional
+      : 'elustondo129@gmail.com';
 
   if (!recipient) {
     console.warn('No se pudo enviar el correo: destinatario no especificado');

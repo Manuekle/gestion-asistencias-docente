@@ -26,14 +26,14 @@ interface SendEmailResponse {
   response?: string;
 }
 
-export async function sendEmail({ 
-  to, 
-  subject, 
-  react, 
-  from 
+export async function sendEmail({
+  to,
+  subject,
+  react,
+  from,
 }: SendEmailOptions): Promise<SendEmailResponse> {
   const defaultFrom = `Sistema de Asistencias FUP <${process.env.SMTP_FROM || 'noreply@fup.edu.co'}>`;
-  
+
   try {
     // Render React component to HTML and plain text
     const html = await render(react, { pretty: true });
@@ -48,15 +48,17 @@ export async function sendEmail({
     };
 
     const info: SentMessageInfo = await transporter.sendMail(mailOptions);
-    
+
     console.log('Correo enviado: %s', info.messageId);
-    return { 
-      success: true, 
+    return {
+      success: true,
       messageId: info.messageId,
-      response: info.response 
+      response: info.response,
     };
   } catch (error) {
     console.error('Error al enviar el correo:', error);
-    throw new Error(`Error al enviar el correo: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Error al enviar el correo: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }

@@ -127,7 +127,7 @@ export async function PUT(request: Request, { params }: { params: { classId: str
             });
 
             // Send email to all students
-            const emailPromises = studentEmails.map(studentEmail => 
+            const emailPromises = studentEmails.map(studentEmail =>
               sendEmail({
                 to: studentEmail,
                 subject: `Clase Cancelada: ${classToCancel.subject.name}`,
@@ -141,7 +141,7 @@ export async function PUT(request: Request, { params }: { params: { classId: str
             // Wait for all emails to be sent
             const results = await Promise.all(emailPromises);
             const failedEmails = results.filter(r => !r.success);
-            
+
             if (failedEmails.length > 0) {
               console.error(`Failed to send ${failedEmails.length} cancellation emails`);
             } else {

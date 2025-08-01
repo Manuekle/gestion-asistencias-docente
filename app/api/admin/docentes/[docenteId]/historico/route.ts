@@ -63,7 +63,10 @@ function periodToDateRange(period?: string) {
  *   ]
  * }
  */
-export async function GET(req: NextRequest, { params }: { params: Promise<{ docenteId: string }> }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ docenteId: string }> }
+) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== Role.ADMIN) {
