@@ -7,6 +7,7 @@ import {
   Heading,
   Hr,
   Html,
+  Link,
   Preview,
   Section,
   Tailwind,
@@ -38,48 +39,85 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
           />
         </Head>
         <Preview>{previewText}</Preview>
-
-        <Body className="bg-gray-50 font-sans">
-          <Container className="mx-auto max-w-2xl p-6 bg-white rounded-lg shadow-sm mt-8">
-            <Section className="text-center">
-              <Heading as="h1" className="text-2xl font-semibold text-gray-900 mb-2">
-                Restablece tu contraseña
+        <Body className="bg-slate-50 font-sans py-[40px]">
+          <Container className="mx-auto max-w-[580px] bg-white border border-slate-200 rounded-[12px] overflow-hidden">
+            {/* Header */}
+            <Section className="bg-black px-[32px] py-[24px]">
+              <Heading className="text-[20px] font-semibold text-white m-0 leading-[28px]">
+                Restablecer Contraseña
               </Heading>
-              <Text className="text-gray-600 mb-6">
-                Hola {userEmail}, hemos recibido una solicitud para restablecer la contraseña de tu
-                cuenta.
+              <Text className="text-slate-300 text-[14px] m-0 mt-[4px] leading-[20px]">
+                Solicitud de cambio de contraseña
+              </Text>
+            </Section>
+
+            {/* Content */}
+            <Section className="px-[32px] py-[32px] text-center">
+              <Text className="text-slate-600 text-[12px] leading-[24px] m-0 mb-[24px]">
+                Hola, hemos recibido una solicitud para restablecer la contraseña de tu cuenta
+                asociada a:
               </Text>
 
-              <Button
-                href={resetUrl}
-                className="bg-black text-white font-normal py-2 px-6 rounded-md hover:bg-black/80 transition-colors"
-              >
-                Restablecer contraseña
-              </Button>
+              {/* Email Display */}
+              <Section className="mb-[32px]">
+                <div className="bg-slate-50 border border-slate-200 rounded-[8px] px-[16px] py-[12px] inline-block">
+                  <Text className="text-[14px] font-medium text-slate-900 m-0">{userEmail}</Text>
+                </div>
+              </Section>
 
-              <Text className="text-gray-500 text-sm mt-6">
-                O copia y pega esta URL en tu navegador:
-              </Text>
-              <Text className="text-black text-sm break-all mb-6">
-                {resetUrl.replace('http://', '').replace('https://', '')}
-              </Text>
+              {/* CTA Button */}
+              <Section className="mb-[32px]">
+                <Button
+                  href={resetUrl}
+                  className="bg-black text-white text-[14px] font-medium py-[12px] px-[24px] rounded-[8px] box-border no-underline inline-block"
+                >
+                  Restablecer Contraseña
+                </Button>
+              </Section>
 
-              <Hr className="border-gray-200 my-6" />
+              {/* Alternative URL */}
+              <Section className="mb-[32px]">
+                <Text className="text-slate-500 text-[12px] m-0 mb-[8px]">
+                  O copia y pega este enlace en tu navegador:
+                </Text>
+                <div className="bg-slate-50 border border-slate-200 rounded-[6px] px-[12px] py-[8px] text-left">
+                  <Text className="text-[11px] text-slate-700 m-0 break-all font-sans">
+                    {resetUrl}
+                  </Text>
+                </div>
+              </Section>
 
-              <Text className="text-gray-500 text-sm">
+              <Hr className="border-slate-200 my-[24px]" />
+
+              {/* Security Notice */}
+              <Section className="mb-[24px]">
+                <div className="bg-amber-50 border border-amber-200 rounded-[8px] px-[16px] py-[12px]">
+                  <Text className="text-[12px] text-amber-800 m-0 leading-[18px]">
+                    <strong>Importante:</strong> Este enlace expirará en 24 horas por seguridad.
+                  </Text>
+                </div>
+              </Section>
+
+              <Text className="text-slate-500 text-[14px] leading-[20px] m-0 mb-[16px]">
                 Si no solicitaste este restablecimiento, puedes ignorar este correo de manera
                 segura.
               </Text>
 
-              <Text className="text-gray-500 text-xs mt-8">
-                Si tienes alguna pregunta, contáctanos en{' '}
-                <a href={`mailto:${supportEmail}`} className="text-black hover:underline">
+              <Text className="text-[12px] text-slate-500 m-0">
+                ¿Necesitas ayuda? Contáctanos en{' '}
+                <Link href={`mailto:${supportEmail}`} className="text-slate-700 underline">
                   {supportEmail}
-                </a>
+                </Link>
               </Text>
+            </Section>
 
-              <Text className="text-gray-400 text-xs mt-4">
-                © {new Date().getFullYear()} Sistema de Asistencias FUP. Todos los derechos
+            {/* Footer */}
+            <Section className="bg-slate-50 px-[32px] py-[16px] border-t border-slate-200">
+              <Text className="text-[11px] text-slate-400 text-center m-0">
+                Este es un correo automático, por favor no respondas a este mensaje.
+              </Text>
+              <Text className="text-[11px] text-slate-400 text-center m-0 mt-[4px]">
+                © {new Date().getFullYear()} Sistema de Gestión de Asistencias. Todos los derechos
                 reservados.
               </Text>
             </Section>
