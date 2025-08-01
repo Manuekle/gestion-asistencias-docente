@@ -82,7 +82,7 @@
     "@react-email/components": "^0.1.1",
     "@react-email/render": "^1.1.4",
     "@react-email/tailwind": "^1.2.2",
-    "@tanstack/react-query": "^5.81.2",
+    "@tanstack/react-query": "^5.84.0",
     "@tanstack/react-table": "^8.21.3",
     "@types/react-big-calendar": "^1.16.2",
     "@types/react-dropzone": "^4.2.2",
