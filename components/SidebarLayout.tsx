@@ -170,29 +170,36 @@ function AppSidebar({ homePath }: { homePath: string }) {
                   <ChevronDown className="ml-auto h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 font-sans" side="right" align="end">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-normal">{session?.user?.name || 'Usuario'}</p>
-                  <p className="text-xs text-muted-foreground">
+              <DropdownMenuContent
+                className="font-sans w-80 sm:w-64"
+                side="bottom"
+                align="end"
+                sideOffset={8}
+                alignOffset={-20}
+                collisionPadding={16}
+              >
+                <div className="px-4 py-1 my-1">
+                  <p className="text-sm font-medium truncate">{session?.user?.name || 'Usuario'}</p>
+                  <p className="text-xs text-muted-foreground truncate">
                     {session?.user?.correoInstitucional || getRoleDisplayName(userRole as Role)}
                   </p>
                 </div>
                 <Separator />
                 <DropdownMenuItem
                   onClick={() => router.push('/dashboard/profile')}
-                  className="cursor-pointer"
+                  className="cursor-pointer py-1 mt-1 px-4 text-sm flex items-center"
                 >
-                  <Settings className="mr-2 h-4 w-4" />
+                  <Settings className="mr-3 h-4 w-4 flex-shrink-0" />
                   <span>Perfil</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  className="cursor-pointer"
+                  className="cursor-pointer py-1 my-1  px-4 text-sm flex items-center"
                 >
                   {theme === 'dark' ? (
-                    <Sun className="mr-2 h-4 w-4" />
+                    <Sun className="mr-3 h-4 w-4 flex-shrink-0" />
                   ) : (
-                    <Moon className="mr-2 h-4 w-4" />
+                    <Moon className="mr-3 h-4 w-4 flex-shrink-0" />
                   )}
                   <span className="font-sans">
                     {theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
@@ -201,9 +208,9 @@ function AppSidebar({ homePath }: { homePath: string }) {
                 <Separator />
                 <DropdownMenuItem
                   onClick={handleSignOut}
-                  className="text-destructive cursor-pointer"
+                  className="text-destructive cursor-pointer py-1 mt-1 px-4 text-sm flex items-center"
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
+                  <LogOut className="mr-3 h-4 w-4 flex-shrink-0" />
                   <span className="font-sans">Cerrar sesión</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
