@@ -1,7 +1,7 @@
-import { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
 import { db } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
 
 // Configuración de cookies para desarrollo y producción
 const isProduction = process.env.NODE_ENV === 'production';

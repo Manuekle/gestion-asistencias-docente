@@ -48,8 +48,9 @@ export async function POST(request: Request) {
 
   let filePath = '';
   try {
-    const url = new URL(request.url);
-    const isPreview = url.searchParams.get('preview') === 'true';
+    // Safely get the URL from the request
+    const requestUrl = new URL(request.url, process.env.NEXTAUTH_URL || 'http://localhost:3000'); // Use a dummy base URL for parsing
+    const isPreview = requestUrl.searchParams.get('preview') === 'true';
 
     const data = await request.formData();
     const file = data.get('file') as File;
