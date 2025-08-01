@@ -126,11 +126,15 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: useSecureCookies,
         // Only set domain for production, not for localhost or IP addresses
-        domain: hostName === 'localhost' || hostName.startsWith('192.168.') || hostName.startsWith('127.0.') || hostName === '[::1]' 
-          ? undefined 
-          : hostName.includes('vercel.app') 
-            ? hostName // For Vercel preview and production URLs
-            : `.${hostName}`, // For custom domains
+        domain:
+          hostName === 'localhost' ||
+          hostName.startsWith('192.168.') ||
+          hostName.startsWith('127.0.') ||
+          hostName === '[::1]'
+            ? undefined
+            : hostName.includes('vercel.app')
+              ? hostName // For Vercel preview and production URLs
+              : `.${hostName}`, // For custom domains
       },
     },
   },
