@@ -22,9 +22,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ChevronDown, Download, Loader2 } from 'lucide-react';
+// Icons from lucide-react
 import { DatePicker } from '@/components/ui/date-picker';
 import { TimePicker } from '@/components/ui/time-picker';
+import { CheckCircle, ChevronDown, Download, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -225,6 +226,15 @@ export default function UploadSubjectsPage() {
     setIsPreview(false);
     setPreviewData([]);
     setUploadResult(null);
+    setExpandedSubjects(new Set());
+  };
+
+  const handleNewUpload = () => {
+    setFile(null);
+    setIsPreview(false);
+    setPreviewData([]);
+    setUploadResult(null);
+    setExpandedSubjects(new Set());
   };
 
   const toggleSubjectExpansion = (subjectCode: string) => {
@@ -359,198 +369,207 @@ export default function UploadSubjectsPage() {
         </div>
 
         <div className="lg:col-span-2">
-          {/* Preview */}
-          {isPreview && previewData.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold tracking-heading">
-                  Vista Previa de la Carga
-                </CardTitle>
-                <CardDescription className="text-sm text-muted-foreground">
-                  Revisa los datos antes de confirmar la carga. Las filas con errores no serán
-                  procesadas.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-lg border bg-card">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/60">
-                        <TableHead className="text-xs font-normal px-4 py-2">Código</TableHead>
-                        <TableHead className="text-xs font-normal px-4 py-2">
-                          Nombre Asignatura
-                        </TableHead>
-                        <TableHead className="text-xs font-normal px-4 py-2">Créditos</TableHead>
-                        <TableHead className="text-xs font-normal px-4 py-2">Estado</TableHead>
-                        <TableHead className="w-12"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {previewData.map(subject => (
-                        <React.Fragment key={subject.codigoAsignatura}>
-                          <TableRow className="hover:bg-muted/50 transition-colors">
-                            <TableCell className="text-xs font-normal px-4 py-2 font-mono">
-                              {subject.codigoAsignatura}
-                            </TableCell>
-                            <TableCell className="text-xs font-normal px-4 py-2">
-                              {subject.nombreAsignatura}
-                            </TableCell>
-                            <TableCell className="text-xs font-normal px-4 py-2">
-                              {subject.creditosClase}
-                            </TableCell>
-                            <TableCell>
-                              {subject.status === 'duplicate' ? (
-                                <Badge variant="destructive" className="text-xs">
-                                  Duplicado
-                                </Badge>
-                              ) : subject.status === 'error' ? (
-                                <Badge
-                                  variant="destructive"
-                                  className="text-xs font-normal text-white"
-                                >
-                                  Error
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-xs font-normal">
-                                  Correcto
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {subject.classes.length > 0 && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleSubjectExpansion(subject.codigoAsignatura)}
-                                  className="h-8 w-8 p-0 hover:bg-muted"
-                                >
-                                  <ChevronDown
-                                    className={`h-4 w-4 transition-transform duration-200 ${
-                                      expandedSubjects.has(subject.codigoAsignatura)
-                                        ? 'rotate-180'
-                                        : ''
-                                    }`}
-                                  />
-                                </Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
-
-                          {expandedSubjects.has(subject.codigoAsignatura) && (
-                            <TableRow className="hover:bg-none">
-                              <TableCell colSpan={5} className="p-0">
-                                <div className="bg-muted/20 px-4 py-3">
-                                  <div className="flex items-center justify-between mb-4">
-                                    <h4 className="font-medium text-sm">Clases Programadas</h4>
-                                    <Badge variant="outline" className="text-xs font-normal">
-                                      {subject.classes.length} clases
-                                    </Badge>
-                                  </div>
-
-                                  {subject.classes.length > 0 ? (
-                                    <div className="space-y-3">
-                                      {subject.classes.map(cls => (
-                                        <div
-                                          key={cls.id}
-                                          className="bg-background rounded-md border p-4 hover:bg-muted/30 transition-colors"
-                                        >
-                                          <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-6">
-                                              <div>
-                                                <p className="text-xs text-muted-foreground mb-1">
-                                                  Fecha
-                                                </p>
-                                                <p className="text-sm font-medium">
-                                                  {cls.fechaClase}
-                                                </p>
-                                              </div>
-                                              <div>
-                                                <p className="text-xs text-muted-foreground mb-1">
-                                                  Inicio
-                                                </p>
-                                                <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
-                                                  {cls.horaInicio}
-                                                </code>
-                                              </div>
-                                              <div>
-                                                <p className="text-xs text-muted-foreground mb-1">
-                                                  Fin
-                                                </p>
-                                                <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
-                                                  {cls.horaFin}
-                                                </code>
-                                              </div>
-                                            </div>
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() => handleEditClick(subject, cls)}
-                                              className="h-8 px-3 text-xs"
-                                            >
-                                              Editar
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <div className="bg-background rounded-md border p-8 text-center">
-                                      <div className="text-muted-foreground">
-                                        <p className="text-sm">No hay clases programadas</p>
-                                        <p className="text-xs mt-1">
-                                          Las clases aparecerán aquí cuando sean agregadas
-                                        </p>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </TableBody>
-                  </Table>
+          <Card className="min-h-[400px]">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold tracking-heading">
+                Previsualización y Confirmación
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
+                Revisa los datos antes de confirmar la carga. Las filas con errores no serán
+                procesadas.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col justify-center">
+              {isLoading && !isPreview ? (
+                <div className="flex items-center justify-center h-64">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 </div>
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    onClick={handleUpload}
-                    disabled={isLoading || previewData.every(s => s.status !== 'success')}
-                  >
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <></>}
-                    Confirmar Carga
+              ) : uploadResult ? (
+                <div className="p-6 rounded-lg border bg-card text-center">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <CheckCircle className="h-12 w-12 text-green-500" />
+                  </div>
+                  <h3 className="font-medium text-lg">Carga completada</h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Se procesaron {uploadResult.processed} asignaturas.
+                  </p>
+
+                  {uploadResult.errors && uploadResult.errors.length > 0 && (
+                    <div className="space-y-3 mt-4 text-left">
+                      <p className="text-sm font-medium text-red-600">Detalles de errores:</p>
+                      <div className="bg-muted/50 rounded-md p-3 max-h-40 overflow-y-auto">
+                        <ul className="list-disc list-inside space-y-1 text-sm text-red-500">
+                          {uploadResult.errors.map((error, index) => (
+                            <li key={index}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button onClick={handleNewUpload} variant="outline" className="w-full mt-6">
+                    Cargar otro archivo
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              ) : isPreview && previewData.length > 0 ? (
+                <>
+                  <div className="rounded-lg border bg-card">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/60">
+                          <TableHead className="text-xs font-normal px-4 py-2">Código</TableHead>
+                          <TableHead className="text-xs font-normal px-4 py-2">
+                            Nombre Asignatura
+                          </TableHead>
+                          <TableHead className="text-xs font-normal px-4 py-2">Créditos</TableHead>
+                          <TableHead className="text-xs font-normal px-4 py-2">Estado</TableHead>
+                          <TableHead className="w-12"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {previewData.map(subject => (
+                          <React.Fragment key={subject.codigoAsignatura}>
+                            <TableRow className="hover:bg-muted/50 transition-colors">
+                              <TableCell className="text-xs font-normal px-4 py-2 font-mono">
+                                {subject.codigoAsignatura}
+                              </TableCell>
+                              <TableCell className="text-xs font-normal px-4 py-2">
+                                {subject.nombreAsignatura}
+                              </TableCell>
+                              <TableCell className="text-xs font-normal px-4 py-2">
+                                {subject.creditosClase}
+                              </TableCell>
+                              <TableCell>
+                                {subject.status === 'duplicate' ? (
+                                  <Badge variant="destructive" className="text-xs">
+                                    Duplicado
+                                  </Badge>
+                                ) : subject.status === 'error' ? (
+                                  <Badge
+                                    variant="destructive"
+                                    className="text-xs font-normal text-white"
+                                  >
+                                    Error
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs font-normal">
+                                    Correcto
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {subject.classes.length > 0 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleSubjectExpansion(subject.codigoAsignatura)}
+                                    className="h-8 w-8 p-0 hover:bg-muted"
+                                  >
+                                    <ChevronDown
+                                      className={`h-4 w-4 transition-transform duration-200 ${
+                                        expandedSubjects.has(subject.codigoAsignatura)
+                                          ? 'rotate-180'
+                                          : ''
+                                      }`}
+                                    />
+                                  </Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
 
-          {/* Results */}
-          {uploadResult && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold tracking-heading">
-                  Resultado de la Carga
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Se procesaron <span className="font-semibold">{uploadResult.processed}</span>{' '}
-                  asignaturas.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {uploadResult?.errors?.length > 0 && (
-                  <div className="mt-4">
-                    <p className="font-semibold text-red-600">Errores encontrados:</p>
-                    <ul className="list-disc list-inside text-red-500 mt-2">
-                      {uploadResult.errors.map((error, index) => (
-                        <li key={index}>{error}</li>
-                      ))}
-                    </ul>
+                            {expandedSubjects.has(subject.codigoAsignatura) && (
+                              <TableRow className="hover:bg-none">
+                                <TableCell colSpan={5} className="p-0">
+                                  <div className="bg-muted/20 px-4 py-3">
+                                    <div className="flex items-center justify-between mb-4">
+                                      <h4 className="font-medium text-sm">Clases Programadas</h4>
+                                      <Badge variant="outline" className="text-xs font-normal">
+                                        {subject.classes.length} clases
+                                      </Badge>
+                                    </div>
+
+                                    {subject.classes.length > 0 ? (
+                                      <div className="space-y-3">
+                                        {subject.classes.map(cls => (
+                                          <div
+                                            key={cls.id}
+                                            className="bg-background rounded-md border p-4 hover:bg-muted/30 transition-colors"
+                                          >
+                                            <div className="flex items-center justify-between">
+                                              <div className="flex items-center gap-6">
+                                                <div>
+                                                  <p className="text-xs text-muted-foreground mb-1">
+                                                    Fecha
+                                                  </p>
+                                                  <p className="text-sm font-medium">
+                                                    {cls.fechaClase}
+                                                  </p>
+                                                </div>
+                                                <div>
+                                                  <p className="text-xs text-muted-foreground mb-1">
+                                                    Inicio
+                                                  </p>
+                                                  <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
+                                                    {cls.horaInicio}
+                                                  </code>
+                                                </div>
+                                                <div>
+                                                  <p className="text-xs text-muted-foreground mb-1">
+                                                    Fin
+                                                  </p>
+                                                  <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
+                                                    {cls.horaFin}
+                                                  </code>
+                                                </div>
+                                              </div>
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleEditClick(subject, cls)}
+                                                className="h-8 px-3 text-xs"
+                                              >
+                                                Editar
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="bg-background rounded-md border p-8 text-center">
+                                        <div className="text-muted-foreground">
+                                          <p className="text-sm">No hay clases programadas</p>
+                                          <p className="text-xs mt-1">
+                                            Las clases aparecerán aquí cuando sean agregadas
+                                          </p>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  <div className="mt-6 flex justify-end">
+                    <Button
+                      onClick={handleUpload}
+                      disabled={isLoading || previewData.every(s => s.status !== 'success')}
+                    >
+                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <></>}
+                      Confirmar Carga
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-xs font-medium text-muted-foreground py-24">
+                  <p>Sube un archivo para ver la previsualización aquí.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 

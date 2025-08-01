@@ -221,36 +221,42 @@ export default function UploadStudentsToSubjectsPage() {
             </CardContent>
           </Card>
         </div>
-
+        {/* card */}
         <div className="lg:col-span-2">
-          {uploadResult && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold tracking-heading">
-                  Resultado de la Carga
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="p-6 rounded-lg border bg-card">
-                  <div className="flex items-center gap-3 mb-4">
+          <Card className="min-h-[400px]">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold tracking-heading">
+                Previsualización y Confirmación
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
+                Revisa los datos antes de confirmar la carga. Las filas con errores no serán
+                procesadas.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col justify-center">
+              {isLoading && !isPreview ? (
+                <div className="flex items-center justify-center h-64">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                </div>
+              ) : uploadResult ? (
+                <div className="bg-card text-center">
+                  <div className="flex items-center justify-center gap-3 mb-4">
                     {uploadResult.success ? (
-                      <CheckCircle className="h-5 w-5" />
+                      <CheckCircle className="h-12 w-12 text-green-500" />
                     ) : (
-                      <AlertCircle className="h-5 w-5" />
+                      <AlertCircle className="h-12 w-12 text-red-500" />
                     )}
-                    <div>
-                      <h3 className="font-medium text-sm">
-                        {uploadResult.success ? 'Carga completada' : 'Error en la carga'}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        Se procesaron {uploadResult.processedRows} de {uploadResult.totalRows}{' '}
-                        asignaturas
-                      </p>
-                    </div>
                   </div>
+                  <h3 className="font-medium text-lg">
+                    {uploadResult.success ? 'Carga completada' : 'Error en la carga'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Se procesaron {uploadResult.processedRows} de {uploadResult.totalRows}{' '}
+                    asignaturas.
+                  </p>
 
                   {uploadResult.errors.length > 0 && (
-                    <div className="space-y-3">
+                    <div className="space-y-3 mt-4 text-left">
                       <p className="text-sm font-medium">Detalles:</p>
                       <div className="bg-muted/50 rounded-md p-3 max-h-40 overflow-y-auto">
                         <div className="space-y-1 text-sm">
@@ -273,156 +279,131 @@ export default function UploadStudentsToSubjectsPage() {
                     Cargar otro archivo
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              ) : isPreview && previewData.length > 0 ? (
+                <>
+                  <div className="rounded-lg border max-h-[60vh] overflow-y-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="px-4 py-3 w-32">Código</TableHead>
+                          <TableHead className="px-4 py-3">Estudiantes</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {previewData.map((row, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-mono px-4 py-3 font-medium">
+                              {row.codigoAsignatura}
+                            </TableCell>
+                            <TableCell className="px-4 py-3">
+                              {row.error ? (
+                                <span className="text-muted-foreground">{row.error}</span>
+                              ) : (
+                                (() => {
+                                  const groupedStudents = (row.estudiantes || []).reduce(
+                                    (acc, student) => {
+                                      const status = student.status;
+                                      if (!acc[status]) {
+                                        acc[status] = [];
+                                      }
+                                      acc[status].push(student);
+                                      return acc;
+                                    },
+                                    {} as Record<string, PreviewStudentDetail[]>
+                                  );
 
-          {isPreview && !uploadResult && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold tracking-heading">
-                  Vista Previa de la Carga
-                </CardTitle>
-                <CardDescription className="text-sm text-muted-foreground">
-                  Revisa los datos antes de confirmar la carga. Las filas con errores no serán
-                  procesadas.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {previewData && previewData.length > 0 ? (
-                  <>
-                    {/* aqui */}
-                    <div className="rounded-lg border max-h-[60vh] overflow-y-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="px-4 py-3 w-32">Código</TableHead>
-                            <TableHead className="px-4 py-3">Estudiantes</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {previewData.map((row, index) => (
-                            <TableRow key={index}>
-                              <TableCell className="font-mono px-4 py-3 font-medium">
-                                {row.codigoAsignatura}
-                              </TableCell>
-                              <TableCell className="px-4 py-3">
-                                {row.error ? (
-                                  <span className="text-muted-foreground">{row.error}</span>
-                                ) : (
-                                  (() => {
-                                    const groupedStudents = (row.estudiantes || []).reduce(
-                                      (acc, student) => {
-                                        const status = student.status;
-                                        if (!acc[status]) {
-                                          acc[status] = [];
-                                        }
-                                        acc[status].push(student);
-                                        return acc;
-                                      },
-                                      {} as Record<string, PreviewStudentDetail[]>
-                                    );
+                                  const successCount = (groupedStudents['success'] || []).length;
+                                  const warningCount = (groupedStudents['warning'] || []).length;
+                                  const errorCount = (groupedStudents['error'] || []).length;
+                                  const totalCount = successCount + warningCount + errorCount;
 
-                                    const successCount = (groupedStudents['success'] || []).length;
-                                    const warningCount = (groupedStudents['warning'] || []).length;
-                                    const errorCount = (groupedStudents['error'] || []).length;
-                                    const totalCount = successCount + warningCount + errorCount;
-
-                                    if (totalCount === 0) {
-                                      return (
-                                        <span className="text-muted-foreground">
-                                          Sin estudiantes
-                                        </span>
-                                      );
-                                    }
-
+                                  if (totalCount === 0) {
                                     return (
-                                      <Dialog>
-                                        <DialogTrigger asChild>
-                                          <button className="text-left text-sm hover:underline">
-                                            {successCount > 0 && `${successCount} listos`}
-                                            {successCount > 0 &&
-                                              (warningCount > 0 || errorCount > 0) &&
-                                              ', '}
-                                            {warningCount > 0 &&
-                                              `${warningCount} ya están inscritos`}
-                                            {warningCount > 0 && errorCount > 0 && ', '}
-                                            {errorCount > 0 && `${errorCount} errores`}
-                                          </button>
-                                        </DialogTrigger>
-                                        <DialogContent className="max-w-2xl max-h-[80vh]">
-                                          <DialogHeader>
-                                            <DialogTitle className="text-xl font-semibold tracking-heading">
-                                              {row.codigoAsignatura}
-                                            </DialogTitle>
-                                          </DialogHeader>
-                                          <div className="overflow-y-auto space-y-4">
-                                            {Object.entries(groupedStudents).map(
-                                              ([status, students]) => {
-                                                if (students.length === 0) return null;
-
-                                                const statusTitle = {
-                                                  success: 'Listos para inscribir',
-                                                  warning: 'Ya están inscritos',
-                                                  error: 'Con errores',
-                                                }[status];
-
-                                                return (
-                                                  <div key={status}>
-                                                    <h4 className="font-medium text-sm mb-2">
-                                                      {statusTitle} ({students.length})
-                                                    </h4>
-                                                    <div className="space-y-1 text-sm">
-                                                      {students.map((student, sIndex) => (
-                                                        <div key={sIndex} className="flex gap-3">
-                                                          <span className="font-mono">
-                                                            {student.doc}
-                                                          </span>
-                                                          <span className="text-muted-foreground">
-                                                            {student.message}
-                                                          </span>
-                                                        </div>
-                                                      ))}
-                                                    </div>
-                                                  </div>
-                                                );
-                                              }
-                                            )}
-                                          </div>
-                                        </DialogContent>
-                                      </Dialog>
+                                      <span className="text-muted-foreground">Sin estudiantes</span>
                                     );
-                                  })()
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                    {/* acaba tabla */}
-                    <div className="flex justify-end gap-2 mt-4">
-                      <Button
-                        onClick={handleConfirmUpload}
-                        disabled={isLoading || previewData.length === 0}
-                      >
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Confirmar Carga
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-sm text-gray-500 mt-4">
-                      {previewData.every(row => row.estudiantes.every(e => e.status === 'warning'))
-                        ? 'Todos los estudiantes en el archivo ya están inscritos en sus respectivas asignaturas.'
-                        : 'No hay datos válidos para previsualizar. Verifica el archivo o los logs del servidor si el problema persiste.'}
-                    </p>
+                                  }
+
+                                  return (
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <button className="text-left text-sm hover:underline">
+                                          {successCount > 0 && `${successCount} listos`}
+                                          {successCount > 0 &&
+                                            (warningCount > 0 || errorCount > 0) &&
+                                            ', '}
+                                          {warningCount > 0 && `${warningCount} ya están inscritos`}
+                                          {warningCount > 0 && errorCount > 0 && ', '}
+                                          {errorCount > 0 && `${errorCount} errores`}
+                                        </button>
+                                      </DialogTrigger>
+                                      <DialogContent className="max-w-2xl max-h-[80vh]">
+                                        <DialogHeader>
+                                          <DialogTitle className="text-xl font-semibold tracking-heading">
+                                            {row.codigoAsignatura}
+                                          </DialogTitle>
+                                        </DialogHeader>
+                                        <div className="overflow-y-auto space-y-4">
+                                          {Object.entries(groupedStudents).map(
+                                            ([status, students]) => {
+                                              if (students.length === 0) return null;
+
+                                              const statusTitle = {
+                                                success: 'Listos para inscribir',
+                                                warning: 'Ya están inscritos',
+                                                error: 'Con errores',
+                                              }[status];
+
+                                              return (
+                                                <div key={status}>
+                                                  <h4 className="font-medium text-sm mb-2">
+                                                    {statusTitle} ({students.length})
+                                                  </h4>
+                                                  <div className="space-y-1 text-sm">
+                                                    {students.map((student, sIndex) => (
+                                                      <div key={sIndex} className="flex gap-3">
+                                                        <span className="font-mono">
+                                                          {student.doc}
+                                                        </span>
+                                                        <span className="text-muted-foreground">
+                                                          {student.message}
+                                                        </span>
+                                                      </div>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              );
+                                            }
+                                          )}
+                                        </div>
+                                      </DialogContent>
+                                    </Dialog>
+                                  );
+                                })()
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button
+                      onClick={handleConfirmUpload}
+                      disabled={isLoading || previewData.length === 0}
+                    >
+                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Confirmar Carga
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-xs font-medium text-muted-foreground py-24">
+                  <p>Sube un archivo para ver la previsualización aquí.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </main>

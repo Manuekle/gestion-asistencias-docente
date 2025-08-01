@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Admin - FUP',
+  title: 'Admin - Cargar Estudiantes a Asignaturas - FUP',
   description: 'Panel de control para cargar estudiantes a asignaturas',
   keywords: 'admin, panel de control, FUP',
 };

@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
 
 import fs from 'fs/promises';
+import { tmpdir } from 'os';
 import path from 'path';
 import * as XLSX from 'xlsx';
 
@@ -87,19 +88,23 @@ export async function POST(request: Request) {
         }
       );
     }
-    // Guardar temporalmente
+    // Guardar en directorio temporal del sistema
     const buffer = Buffer.from(await file.arrayBuffer());
     const filename = `${session.user.id}_${Date.now()}.xlsx`;
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+    const tempDir = tmpdir();
+    const uploadsDir = path.join(tempDir, 'gestion-asistencias-uploads');
     filePath = path.join(uploadsDir, filename);
     await fs.mkdir(uploadsDir, { recursive: true });
     await fs.writeFile(filePath, buffer);
-    // Leer Excel
+
+    // Leer Excel directamente del buffer
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows: ExcelRow[] = XLSX.utils.sheet_to_json(sheet);
+
     console.log('--- Filas crudas del Excel ---');
     console.log(rows);
+
     if (!rows || rows.length === 0) {
       return NextResponse.json(
         {
@@ -255,12 +260,12 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   } finally {
+    // Limpiar archivos temporales si existen
     if (filePath) {
       try {
-        await fs.access(filePath);
         await fs.unlink(filePath);
-      } catch {
-        // Ignorar si el archivo no existe, no es crítico
+      } catch (e) {
+        console.error('Error al eliminar archivo temporal', e);
       }
     }
   }
