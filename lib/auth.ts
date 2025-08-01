@@ -5,7 +5,9 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 // Configuración de cookies para desarrollo y producción
 const isProduction = process.env.NODE_ENV === 'production';
-const baseUrl = process.env.NEXTAUTH_URL || (isProduction ? 'https://gestion-asistencias-docente.vercel.app' : 'http://localhost:3000');
+const baseUrl =
+  process.env.NEXTAUTH_URL ||
+  (isProduction ? 'https://gestion-asistencias-docente.vercel.app' : 'http://localhost:3000');
 const useSecureCookies = baseUrl.startsWith('https://') || isProduction;
 const cookiePrefix = useSecureCookies ? '__Secure-' : '';
 const hostName = new URL(baseUrl).hostname;
