@@ -1,4 +1,4 @@
-import { WelcomeUserEmail } from '@/app/emails/WelcomeUserEmail';
+import WelcomeUserEmail from '@/app/emails/WelcomeUserEmail';
 import { authOptions } from '@/lib/auth';
 import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/prisma';
