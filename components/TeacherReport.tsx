@@ -151,7 +151,10 @@ function SubjectDetailsPanel({
       name: 'Ausente',
       value: attendanceTotals.absent + attendanceTotals.late,
       fill: '#8C171D',
-      percentage: calculatePercentage(attendanceTotals.absent + attendanceTotals.late, totalAttendance),
+      percentage: calculatePercentage(
+        attendanceTotals.absent + attendanceTotals.late,
+        totalAttendance
+      ),
     },
     {
       name: 'Justificado',
