@@ -31,7 +31,7 @@ const ClassCancellationEmail = ({
   const previewText = `Cancelación de clase: ${subjectName}`;
 
   return (
-    <Html>
+    <Html lang="es" dir="ltr">
       <Tailwind>
         <Head>
           <Font

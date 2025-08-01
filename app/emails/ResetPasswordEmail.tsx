@@ -23,7 +23,7 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
   const previewText = 'Restablece tu contraseña de Sistema de Asistencias FUP';
 
   return (
-    <Html>
+    <Html lang="es" dir="ltr">
       <Tailwind>
         <Head>
           <Font

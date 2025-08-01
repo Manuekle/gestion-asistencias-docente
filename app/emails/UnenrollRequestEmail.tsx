@@ -32,7 +32,7 @@ const UnenrollRequestEmail = ({
   const previewText = `Nueva solicitud de desmatriculación - ${subjectName}`;
 
   return (
-    <Html>
+    <Html lang="es" dir="ltr">
       <Tailwind>
         <Head>
           <Font
