@@ -385,11 +385,11 @@ export default function UploadSubjectsPage() {
                   <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 </div>
               ) : uploadResult ? (
-                <div className="p-6 rounded-lg border bg-card text-center">
+                <div className="mt-4 bg-card text-center">
                   <div className="flex items-center justify-center gap-3 mb-4">
-                    <CheckCircle className="h-12 w-12 text-green-500" />
+                    <CheckCircle className="h-16 w-16 text-green-500" />
                   </div>
-                  <h3 className="font-medium text-lg">Carga completada</h3>
+                  <h3 className="font-medium text-xl tracking-heading">Carga completada</h3>
                   <p className="text-sm text-muted-foreground mt-2">
                     Se procesaron {uploadResult.processed} asignaturas.
                   </p>
@@ -407,7 +407,7 @@ export default function UploadSubjectsPage() {
                     </div>
                   )}
 
-                  <Button onClick={handleNewUpload} variant="outline" className="w-full mt-6">
+                  <Button onClick={handleNewUpload} className="mt-6">
                     Cargar otro archivo
                   </Button>
                 </div>
