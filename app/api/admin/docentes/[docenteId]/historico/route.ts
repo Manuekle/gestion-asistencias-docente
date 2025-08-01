@@ -63,14 +63,14 @@ function periodToDateRange(period?: string) {
  *   ]
  * }
  */
-export async function GET(req: NextRequest, { params }: { params: { docenteId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ docenteId: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== Role.ADMIN) {
       return NextResponse.json({ message: 'Acceso denegado' }, { status: 403 });
     }
 
-    const docenteId = params.docenteId;
+    const { docenteId } = await params;
 
     // Validar query params
     const { searchParams } = new URL(req.url);
