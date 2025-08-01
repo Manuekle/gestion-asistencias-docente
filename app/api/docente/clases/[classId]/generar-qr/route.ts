@@ -75,7 +75,11 @@ export async function POST(request: Request, context: { params: { classId: strin
     );
   }
 
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://gestion-asistencias-docente.vercel.app';
+  let baseUrl = process.env.NEXTAUTH_URL || 'https://gestion-asistencias-docente.vercel.app';
+  // Ensure the URL has a protocol
+  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+    baseUrl = `https://${baseUrl}`;
+  }
   const qrUrl = `${baseUrl}/dashboard/estudiante/escanear/${token}`;
 
   // Validar que el token cumple con los requisitos

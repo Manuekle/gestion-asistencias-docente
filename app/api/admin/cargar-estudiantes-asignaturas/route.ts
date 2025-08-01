@@ -56,7 +56,11 @@ export async function POST(request: Request) {
       isPreview = url.searchParams.get('preview') === 'true';
     } catch {
       // If that fails, try with a base URL (server-side)
-      const baseUrl = process.env.NEXTAUTH_URL || 'https://gestion-asistencias-docente.vercel.app';
+      let baseUrl = process.env.NEXTAUTH_URL || 'https://gestion-asistencias-docente.vercel.app';
+      // Ensure the URL has a protocol
+      if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = `https://${baseUrl}`;
+      }
       const url = new URL(request.url, baseUrl);
       isPreview = url.searchParams.get('preview') === 'true';
     }
