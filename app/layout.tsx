@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Providers from './providers';
 
-const siteUrl = 'https://fup-asistencias-docente.vercel.app';
+const siteUrl = 'https://gestion-asistencias-docente.vercel.app';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
