@@ -116,8 +116,8 @@ export async function POST(request: Request) {
           to: adminEmail,
           subject: `Solicitud de Desmatriculación - ${subject?.name || 'Asignatura'}`,
           react: React.createElement(UnenrollRequestEmail, {
-            studentName: unenrollRequest.student.name || 'Estudiante',
-            studentEmail: unenrollRequest.student.correoInstitucional || 'No especificado',
+            studentName: unenrollRequest.student?.name || 'Estudiante',
+            studentEmail: unenrollRequest.student?.correoInstitucional || 'No especificado',
             subjectName: subject?.name || 'Asignatura',
             reason: unenrollRequest.reason,
             requestDate: unenrollRequest.createdAt.toISOString(),

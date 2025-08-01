@@ -301,7 +301,9 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
     await browser.close();
 
     const fileName = `registro-clases_${subjectData.code || subjectId}_${Date.now()}.pdf`;
-    const blob = await put(`reports/${fileName}`, pdfBuffer, {
+    // Convert Uint8Array to Buffer
+    const buffer = Buffer.from(pdfBuffer);
+    const blob = await put(`reports/${fileName}`, buffer, {
       access: 'public',
     });
 

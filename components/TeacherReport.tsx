@@ -144,17 +144,14 @@ function SubjectDetailsPanel({
     {
       name: 'Presente',
       value: attendanceTotals.present,
-      fill: '#589FD3',
+      fill: '#0F7B3F',
       percentage: calculatePercentage(attendanceTotals.present, totalAttendance),
     },
     {
       name: 'Ausente',
       value: attendanceTotals.absent + attendanceTotals.late,
       fill: '#8C171D',
-      percentage: calculatePercentage(
-        attendanceTotals.absent + attendanceTotals.late,
-        totalAttendance
-      ),
+      percentage: calculatePercentage(attendanceTotals.absent + attendanceTotals.late, totalAttendance),
     },
     {
       name: 'Justificado',
@@ -163,6 +160,21 @@ function SubjectDetailsPanel({
       percentage: calculatePercentage(attendanceTotals.justified, totalAttendance),
     },
   ].filter(item => item.value > 0);
+
+  const chartConfig = {
+    Presente: {
+      label: 'Presente',
+      color: '#0F7BF0',
+    },
+    Ausente: {
+      label: 'Ausente',
+      color: '#8C171D',
+    },
+    Justificado: {
+      label: 'Justificado',
+      color: '#FDBE0F',
+    },
+  };
 
   return (
     <Card className="mt-6">
@@ -279,7 +291,7 @@ function SubjectDetailsPanel({
               </Badge>
             </div>
             <div className="border rounded-lg p-4">
-              <ChartContainer config={{ pieData }} className="mx-auto aspect-square max-h-[250px]">
+              <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px]">
                 <PieChart>
                   <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
                   <Pie
