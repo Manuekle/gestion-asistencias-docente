@@ -181,7 +181,7 @@ Toda la documentación detallada del proyecto, incluyendo la visión, arquitectu
     ```bash
     npm run dev
     ```
-    La aplicación estará disponible en `http://localhost:3000`.
+    La aplicación estará disponible en `http://localhost:3000` por defecto, o en la URL configurada en `NEXTAUTH_URL`.
 
 ---
 

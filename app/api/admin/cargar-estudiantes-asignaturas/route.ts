@@ -48,9 +48,18 @@ export async function POST(request: Request) {
 
   let filePath = '';
   try {
-    // Safely get the URL from the request
-    const requestUrl = new URL(request.url, process.env.NEXTAUTH_URL || 'http://localhost:3000'); // Use a dummy base URL for parsing
-    const isPreview = requestUrl.searchParams.get('preview') === 'true';
+    // Parse the URL safely for both client and server-side
+    let isPreview = false;
+    try {
+      // First try to get from search params (client-side)
+      const url = new URL(request.url);
+      isPreview = url.searchParams.get('preview') === 'true';
+    } catch {
+      // If that fails, try with a base URL (server-side)
+      const baseUrl = process.env.NEXTAUTH_URL || 'https://gestion-asistencias-docente.vercel.app';
+      const url = new URL(request.url, baseUrl);
+      isPreview = url.searchParams.get('preview') === 'true';
+    }
 
     const data = await request.formData();
     const file = data.get('file') as File;
