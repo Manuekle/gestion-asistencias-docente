@@ -35,38 +35,61 @@ Sistema integral de comunicación que mantiene a todos los usuarios informados s
 
 ---
 
-### HU-021: Mensajería Interna
+### HU-021: Notificaciones por Correo Electrónico
 
-**Como** miembro de la comunidad académica  
-**Quiero** comunicarme con otros usuarios  
-**Para** coordinar actividades académicas
+**Como** usuario del sistema  
+**Quiero** recibir notificaciones por correo  
+**Para** estar informado cuando no esté activo en la plataforma
 
 **Criterios de Aceptación:**
 
-- [ ] Búsqueda de contactos por nombre o rol
-- [ ] Mensajería individual y grupal
-- [ ] Indicadores de estado (enviado/entregado/leído)
-- [ ] Historial de conversaciones
-- [ ] Archivos adjuntos en mensajes
-- [ ] Notificaciones de nuevos mensajes
-- [ ] Mensajes destacados o fijados
+- [ ] Plantillas personalizables de correo
+- [ ] Frecuencia configurable de notificaciones
+- [ ] Resumen diario/semanal de actividades
+- [ ] Gestión de suscripciones
+- [ ] Registro de envíos y entregas
+- [ ] Sistema de reintentos para fallos
+- [ ] Estadísticas de apertura
 
-**Requisitos de UX:**
+**Requisitos Técnicos:**
 
-- Interfaz de chat intuitiva
-- Notificaciones discretas
-- Sincronización en tiempo real
+- Servicio de cola de correos
+- Plantillas dinámicas
+- Manejo de rebotes
 
-**Prioridad:** Baja  
-**Story Points:** 13  
+**Prioridad:** Media  
+**Story Points:** 5  
 **Sprint:** 7  
-**Dependencias:** HU-020
+**Dependencias:** HU-019
 
 ---
 
-### HU-022: Recordatorios Automáticos
+### HU-022: Notificaciones en la Aplicación
 
-... (contenido existente)
+**Como** usuario móvil  
+**Quiero** recibir notificaciones push  
+**Para** estar al día con mis actividades
+
+**Criterios de Aceptación:**
+
+- [ ] Notificaciones en primer y segundo plano
+- [ ] Personalización por tipo de notificación
+- [ ] Acciones rápidas desde notificaciones
+- [ ] Sincronización con otros dispositivos
+- [ ] Historial de notificaciones
+- [ ] Gestión de permisos
+- [ ] Soporte para diferentes canales
+
+**Requisitos Técnicos:**
+
+- Integración con FCM/APNs
+- Almacenamiento local
+- Sincronización en tiempo real
+
+**Prioridad:** Media  
+**Story Points:** 8  
+**Sprint:** 7  
+**Dependencias:** HU-019
 
 ---
 

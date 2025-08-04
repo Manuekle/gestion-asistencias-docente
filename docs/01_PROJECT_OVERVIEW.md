@@ -6,24 +6,6 @@
 - **Desarrollador Principal:** Manuel Esteban Erazo Medina
 - **Co-Desarrollador:** Andres Peña
 
-## 📅 Reuniones con el Director
-
-### Reunión del 11 de Junio 2025
-
-**Temas:**
-
-- Revisión de historias de usuario
-- Revisión de diagramas de la aplicación
-- Definición de la estructura de la base de datos no relacional
-
-### Próxima Reunión: 18 de Junio 2025
-
-**Entregables:**
-
-- Presentación de mockups de la aplicación
-- Revisión de la arquitectura de carpetas
-- Demostración de avances
-
 ## 📊 Información del Proyecto
 
 | Campo           | Detalle                               |

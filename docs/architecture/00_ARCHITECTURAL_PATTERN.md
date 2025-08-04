@@ -42,7 +42,7 @@ graph TD
 
     subgraph "Servicios Externos"
         DB[("Base de Datos<br/>MongoDB Atlas")]
-        MAIL["Servicio de Email<br/>(Resend)"]
+        MAIL["Servicio de Email<br/>(nodemailer)"]
     end
 
     U --> UI

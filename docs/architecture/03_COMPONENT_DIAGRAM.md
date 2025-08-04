@@ -38,7 +38,7 @@ graph TD
     end
     
     subgraph "Servicios Externos"
-        N["Resend (Emails)"]
+        N["Nodemailer (Emails)"]
         O["PDFKit (Reportes)"]
         P["QR Code (Generación)"]
     end
@@ -97,7 +97,7 @@ graph TD
 
 ### Servicios Externos
 
-- **Resend**: Envío de notificaciones por correo electrónico
+- **Nodemailer**: Envío de notificaciones por correo electrónico
 - **PDFKit**: Generación de documentos PDF para reportes
 - **QR Code**: Generación de códigos QR para registro de asistencia
 

@@ -9,7 +9,4 @@ Bienvenido a la documentación central del proyecto. Este es el único punto de 
 - [**3. Historias de Usuario**](./user_stories/README.md): Descubre las funcionalidades desde la perspectiva del usuario, organizadas por épicas.
 - [**4. Especificación de la API**](./02_API_SPECIFICATION.md): Consulta los detalles técnicos de cada endpoint.
 - [**5. Gestión del Proyecto**](./03_PROJECT_MANAGEMENT.md): Revisa la planificación de sprints, control de avances, riesgos y métricas.
-
----
-
-> **Nota**: Este documento es un artefacto vivo que se actualiza conforme evoluciona el proyecto.
+- [**6. Base de Datos**](./04_DATABASE.md): Documentación de la base de datos.

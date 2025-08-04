@@ -35,10 +35,9 @@
   - HU-018: Exportación de Datos (0%)
 - **Sprint 7**:
   - HU-019: Notificaciones Automáticas (0%)
-  - HU-020: Comunicación Interna (0%)
 - **Sprint 8**:
   - HU-021: Configuración del Sistema (0%)
-  - HU-022: Panel de Administración Avanzado (0%)
+  - HU-022: UI Panel de Administración (0%)
 
 ## 📝 Planificación
 
@@ -65,9 +64,10 @@
 | 6    | HU-017   | Media     | 6      | HU-013         |
 | 6    | HU-018   | Media     | 6      | HU-016         |
 | 7    | HU-019   | Media     | 7      | HU-006         |
-| 7    | HU-020   | Baja      | 7      | HU-019         |
-| 8    | HU-021   | Media     | 8      | HU-002         |
-| 8    | HU-022   | Baja      | 8      | HU-021         |
+| 7    | HU-021   | Media     | 7      | HU-019         |
+| 7    | HU-022   | Media     | 7      | HU-019         |
+| 8    | HU-023   | Alta      | 8      | HU-001, HU-002 |
+| 8    | HU-024   | Media     | 8      | HU-023         |
 
 ### Estimación de Esfuerzo
 
@@ -138,11 +138,11 @@
 
 ### Tecnologías y Herramientas
 
-- **Project Management**: Notion + GitHub Projects
+- **Project Management**: Jira + Bitbucket
 - **Design System**: Figma + shadcn/ui
-- **Documentation**: GitBook + Storybook
+- **Documentation**: Storybook
 - **API Testing**: Postman + Newman
-- **Monitoring**: Sentry + Google Analytics
+- **Monitoring**: Google Analytics
 - **CI/CD**: GitHub Actions + Vercel
 
 ### Glosario de Términos

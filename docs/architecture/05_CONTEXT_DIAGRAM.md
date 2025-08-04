@@ -14,7 +14,7 @@ graph TD
     G -->|Persistencia| H[(MongoDB Atlas)]
     
     %% Servicios Externos
-    E -->|Envío de emails| I[Resend]
+    E -->|Envío de emails| I[Nodemailer]
     E -->|Generación de PDFs| J[PDFKit]
     E -->|Generación de QR| K[QR Code]
     
@@ -50,6 +50,6 @@ graph TD
    - **ORM**: Prisma como capa de abstracción sobre MongoDB.
 
 3. **Integraciones Externas**:
-   - **Resend**: Para envío de notificaciones por correo.
+   - **Nodemailer**: Para envío de notificaciones por correo.
    - **PDFKit**: Generación de reportes en formato PDF.
    - **QR Code**: Generación de códigos QR para registro de asistencia.

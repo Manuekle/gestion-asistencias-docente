@@ -17,7 +17,7 @@ graph TD
     end
 
     subgraph "Servicios Externos"
-        I[Resend] -->|Envío de emails| J[Usuarios]
+        I[Nodemailer] -->|Envío de emails| J[Usuarios]
         K[NextAuth] -->|Autenticación| D
     end
 
