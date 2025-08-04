@@ -1,17 +1,19 @@
 'use client';
 
+import AdminDashboardComponent from '@/components/AdminDashboard';
 import { Badge } from '@/components/ui/badge';
+import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col justify-between space-y-4 sm:flex-row sm:items-center sm:space-y-0">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Panel de Administración</h1>
-          <p className="text-sm text-muted-foreground">Resumen y gestión académica</p>
-        </div>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+        <CardHeader className="p-0 w-full">
+          <CardTitle className="text-2xl font-semibold tracking-tight">Mi Panel</CardTitle>
+          <CardDescription className="text-xs">Resumen y gestión académica</CardDescription>
+        </CardHeader>
+        <div className="flex items-center gap-2 w-full justify-start sm:justify-end">
           <Badge variant="outline" className="text-sm font-normal">
             {new Date().toLocaleDateString('es-ES', {
               weekday: 'long',
@@ -21,6 +23,9 @@ export default function AdminDashboard() {
             })}
           </Badge>
         </div>
+      </div>
+      <div>
+        <AdminDashboardComponent />
       </div>
     </div>
   );

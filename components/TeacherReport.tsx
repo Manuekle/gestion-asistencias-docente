@@ -564,11 +564,11 @@ export function TeacherReport() {
                   onClick={() => setSelectedTeacher(teacher)}
                 >
                   <div className="flex items-center gap-3 w-full">
-                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
+                    <div className="h-8 w-8 rounded-full bg-muted border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xs font-medium text-muted-foreground">
                       {teacher.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 text-left">
-                      <div className="font-medium text-sm tracking-heading truncate">
+                      <div className="font-medium text-sm tracking-card truncate">
                         {teacher.name}
                       </div>
                       {teacher.codigoDocente && (
