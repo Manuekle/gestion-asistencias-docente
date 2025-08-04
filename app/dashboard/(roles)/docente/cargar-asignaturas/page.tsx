@@ -564,7 +564,7 @@ export default function UploadSubjectsPage() {
                   </div>
                 </>
               ) : (
-                <div className="text-center text-xs font-medium text-muted-foreground py-24">
+                <div className="text-center text-xs font-normal text-muted-foreground py-24">
                   <p>Sube un archivo para ver la previsualización aquí.</p>
                 </div>
               )}

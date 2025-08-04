@@ -31,7 +31,7 @@ export function SignatureFileUpload({ onFileSelect }: SignatureFileUploadProps) 
   return (
     <div
       {...getRootProps()}
-      className={`flex flex-col xl:h-[310px] h-[200px] items-center justify-center border-2 border-dashed rounded-lg p-6 space-y-2 cursor-pointer transition-colors ${
+      className={`flex flex-col xl:h-[310px] h-[200px] items-center justify-center border border-dashed rounded-lg p-6 space-y-2 cursor-pointer transition-colors ${
         isDragActive ? 'bg-muted/50 border-primary' : 'hover:bg-muted/30'
       }`}
     >

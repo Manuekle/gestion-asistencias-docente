@@ -91,7 +91,7 @@ export async function GET() {
       const allSubjectClasses = await db.class.findMany({
         where: {
           subjectId: subject.id,
-          status: { not: ClassStatus.CANCELADA }, // Exclude cancelled classes
+          status: 'PROGRAMADA', // Only include PROGRAMADA classes
         },
         orderBy: {
           date: 'asc',
@@ -170,7 +170,7 @@ export async function GET() {
             gte: fourWeeksAgo,
             lte: now,
           },
-          status: { not: ClassStatus.CANCELADA },
+          status: 'PROGRAMADA', // Only include PROGRAMADA classes
         },
       });
 
@@ -183,7 +183,7 @@ export async function GET() {
               gte: fourWeeksAgo,
               lte: now,
             },
-            status: { not: ClassStatus.CANCELADA },
+            status: 'PROGRAMADA',
           },
         },
       });

@@ -31,10 +31,14 @@ export async function GET() {
       },
       include: {
         classes: {
+          where: {
+            status: 'PROGRAMADA',
+          },
           select: {
             id: true,
             date: true,
             topic: true,
+            status: true,
           },
           orderBy: {
             date: 'asc',

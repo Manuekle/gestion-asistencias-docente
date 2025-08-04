@@ -195,7 +195,7 @@ export const FileUploadDropZone = ({
       onDragEnd={handleDragOut}
       onDrop={handleDrop}
       className={cn(
-        'relative flex flex-col items-center gap-3 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-background px-6 py-8 text-center transition-colors hover:bg-muted/50',
+        'relative flex flex-col items-center gap-3 rounded-lg border border-dashed border-muted-foreground/25 bg-background px-6 py-8 text-center transition-colors hover:bg-muted/50',
         isDraggingOver && 'border-primary bg-primary/5',
         isDisabled && 'cursor-not-allowed opacity-60',
         className

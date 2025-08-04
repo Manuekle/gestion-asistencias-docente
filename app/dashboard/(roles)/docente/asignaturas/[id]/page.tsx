@@ -71,7 +71,7 @@ import {
   UserCheck,
   UserX,
 } from 'lucide-react';
-import { useSession } from 'next-auth/react';
+// Removed unused import
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -129,14 +129,20 @@ export default function SubjectDetailPage() {
   // State for Classes
   const [classes, setClasses] = useState<ClassWithStatus[]>([]);
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
 
   const [isEditClassDialogOpen, setIsEditClassDialogOpen] = useState(false);
-  const [isSubmittingClass, setIsSubmittingClass] = useState(false);
   const [currentClass, setCurrentClass] = useState<ClassWithStatus | null>(null);
 
   const [classDate, setClassDate] = useState<Date | undefined>(new Date());
-  const [startTime, setStartTime] = useState<string | null>(null);
-  const [endTime, setEndTime] = useState<string | null>(null);
+  const [startTime, setStartTime] = useState<string>('');
+  const [endTime, setEndTime] = useState<string>('');
   const [classTopic, setClassTopic] = useState('');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isStartTimePickerOpen, setIsStartTimePickerOpen] = useState(false);
@@ -146,14 +152,13 @@ export default function SubjectDetailPage() {
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
   const [unenrollReason, setUnenrollReason] = useState('');
-  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+
   const [currentStudentForUnenroll, setCurrentStudentForUnenroll] = useState<{
     id: string;
     name: string;
   } | null>(null);
   const [classToCancel, setClassToCancel] = useState<ClassWithStatus | null>(null);
   const [cancelReason, setCancelReason] = useState('');
-  const { data: session } = useSession();
   const [isAttendanceDialogOpen, setIsAttendanceDialogOpen] = useState(false);
   const [attendances, setAttendances] = useState<StudentAttendance[]>([]);
   const [isUpdatingAttendance, setIsUpdatingAttendance] = useState<string | null>(null);
@@ -169,17 +174,6 @@ export default function SubjectDetailPage() {
   );
   const studentStart = (studentPage - 1) * studentsPerPage + 1;
   const studentEnd = Math.min(studentPage * studentsPerPage, enrolledStudents.length);
-
-  // Paginación clases (opcional, si hay muchas clases)
-  const [classPage, setClassPage] = useState(1);
-  const classesPerPage = 10;
-  const totalClassPages = Math.ceil(classes.length / classesPerPage);
-  const paginatedClasses = classes.slice(
-    (classPage - 1) * classesPerPage,
-    classPage * classesPerPage
-  );
-  const classStart = (classPage - 1) * classesPerPage + 1;
-  const classEnd = Math.min(classPage * classesPerPage, classes.length);
 
   // --- HANDLERS ---
   const handleUpdateClassStatus = async (classId: string, status: ClassStatus, reason?: string) => {
@@ -205,8 +199,9 @@ export default function SubjectDetailPage() {
 
       // Final update with server data
       setClasses(prev => prev.map(c => (c.id === classId ? updatedClass : c)));
-
       toast.success(`La clase ha sido marcada como ${status.toLowerCase()}.`);
+      // Refresh the current page to ensure data is in sync
+      fetchClasses(pagination.page, pagination.limit);
     } catch (error) {
       console.error(error);
       // Revert on error
@@ -216,6 +211,52 @@ export default function SubjectDetailPage() {
   };
 
   // --- DATA FETCHING ---
+  const fetchClasses = useCallback(
+    async (page: number, limit: number) => {
+      if (!subjectId) return;
+
+      try {
+        setIsLoadingClasses(true);
+        const response = await fetch(
+          `/api/docente/clases?subjectId=${subjectId}&page=${page}&limit=${limit}&sortBy=date&sortOrder=desc`
+        );
+
+        if (!response.ok) {
+          throw new Error('Error al cargar las clases');
+        }
+
+        const { data, pagination: paginationData } = await response.json();
+        setClasses(data);
+        setPagination(prev => ({
+          ...prev,
+          page: paginationData.page,
+          limit: paginationData.limit,
+          total: paginationData.total,
+          totalPages: paginationData.totalPages,
+        }));
+      } catch (error) {
+        console.error('Error fetching classes:', error);
+        toast.error('Error al cargar las clases');
+      } finally {
+        setIsLoadingClasses(false);
+      }
+    },
+    [subjectId]
+  );
+
+  // Pagination handlers
+  const handleClassPageChange = useCallback(
+    (newPage: number) => {
+      if (newPage >= 1 && newPage <= pagination.totalPages) {
+        setPagination(prev => ({ ...prev, page: newPage }));
+        fetchClasses(newPage, pagination.limit);
+      }
+    },
+    [pagination.totalPages, pagination.limit, fetchClasses]
+  );
+
+  // Pagination is handled by handleClassPageChange
+
   const fetchSubject = useCallback(async () => {
     if (!subjectId) {
       console.error('No se proporcionó un ID de asignatura');
@@ -224,48 +265,19 @@ export default function SubjectDetailPage() {
       return;
     }
 
-    console.log('Iniciando carga de asignatura con ID:', subjectId);
-    setIsLoadingSubject(true);
-
     try {
-      const response = await fetch(`/api/docente/asignaturas/${subjectId}`);
-      console.log('Respuesta de la API:', response.status, response.statusText);
-
+      setIsLoadingSubject(true);
+      const response = await fetch(`/api/subjects/${subjectId}`);
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error en la respuesta de la API:', errorText);
-        throw new Error(`Error al cargar la asignatura: ${response.status} ${response.statusText}`);
+        throw new Error('Error al cargar la asignatura');
       }
-
       const data = await response.json();
-      console.log('Datos de la asignatura recibidos:', data);
-
-      if (!data || !data.data) {
-        console.error('Formato de datos inesperado:', data);
-        throw new Error('Formato de datos inesperado al cargar la asignatura');
-      }
-
-      setSubjectName(data.data.name || 'Asignatura sin nombre');
+      setSubjectName(data.name);
     } catch (error) {
       console.error('Error al cargar la asignatura:', error);
       setSubjectName('Asignatura');
     } finally {
       setIsLoadingSubject(false);
-    }
-  }, [subjectId]);
-
-  const fetchClasses = useCallback(async () => {
-    if (!subjectId) return;
-    setIsLoadingClasses(true);
-    try {
-      const response = await fetch(`/api/docente/clases?subjectId=${subjectId}`);
-      if (!response.ok) throw new Error('Error al cargar las clases.');
-      const data = await response.json();
-      setClasses(data.data as ClassWithStatus[]);
-    } catch {
-      toast.error('No se pudieron cargar las clases.');
-    } finally {
-      setIsLoadingClasses(false);
     }
   }, [subjectId]);
 
@@ -293,91 +305,20 @@ export default function SubjectDetailPage() {
     }
   }, [subjectId]);
 
-  const handleUnenrollRequest = async (studentId: string, studentName: string) => {
-    if (!session) {
-      toast.error('No se pudo verificar su sesión. Por favor, inicie sesión nuevamente.');
-      return;
-    }
-
-    if (!unenrollReason.trim()) {
-      toast.error('Por favor ingrese un motivo para la solicitud');
-      return;
-    }
-
-    setIsSubmittingRequest(true);
-
-    try {
-      const response = await fetch('/api/docente/solicitudes/desmatricula', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          studentId,
-          subjectId,
-          reason: unenrollReason,
-          requestedBy: session.user?.id,
-          studentName,
-          requestedAt: new Date().toISOString(),
-        }),
-      });
-
-      const responseData = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        // Si hay un mensaje de error específico del servidor, mostrarlo
-        if (responseData.message) {
-          if (response.status === 400 && responseData.message.includes('Ya existe una solicitud')) {
-            // Mostrar mensaje específico para solicitud duplicada
-            toast.warning(responseData.message);
-            // Cerrar el diálogo
-            const dialogCloseButton = document.getElementById('close-unenroll-dialog');
-            if (dialogCloseButton) {
-              dialogCloseButton.click();
-            }
-            return;
-          }
-          throw new Error(responseData.message);
-        }
-        throw new Error('Error al enviar la solicitud');
-      }
-
-      // Limpiar el formulario
-      setUnenrollReason('');
-
-      // Cerrar el diálogo
-      const dialogCloseButton = document.getElementById('close-unenroll-dialog');
-      if (dialogCloseButton) {
-        dialogCloseButton.click();
-      }
-
-      toast.success('Solicitud de desmatriculación enviada al administrador');
-    } catch (error) {
-      console.error('Error al enviar la solicitud:', error);
-
-      if (error instanceof Error) {
-        // Mostrar mensaje de error específico
-        if (error.message.includes('Ya existe una solicitud')) {
-          toast.warning(error.message);
-        } else {
-          toast.error(`Error: ${error.message}`);
-        }
-      } else {
-        toast.error('Ocurrió un error al enviar la solicitud. Por favor, intente nuevamente.');
-      }
-    } finally {
-      setIsSubmittingRequest(false);
-      setCurrentStudentForUnenroll(null);
-    }
-  };
-
   useEffect(() => {
     if (subjectId) {
       fetchSubject();
-      fetchClasses();
+      fetchClasses(pagination.page, pagination.limit);
       fetchEnrolledStudents();
     }
-  }, [subjectId, fetchSubject, fetchClasses, fetchEnrolledStudents]);
+  }, [
+    subjectId,
+    fetchSubject,
+    fetchClasses,
+    fetchEnrolledStudents,
+    pagination.page,
+    pagination.limit,
+  ]);
 
   const formatClassDate = (cls: Class) => {
     // Usar la fecha directamente sin conversiones de zona horaria
@@ -426,67 +367,65 @@ export default function SubjectDetailPage() {
 
   // --- HANDLERS: ATTENDANCE & CLASSES ---
 
-  const handleUpdateAttendance = async (studentId: string, status: string) => {
-    if (!currentClass) return;
-    const originalAttendances = [...attendances];
-    setIsUpdatingAttendance(studentId);
-    setPopoverStates(prev => ({ ...prev, [studentId]: false }));
-    setAttendances(prev => prev.map(att => (att.id === studentId ? { ...att, status } : att)));
+  const handleUpdateAttendance = useCallback(
+    async (classId: string, studentId: string, status: string) => {
+      try {
+        setIsUpdatingAttendance(studentId);
+        const response = await fetch(`/api/docente/clases/${classId}/asistencia`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId, status }),
+        });
 
-    try {
-      const response = await fetch(`/api/docente/asistencia`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ classId: currentClass.id, studentId, status }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al actualizar la asistencia.');
+        if (!response.ok) {
+          throw new Error('Error al actualizar la asistencia');
+        }
+
+        // Update the local state to reflect the change
+        setAttendances(prevAttendances =>
+          prevAttendances.map(att => (att.id === studentId ? { ...att, status } : att))
+        );
+      } catch (error) {
+        console.error('Error updating attendance:', error);
+        toast.error('Error al actualizar la asistencia');
+      } finally {
+        setIsUpdatingAttendance(null);
       }
-    } catch (error) {
-      setAttendances(originalAttendances);
-      toast.error(error instanceof Error ? error.message : 'Error al actualizar la asistencia.');
-    } finally {
-      setIsUpdatingAttendance(null);
-    }
-  };
+    },
+    []
+  );
 
   const resetClassForm = () => {
     setCurrentClass(null);
     setClassDate(new Date());
-    setStartTime(null);
-    setEndTime(null);
+    setStartTime(''); // Changed from null to ''
+    setEndTime(''); // Also change this if endTime has the same type
     setClassTopic('');
   };
 
-  const handleUpdateClass = async (e: React.FormEvent) => {
+  const handleSubmitClass = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Verificar que todos los campos requeridos estén presentes
-    if (!currentClass || !classDate || !startTime || !endTime) {
-      toast.error('Por favor complete todos los campos requeridos');
+    if (!classDate || !startTime || !endTime || !classTopic) {
+      toast.error('Por favor complete todos los campos');
       return;
     }
 
-    // Asegurarse de que los valores no son nulos (TypeScript)
-    const safeStartTime = startTime;
-    const safeEndTime = endTime;
-
-    setIsSubmittingClass(true);
+    setIsSubmitting(true);
 
     // Validar que la hora de fin sea posterior a la de inicio
-    if (safeStartTime >= safeEndTime) {
+    if (startTime >= endTime) {
       toast.error('La hora de fin debe ser posterior a la de inicio');
-      setIsSubmittingClass(false);
+      setIsSubmitting(false);
       return;
     }
 
     // Crear fechas combinadas con la fecha y hora
     const startDateTime = new Date(classDate);
-    const [startHours, startMinutes] = safeStartTime.split(':').map(Number);
+    const [startHours, startMinutes] = startTime.split(':').map(Number);
     startDateTime.setHours(startHours, startMinutes, 0, 0);
 
     const endDateTime = new Date(classDate);
-    const [endHours, endMinutes] = safeEndTime.split(':').map(Number);
+    const [endHours, endMinutes] = endTime.split(':').map(Number);
     endDateTime.setHours(endHours, endMinutes, 0, 0);
 
     // Formatear fechas para la API - usar la fecha seleccionada, no la actual
@@ -495,7 +434,7 @@ export default function SubjectDetailPage() {
     const formattedEndTime = endDateTime.toISOString();
 
     try {
-      const response = await fetch(`/api/docente/clases/${currentClass.id}`, {
+      const response = await fetch(`/api/docente/clases/${currentClass?.id}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -511,13 +450,13 @@ export default function SubjectDetailPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'No se pudo actualizar la clase.');
       toast.success('¡Clase actualizada con éxito!');
-      fetchClasses();
+      fetchClasses(pagination.page, pagination.limit);
       setIsEditClassDialogOpen(false);
       resetClassForm();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudo actualizar la clase.');
     } finally {
-      setIsSubmittingClass(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -532,7 +471,7 @@ export default function SubjectDetailPage() {
       const minutes = startDate.getMinutes().toString().padStart(2, '0');
       setStartTime(`${hours}:${minutes}`);
     } else {
-      setStartTime(null);
+      setStartTime('');
     }
 
     if (cls.endTime) {
@@ -548,7 +487,7 @@ export default function SubjectDetailPage() {
       const minutes = startDate.getMinutes().toString().padStart(2, '0');
       setEndTime(`${hours}:${minutes}`);
     } else {
-      setEndTime(null);
+      setEndTime('');
     }
 
     setClassTopic(cls.topic || '');
@@ -556,6 +495,30 @@ export default function SubjectDetailPage() {
   };
 
   // --- MANEJADORES DE MATRÍCULA ---
+
+  const handleUnenrollRequest = async (studentId: string) => {
+    if (!subjectId) return;
+
+    try {
+      const response = await fetch(
+        `/api/docente/asignaturas/${subjectId}/estudiantes/${studentId}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar al estudiante');
+      }
+
+      // Refresh the students list
+      fetchEnrolledStudents();
+      toast.success('Estudiante eliminado correctamente');
+    } catch (error) {
+      console.error('Error al eliminar estudiante:', error);
+      toast.error('Error al eliminar al estudiante');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -709,16 +672,13 @@ export default function SubjectDetailPage() {
                               <AlertDialogAction
                                 onClick={async () => {
                                   if (currentStudentForUnenroll) {
-                                    await handleUnenrollRequest(
-                                      currentStudentForUnenroll.id,
-                                      currentStudentForUnenroll.name
-                                    );
+                                    await handleUnenrollRequest(currentStudentForUnenroll.id);
                                   }
                                 }}
                                 className="bg-amber-600 text-white hover:bg-amber-700 font-sans"
-                                disabled={!unenrollReason.trim() || isSubmittingRequest}
+                                disabled={!unenrollReason.trim() || isSubmitting}
                               >
-                                {isSubmittingRequest ? 'Enviando...' : 'Enviar solicitud'}
+                                {isSubmitting ? 'Enviando...' : 'Enviar solicitud'}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -816,7 +776,7 @@ export default function SubjectDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedClasses.map(cls => {
+                  {classes.map(cls => {
                     const now = new Date();
                     const classEndTime = cls.endTime ? new Date(cls.endTime) : new Date(cls.date);
                     const isPast = classEndTime < now;
@@ -912,55 +872,71 @@ export default function SubjectDetailPage() {
                 </TableBody>
               </Table>
               {/* Paginación clases */}
-              {totalClassPages > 1 && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2 px-2 gap-2">
-                  <span className="text-xs text-muted-foreground">
-                    Mostrando {classStart}–{classEnd} de {classes.length} registros
-                  </span>
-                  <Pagination>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2 px-4 gap-2 border-t">
+                <span className="text-xs text-muted-foreground w-full">
+                  Mostrando {(pagination.page - 1) * pagination.limit + 1}-
+                  {Math.min(pagination.page * pagination.limit, pagination.total)} de{' '}
+                  {pagination.total} clases
+                </span>
+                {pagination.totalPages > 1 && (
+                  <Pagination className="w-full sm:justify-end justify-center">
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious
                           href="#"
                           onClick={e => {
                             e.preventDefault();
-                            setClassPage(p => Math.max(1, p - 1));
+                            if (pagination.page > 1) handleClassPageChange(pagination.page - 1);
                           }}
-                          aria-disabled={classPage === 1}
-                        >
-                          Anterior
-                        </PaginationPrevious>
+                          className={pagination.page === 1 ? 'pointer-events-none opacity-50' : ''}
+                        />
                       </PaginationItem>
-                      {Array.from({ length: totalClassPages }).map((_, i) => (
-                        <PaginationItem key={i}>
-                          <PaginationLink
-                            href="#"
-                            isActive={classPage === i + 1}
-                            onClick={e => {
-                              e.preventDefault();
-                              setClassPage(i + 1);
-                            }}
-                          >
-                            {i + 1}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
+                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                        let pageNum: number;
+                        if (pagination.totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (pagination.page <= 3) {
+                          pageNum = i + 1;
+                        } else if (pagination.page >= pagination.totalPages - 2) {
+                          pageNum = pagination.totalPages - 4 + i;
+                        } else {
+                          pageNum = pagination.page - 2 + i;
+                        }
+
+                        return (
+                          <PaginationItem key={pageNum}>
+                            <PaginationLink
+                              href="#"
+                              onClick={e => {
+                                e.preventDefault();
+                                handleClassPageChange(pageNum);
+                              }}
+                              isActive={pagination.page === pageNum}
+                            >
+                              {pageNum}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
                       <PaginationItem>
                         <PaginationNext
                           href="#"
                           onClick={e => {
                             e.preventDefault();
-                            setClassPage(p => Math.min(totalClassPages, p + 1));
+                            if (pagination.page < pagination.totalPages)
+                              handleClassPageChange(pagination.page + 1);
                           }}
-                          aria-disabled={classPage === totalClassPages}
-                        >
-                          Siguiente
-                        </PaginationNext>
+                          className={
+                            pagination.page === pagination.totalPages
+                              ? 'pointer-events-none opacity-50'
+                              : ''
+                          }
+                        />
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -1043,7 +1019,7 @@ export default function SubjectDetailPage() {
               Modifica los detalles de la clase. Haz clic en Guardar Cambios cuando hayas terminado.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleUpdateClass} className="font-sans">
+          <form onSubmit={handleSubmitClass} className="font-sans">
             <div className="space-y-6 py-4">
               {/* Selector de Fecha */}
               <div className="space-y-2">
@@ -1272,11 +1248,11 @@ export default function SubjectDetailPage() {
               <Button
                 type="submit"
                 disabled={
-                  isSubmittingClass || !classDate || !startTime || !endTime || startTime >= endTime
+                  isSubmitting || !classDate || !startTime || !endTime || startTime >= endTime
                 }
                 className="min-w-[120px]"
               >
-                {isSubmittingClass ? (
+                {isSubmitting ? (
                   <>
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
                     Actualizando...
@@ -1328,7 +1304,7 @@ export default function SubjectDetailPage() {
           <AlertDialogFooter>
             <AlertDialogCancel className="font-sans">Cerrar</AlertDialogCancel>
             <AlertDialogAction
-              disabled={!cancelReason.trim() || isSubmittingClass}
+              disabled={!cancelReason.trim() || isSubmitting}
               onClick={() => {
                 if (classToCancel) {
                   handleUpdateClassStatus(classToCancel.id, 'CANCELADA', cancelReason);
@@ -1338,7 +1314,7 @@ export default function SubjectDetailPage() {
               }}
               className="bg-rose-600 text-white hover:bg-rose-700 font-sans"
             >
-              {isSubmittingClass ? 'Cancelando...' : 'Confirmar Cancelación'}
+              {isSubmitting ? 'Cancelando...' : 'Confirmar Cancelación'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1435,7 +1411,9 @@ export default function SubjectDetailPage() {
                                     key={status}
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleUpdateAttendance(att.id, status)}
+                                    onClick={() =>
+                                      handleUpdateAttendance(currentClass?.id || '', att.id, status)
+                                    }
                                     className="justify-start"
                                     disabled={att.status === status}
                                   >

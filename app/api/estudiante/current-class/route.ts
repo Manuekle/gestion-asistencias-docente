@@ -17,6 +17,7 @@ export async function GET() {
     // Find the current class for the student
     const currentClass = await prisma.class.findFirst({
       where: {
+        status: 'PROGRAMADA',
         subject: {
           studentIds: {
             has: session.user.id,

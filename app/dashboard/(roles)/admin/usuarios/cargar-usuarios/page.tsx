@@ -210,7 +210,7 @@ export default function CargarUsuariosPage() {
                   <div className="rounded-lg border max-h-[60vh] overflow-y-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow>
+                        <TableRow className="bg-muted/60">
                           <TableHead className="px-4 py-3">Nombre</TableHead>
                           <TableHead className="px-4 py-3">Documento</TableHead>
                           <TableHead className="px-4 py-3">Correo</TableHead>

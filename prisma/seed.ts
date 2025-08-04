@@ -4,6 +4,23 @@ import { hash } from 'bcryptjs';
 // Initialize Prisma Client
 const prisma = new PrismaClient();
 
+// Helper functions for generating user data
+const generateStudentCode = (index: number): string => `S${String(index).padStart(4, '0')}`;
+const generateTeacherCode = (index: number): string => `T${String(index).padStart(4, '0')}`;
+
+const studentNames = [
+  'Juan Pérez',
+  'María Rodríguez',
+  'Carlos Sánchez',
+  'Ana García',
+  'Luis González',
+  'Laura Martínez',
+  'Pedro López',
+  'Sofía Ramírez',
+];
+
+const teacherNames = ['Andrés Cepeda', 'Carolina Herrera', 'Miguel Ángel'];
+
 // Helper function to generate dates for classes (skipping weekends)
 const generateClassDates = (startDate: Date, count: number): Date[] => {
   const dates: Date[] = [];
@@ -53,142 +70,192 @@ async function main() {
   // Create admin user
   const admin = await prisma.user.create({
     data: {
-      name: 'Uriel Londono Restrepo Soto',
-      correoInstitucional: 'uriel.londono@admin.fup.edu.co',
-      correoPersonal: `urielL01@gmail.com`,
+      name: 'Admin Principal',
+      correoInstitucional: 'admin@fup.edu.co',
+      correoPersonal: 'admin@example.com',
       password: await hashPassword('admin123'),
-      document: '11223344',
+      document: '10000000',
       role: Role.ADMIN,
       isActive: true,
     },
   });
   console.log(`✅ Created admin user: ${admin.correoInstitucional}`);
 
-  // Create teacher user with unique code
-  const teacherCode = `T${Date.now().toString().slice(-4)}`;
-  const teacher = await prisma.user.create({
+  // Create coordinator
+  const coordinator = await prisma.user.create({
     data: {
-      name: 'Andres Felipe Cepeda Velez',
-      correoInstitucional: 'andres.cepeda@docente.fup.edu.co',
-      correoPersonal: `andresF199@gmail.com`,
-      password: await hashPassword('docente123'),
-      document: '19826622',
-      codigoDocente: teacherCode,
-      role: Role.DOCENTE,
+      name: 'Coordinador Programa',
+      correoInstitucional: 'coordinador@fup.edu.co',
+      correoPersonal: 'coordinador@example.com',
+      password: await hashPassword('coordinador123'),
+      document: '20000000',
+      role: Role.COORDINADOR,
       isActive: true,
     },
   });
-  console.log(`✅ Created teacher user: ${teacher.correoInstitucional} with code ${teacherCode}`);
+  console.log(`✅ Created coordinator user: ${coordinator.correoInstitucional}`);
 
-  // Create a single student
+  // Create 3 teachers
+  const teachers = [];
+  for (let i = 0; i < teacherNames.length; i++) {
+    const teacher = await prisma.user.create({
+      data: {
+        name: teacherNames[i],
+        correoInstitucional: `docente${i + 1}@fup.edu.co`,
+        correoPersonal: `docente${i + 1}@example.com`,
+        password: await hashPassword('docente123'),
+        document: `3${String(i + 1).padStart(7, '0')}`,
+        codigoDocente: generateTeacherCode(i + 1),
+        role: Role.DOCENTE,
+        isActive: true,
+      },
+    });
+    teachers.push(teacher);
+    console.log(`✅ Created teacher ${i + 1}: ${teacher.name}`);
+  }
+
+  // Create 8 students
   const students = [];
-  const studentCode = 'S0001';
-
-  try {
+  for (let i = 0; i < studentNames.length; i++) {
     const student = await prisma.user.create({
       data: {
-        name: 'Manuel Esteban Erazo Medina',
-        correoInstitucional: 'manuel.erazo@estudiante.fup.edu.co',
-        correoPersonal: 'meerazo7@hotmail.com',
+        name: studentNames[i],
+        correoInstitucional: `estudiante${i + 1}@fup.edu.co`,
+        correoPersonal: `estudiante${i + 1}@example.com`,
         password: await hashPassword('estudiante123'),
-        document: '12345678',
-        codigoEstudiantil: studentCode,
+        document: `4${String(i + 1).padStart(7, '0')}`,
+        codigoEstudiantil: generateStudentCode(i + 1),
         role: Role.ESTUDIANTE,
         isActive: true,
-        telefono: '31127121242',
+        telefono: `3${String(1000000 + i).padStart(7, '0')}`,
       },
     });
     students.push(student);
-    console.log(`✅ Created student: ${student.correoInstitucional} with code ${studentCode}`);
-  } catch (error) {
-    console.error('❌ Error creating student:', error);
-    throw error;
+    console.log(`✅ Created student ${i + 1}: ${student.name}`);
   }
 
-  console.log('📚 Creating subject...');
-  // Create one subject
-  const subject = await prisma.subject.create({
-    data: {
+  console.log('📚 Creating subjects...');
+  const subjects = [
+    {
       name: 'Programación Web',
       code: 'PW-2025-1',
       program: 'Ingeniería de Sistemas',
       semester: 5,
       credits: 3,
-      teacher: {
-        connect: { id: teacher.id },
-      },
-      studentIds: students.map(student => student.id),
     },
-  });
-  console.log(`✅ Created subject: ${subject.name}`);
+    {
+      name: 'Bases de Datos',
+      code: 'BD-2025-1',
+      program: 'Ingeniería de Sistemas',
+      semester: 4,
+      credits: 4,
+    },
+    {
+      name: 'Inteligencia Artificial',
+      code: 'IA-2025-1',
+      program: 'Ingeniería de Sistemas',
+      semester: 7,
+      credits: 4,
+    },
+  ];
 
-  // Update students with enrolled subject
+  // Create subjects and assign teachers
+  const createdSubjects: { id: string; name: string; code: string }[] = [];
+  for (let i = 0; i < subjects.length; i++) {
+    const subjectData = subjects[i];
+    const teacher = teachers[i % teachers.length];
+
+    const subject = await prisma.subject.create({
+      data: {
+        ...subjectData,
+        teacher: {
+          connect: { id: teacher.id },
+        },
+        studentIds: students.map(student => student.id),
+      },
+    });
+    createdSubjects.push(subject);
+    console.log(
+      `✅ Created subject: ${subject.name} (${subject.code}) with teacher ${teacher.name}`
+    );
+  }
+
+  // Update students with enrolled subjects
   await Promise.all(
     students.map(student =>
       prisma.user.update({
         where: { id: student.id },
         data: {
-          enrolledSubjectIds: {
-            push: subject.id,
-          },
+          enrolledSubjectIds: createdSubjects.map(subject => subject.id),
         },
       })
     )
   );
 
   console.log('📅 Creating classes...');
-  // Create 5 classes starting from today, skipping weekends
-  const classDates = generateClassDates(new Date(), 5);
+  // Create 16 classes for each subject, starting from today, skipping weekends
+  const totalClasses = 16;
+  const allClasses = [];
 
-  const classes = [];
-  for (let i = 0; i < 5; i++) {
-    const classDate = new Date(classDates[i]);
-    const startTime = new Date(classDate);
-    startTime.setHours(0, 0, 0, 0); // 00:00:00
-    const endTime = new Date(classDate);
-    endTime.setHours(23, 59, 59, 999); // 23:59:59.999
+  for (const subject of createdSubjects) {
+    const classDates = generateClassDates(new Date(), totalClasses);
+    const subjectClasses = [];
 
-    const classItem = await prisma.class.create({
-      data: {
-        date: startTime,
-        startTime,
-        endTime,
-        topic: `Tema ${i + 1}: Introducción al tema ${i + 1}`,
-        description: `Esta es la clase ${i + 1} de Programación Web`,
-        status: ClassStatus.PROGRAMADA,
-        subject: {
-          connect: { id: subject.id },
+    for (let i = 0; i < totalClasses; i++) {
+      const classDate = new Date(classDates[i]);
+      const startTime = new Date(classDate);
+      startTime.setHours(8 + (i % 8), 0, 0, 0); // Varying start times between 8:00 and 15:00
+
+      const endTime = new Date(startTime);
+      endTime.setHours(startTime.getHours() + 2); // 2-hour classes
+
+      const classItem = await prisma.class.create({
+        data: {
+          date: startTime,
+          startTime,
+          endTime,
+          topic: `Tema ${i + 1}: ${subject.name} - Sesión ${i + 1}`,
+          description: `Clase ${i + 1} de ${subject.name}. ${i % 3 === 0 ? 'Evaluación parcial' : 'Clase teórico-práctica'}`,
+          status: i === 0 ? ClassStatus.PROGRAMADA : ClassStatus.PROGRAMADA,
+          subject: {
+            connect: { id: subject.id },
+          },
+          classroom: `A${Math.floor(Math.random() * 5) + 1}0${Math.floor(Math.random() * 5) + 1}`,
+          qrToken:
+            Math.random().toString(36).substring(2, 15) +
+            Math.random().toString(36).substring(2, 15),
+          qrTokenExpiresAt: new Date(endTime.getTime() + 30 * 60000), // 30 minutes after class ends
+          totalStudents: students.length,
         },
-        classroom: `A${Math.floor(Math.random() * 5) + 1}0${Math.floor(Math.random() * 5) + 1}`,
-        qrToken:
-          Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
-        qrTokenExpiresAt: new Date(endTime.getTime()), // Expira al final del día
-        totalStudents: students.length,
-      },
-    });
-    classes.push(classItem);
+      });
+      subjectClasses.push(classItem);
+    }
+
+    allClasses.push(...subjectClasses);
+    console.log(`✅ Created ${subjectClasses.length} classes for ${subject.name}`);
   }
-  console.log(`✅ Created ${classes.length} classes`);
 
   console.log('🎉 Seeding completed!');
   console.log('================================');
   console.log('Summary:');
-  console.log('👤 Admin: 1');
-  console.log('👨‍🏫 Teacher: 1');
+  console.log(`👤 Admin: 1`);
+  console.log(`👨‍🏫 Teachers: ${teachers.length}`);
   console.log(`👨‍🎓 Students: ${students.length}`);
-  console.log('📚 Subject: 1');
-  console.log(`📅 Classes: ${classes.length}`);
+  console.log(`📚 Subjects: ${createdSubjects.length}`);
+  console.log(`📅 Total Classes: ${allClasses.length} (16 per subject)`);
   console.log('================================');
   console.log('Admin credentials:');
-  console.log(`Email: urielL01@gmail.com`);
+  console.log(`Email: admin@fup.edu.co`);
   console.log(`Password: admin123`);
   console.log('--------------------------------');
-  console.log('Teacher credentials:');
-  console.log(`Email: andresF199@gmail.com`);
+  console.log('Teacher credentials (use any from 1-3):');
+  console.log(`Email: docente1@fup.edu.co`);
+  console.log(`Email: docente2@fup.edu.co`);
+  console.log(`Email: docente3@fup.edu.co`);
   console.log(`Password: docente123`);
   console.log('--------------------------------');
   console.log('Student credentials (use any from 1-8):');
-  console.log(`Email: meerazo7@hotmail.com`);
+  console.log(`Email: estudiante1@fup.edu.co to estudiante8@fup.edu.co`);
   console.log(`Password: estudiante123`);
   console.log('================================');
 }

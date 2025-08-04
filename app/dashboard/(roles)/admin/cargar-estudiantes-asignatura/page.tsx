@@ -284,7 +284,7 @@ export default function UploadStudentsToSubjectsPage() {
                   <div className="rounded-lg border max-h-[60vh] overflow-y-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow>
+                        <TableRow className="bg-muted/60">
                           <TableHead className="px-4 py-3 w-32">Código</TableHead>
                           <TableHead className="px-4 py-3">Estudiantes</TableHead>
                         </TableRow>
@@ -398,7 +398,7 @@ export default function UploadStudentsToSubjectsPage() {
                   </div>
                 </>
               ) : (
-                <div className="text-center text-xs font-medium text-muted-foreground py-24">
+                <div className="text-center text-xs font-normal text-muted-foreground py-24">
                   <p>Sube un archivo para ver la previsualización aquí.</p>
                 </div>
               )}

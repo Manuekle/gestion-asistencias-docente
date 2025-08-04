@@ -448,13 +448,13 @@ export default function ProfilePage() {
                     <Label className="text-xs font-medium">Dibujar Firma</Label>
                     <div
                       ref={canvasWrapperRef}
-                      className="w-full aspect-[2.5/1] bg-muted/20 rounded-md border border-dashed border-muted-foreground/30"
+                      className="w-full aspect-[2.5/1] items-center justify-center border border-dashed rounded-lg p-6 space-y-2 cursor-pointer transition-colors"
                     >
                       <SignatureCanvas
                         ref={sigCanvas}
-                        penColor="black"
+                        penColor="hsl(0 0% 0%)"
                         canvasProps={{
-                          className: 'w-full h-full rounded-md',
+                          className: 'w-full h-full rounded-md dark:invert',
                         }}
                       />
                     </div>

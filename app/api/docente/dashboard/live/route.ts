@@ -22,6 +22,7 @@ export async function GET() {
         subject: {
           teacherId: teacherId,
         },
+        status: 'PROGRAMADA',
         startTime: {
           lte: now,
         },
@@ -84,6 +85,7 @@ export async function GET() {
       liveClass: {
         id: liveClass.id,
         topic: liveClass.topic,
+        status: liveClass.status,
         subjectName: liveClass.subject.name,
         startTime: liveClass.startTime!.toISOString(),
         endTime: liveClass.endTime!.toISOString(),

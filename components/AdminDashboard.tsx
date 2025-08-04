@@ -102,7 +102,7 @@ const AdminDashboardComponent = () => {
   };
 
   // Paleta colorida solo para la dona
-  const PIE_COLORS = ['#B9375D', '#D25D5D', '#E7D3D3'];
+  const PIE_COLORS = ['#5409DA', '#4E71FF', '#8DD8FF', '#BBFBFF'];
   // Paleta neutra para área y barras
   const NEUTRAL_PALETTE = ['#525252', '#737373', '#a3a3a3', '#d4d4d4', '#e5e7eb'];
 

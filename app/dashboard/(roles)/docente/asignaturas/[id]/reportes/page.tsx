@@ -82,6 +82,22 @@ const SubjectReportPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null);
+  const [classes, setClasses] = useState<Array<{ status: string }>>([]);
+
+  const fetchClasses = useCallback(async () => {
+    if (!subjectId) return;
+    try {
+      const response = await fetch(`/api/docente/clases?subjectId=${subjectId}`);
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar las clases.');
+      }
+      const data = await response.json();
+      setClasses(data.data || []);
+    } catch (error: unknown) {
+      console.error('Error al cargar las clases:', error);
+      toast.error('No se pudieron cargar las clases');
+    }
+  }, [subjectId]);
 
   const fetchReports = useCallback(async () => {
     if (!subjectId) return;
@@ -103,7 +119,8 @@ const SubjectReportPage = () => {
 
   useEffect(() => {
     fetchReports();
-  }, [fetchReports]);
+    fetchClasses();
+  }, [fetchReports, fetchClasses]);
 
   // Polling para actualizar el estado de los reportes en proceso
   useEffect(() => {
@@ -206,7 +223,15 @@ const SubjectReportPage = () => {
             Genera y descarga los reportes de asistencia de la asignatura.
           </CardDescription>
         </CardHeader>
-        <Button onClick={handleGenerateReport} disabled={isGenerating}>
+        <Button
+          onClick={handleGenerateReport}
+          disabled={isGenerating || !classes.every(c => c.status === 'REALIZADA')}
+          title={
+            !classes.every(c => c.status === 'REALIZADA')
+              ? 'No se puede generar el reporte hasta que todas las clases estén marcadas como REALIZADA'
+              : ''
+          }
+        >
           {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Generar Reporte</>}
         </Button>
       </div>
@@ -214,7 +239,7 @@ const SubjectReportPage = () => {
       <div className="border rounded-md overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-muted/60">
               <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
                 Fecha de Solicitud
               </TableHead>
@@ -231,7 +256,11 @@ const SubjectReportPage = () => {
             {reports.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
-                  Aún no se ha generado ningún reporte.
+                  {!classes.every(c => c.status === 'REALIZADA') && (
+                    <span className="text-xs opacity-80">
+                      Requiere que todas las clases estén realizadas.
+                    </span>
+                  )}
                 </TableCell>
               </TableRow>
             ) : (

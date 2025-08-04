@@ -1,15 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -17,9 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { toast } from 'sonner';
-import type { User, Role } from '@/types';
+import type { Role, User } from '@/types';
 import { ROLES } from '@/types';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface EditUserRoleModalProps {
   user: User | null;
@@ -65,7 +65,9 @@ export function EditUserRoleModal({ user, isOpen, onClose, onUserUpdate }: EditU
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Editar Rol de {user.name}</DialogTitle>
+          <DialogTitle className="font-sans text-xl font-semibold tracking-tight">
+            Editar Rol de {user.name}
+          </DialogTitle>
           <DialogDescription>
             Selecciona el nuevo rol para el usuario. Este cambio afectará sus permisos en el
             sistema.
@@ -76,12 +78,12 @@ export function EditUserRoleModal({ user, isOpen, onClose, onUserUpdate }: EditU
             onValueChange={value => setSelectedRole(value as Role)}
             defaultValue={user.role as Role}
           >
-            <SelectTrigger>
+            <SelectTrigger className="lowercase">
               <SelectValue placeholder="Selecciona un rol" />
             </SelectTrigger>
             <SelectContent>
               {ROLES.map(role => (
-                <SelectItem key={role} value={role}>
+                <SelectItem className="lowercase" key={role} value={role}>
                   {role}
                 </SelectItem>
               ))}

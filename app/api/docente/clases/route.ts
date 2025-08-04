@@ -91,7 +91,10 @@ export async function GET(request: Request) {
     });
     const classes = await db.class.findMany({
       where: { subjectId: query.subjectId },
-      orderBy: { [query.sortBy]: query.sortOrder },
+      orderBy: [
+        { date: 'asc' }, // Ordenar por fecha ascendente (más cercana primero)
+        { startTime: 'asc' }, // Si hay varias clases el mismo día, ordenar por hora de inicio
+      ],
       skip: (query.page - 1) * query.limit,
       take: query.limit,
       include: {
