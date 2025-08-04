@@ -153,7 +153,7 @@ export default function HistorialAsistenciasPage() {
             </div>
           </div>
         ) : attendances.length === 0 ? (
-          <p className="text-center text-muted-foreground dark:text-gray-400 h-[calc(100vh-20rem)] flex items-center justify-center">
+          <p className="text-center font-normal text-sm text-muted-foreground dark:text-gray-400 h-[calc(100vh-20rem)] flex items-center justify-center">
             No tienes asistencias registradas.
           </p>
         ) : (

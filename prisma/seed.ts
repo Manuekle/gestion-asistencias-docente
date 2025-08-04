@@ -204,7 +204,16 @@ async function main() {
     for (let i = 0; i < totalClasses; i++) {
       const classDate = new Date(classDates[i]);
       const startTime = new Date(classDate);
-      startTime.setHours(8 + (i % 8), 0, 0, 0); // Varying start times between 8:00 and 15:00
+
+      // Alternate between morning (7AM-11AM) and afternoon (2PM-6PM) slots
+      const isMorningSlot = i % 2 === 0;
+      if (isMorningSlot) {
+        // Morning slot: 7AM - 11AM (4 hours total, 2 slots of 2 hours each)
+        startTime.setHours(7 + ((i / 2) % 2) * 2, 0, 0, 0);
+      } else {
+        // Afternoon slot: 2PM - 6PM (4 hours total, 2 slots of 2 hours each)
+        startTime.setHours(14 + (Math.floor(i / 2) % 2) * 2, 0, 0, 0);
+      }
 
       const endTime = new Date(startTime);
       endTime.setHours(startTime.getHours() + 2); // 2-hour classes
@@ -214,7 +223,7 @@ async function main() {
           date: startTime,
           startTime,
           endTime,
-          topic: `Tema ${i + 1}: ${subject.name} - Sesión ${i + 1}`,
+          topic: `Tema ${i + 1}: ${subject.name}`,
           description: `Clase ${i + 1} de ${subject.name}. ${i % 3 === 0 ? 'Evaluación parcial' : 'Clase teórico-práctica'}`,
           status: i === 0 ? ClassStatus.PROGRAMADA : ClassStatus.PROGRAMADA,
           subject: {

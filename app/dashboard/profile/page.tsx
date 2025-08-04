@@ -92,7 +92,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (session?.user) {
       setName(session.user.name || '');
-      setCorreoInstitucional(session.user?.email || '');
+      setCorreoInstitucional(session.user?.correoInstitucional || '');
       setCorreoPersonal(session.user?.correoPersonal || '');
       // Set initial preview from session
       if (!signatureFile) {
@@ -150,7 +150,7 @@ export default function ProfilePage() {
       const response = await fetch('/api/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, correoPersonal }),
+        body: JSON.stringify({ name, correoPersonal, correoInstitucional }),
       });
 
       if (!response.ok) {
@@ -158,7 +158,7 @@ export default function ProfilePage() {
         throw new Error(error.message || 'Error al actualizar el perfil');
       }
 
-      await update({ name, correoPersonal });
+      await update({ name, correoPersonal, correoInstitucional });
       toast.success('Perfil actualizado correctamente');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error al actualizar el perfil';
@@ -312,7 +312,6 @@ export default function ProfilePage() {
                       <Label htmlFor="correoInstitucional">Correo Institucional</Label>
                       <Input
                         id="correoInstitucional"
-                        disabled
                         type="email"
                         value={correoInstitucional}
                         onChange={e => setCorreoInstitucional(e.target.value)}
@@ -455,6 +454,14 @@ export default function ProfilePage() {
                         penColor="hsl(0 0% 0%)"
                         canvasProps={{
                           className: 'w-full h-full rounded-md dark:invert',
+                          style: { touchAction: 'none' },
+                        }}
+                        onBegin={() => {
+                          // Add visual feedback when drawing starts
+                          document.body.style.cursor = 'grabbing';
+                        }}
+                        onEnd={() => {
+                          document.body.style.cursor = '';
                         }}
                       />
                     </div>
@@ -462,7 +469,7 @@ export default function ProfilePage() {
                       <Button variant="outline" size="sm" onClick={clearCanvas} className="flex-1">
                         Limpiar
                       </Button>
-                      <Button size="sm" onClick={saveCanvas} className="flex-1">
+                      <Button variant="default" size="sm" onClick={saveCanvas} className="flex-1">
                         Capturar
                       </Button>
                     </div>

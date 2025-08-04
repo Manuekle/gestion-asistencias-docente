@@ -108,14 +108,14 @@ export default function DocenteDashboard() {
 
   return (
     <div className="mx-auto">
-      <div className="flex w-full justify-between items-start mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
         <CardHeader className="p-0 w-full">
           <CardTitle className="text-2xl font-semibold tracking-tight">Mi Panel</CardTitle>
           <CardDescription className="text-xs">
             Gestiona tus asignaturas y clases en vivo.
           </CardDescription>
         </CardHeader>
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center">
           <div className="flex space-x-2">
             <Button onClick={() => router.push('/dashboard/docente/asignaturas')}>
               Ver todas las asignaturas
