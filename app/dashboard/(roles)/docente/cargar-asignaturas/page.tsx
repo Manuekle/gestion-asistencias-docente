@@ -597,7 +597,7 @@ export default function UploadSubjectsPage() {
                 <DatePicker
                   value={editingClass.fechaClase ? new Date(editingClass.fechaClase) : undefined}
                   onChange={date => handleEditingClassChange('fechaClase', date)}
-                  className="col-span-3"
+                  className="col-span-3 text-xs "
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -607,7 +607,7 @@ export default function UploadSubjectsPage() {
                 <TimePicker
                   value={editingClass.horaInicio}
                   onChange={time => handleEditingClassChange('horaInicio', time)}
-                  className="col-span-3"
+                  className="col-span-3 text-xs"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -617,7 +617,7 @@ export default function UploadSubjectsPage() {
                 <TimePicker
                   value={editingClass.horaFin}
                   onChange={time => handleEditingClassChange('horaFin', time)}
-                  className="col-span-3"
+                  className="col-span-3 text-xs"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">

@@ -522,12 +522,11 @@ export default function SubjectDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <CardHeader className="p-0 w-full">
-          <CardTitle className="text-2xl tracking-tight font-semibold">
-            {isLoadingSubject ? 'Cargando...' : 'Asignatura de ' + subjectName || 'Asignatura'}
-          </CardTitle>
-        </CardHeader>
+      <div className="pb-4 w-full flex sm:flex-row flex-col items-start gap-4 justify-between ">
+        <div>
+          <CardTitle className="text-2xl font-semibold tracking-heading">Mis Clases</CardTitle>
+          <CardDescription className="text-xs">Gestiona tus clases y eventos.</CardDescription>
+        </div>
         <Link href={`/dashboard/docente/asignaturas/${subjectId}/reportes`}>
           <Button>Ver Reporte</Button>
         </Link>
@@ -593,7 +592,7 @@ export default function SubjectDetailPage() {
                           'N/A'
                         )}
                       </TableCell>
-                      <TableCell className="text-xs px-4 py-2">
+                      <TableCell className="text-sm px-4 py-2">
                         {student.correoPersonal ? (
                           <a
                             href={`mailto:${student.correoPersonal}`}
@@ -606,7 +605,7 @@ export default function SubjectDetailPage() {
                           'N/A'
                         )}
                       </TableCell>
-                      <TableCell className="text-xs px-4 py-2">
+                      <TableCell className="text-sm px-4 py-2">
                         {student.telefono ? (
                           <a
                             href={`tel:${student.telefono}`}
@@ -619,7 +618,7 @@ export default function SubjectDetailPage() {
                           'N/A'
                         )}
                       </TableCell>
-                      <TableCell className="text-xs tracking-tight text-right px-4 py-2">
+                      <TableCell className="text-sm tracking-tight text-right px-4 py-2">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
@@ -975,7 +974,7 @@ export default function SubjectDetailPage() {
               placeholder="Ej: calamidad doméstica, cita médica, etc."
               value={cancelReason}
               onChange={e => setCancelReason(e.target.value)}
-              className="mt-2"
+              className="mt-2 text-xs"
             />
           </div>
           <AlertDialogFooter>

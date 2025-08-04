@@ -251,11 +251,11 @@ export function EventsCard({ subjectId }: EventsCardProps) {
                     <Textarea
                       id="event-desc"
                       value={eventDescription}
-                      className="resize-none"
+                      className="resize-none text-xs"
                       onChange={e => setEventDescription(e.target.value)}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Fecha</Label>
                       <Popover open={isEventDatePickerOpen} onOpenChange={setIsEventDatePickerOpen}>
@@ -263,7 +263,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
                           <Button
                             variant={'outline'}
                             className={cn(
-                              'w-full justify-start text-left font-normal',
+                              'w-full justify-start text-left font-normal text-xs',
                               !eventDate && 'text-muted-foreground'
                             )}
                           >
@@ -292,23 +292,23 @@ export function EventsCard({ subjectId }: EventsCardProps) {
                         value={eventType}
                         onValueChange={value => setEventType(value as EventType)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="text-xs">
                           <SelectValue placeholder="Selecciona un tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem className="font-sans" value="EXAMEN">
+                          <SelectItem className="font-sans text-xs" value="EXAMEN">
                             Examen
                           </SelectItem>
-                          <SelectItem className="font-sans" value="TRABAJO">
+                          <SelectItem className="font-sans text-xs" value="TRABAJO">
                             Tarea
                           </SelectItem>
-                          <SelectItem className="font-sans" value="LIMITE">
+                          <SelectItem className="font-sans text-xs" value="LIMITE">
                             Fecha límite
                           </SelectItem>
-                          <SelectItem className="font-sans" value="ANUNCIO">
+                          <SelectItem className="font-sans text-xs" value="ANUNCIO">
                             Anuncio
                           </SelectItem>
-                          <SelectItem className="font-sans" value="INFO">
+                          <SelectItem className="font-sans text-xs" value="INFO">
                             Informativo
                           </SelectItem>
                         </SelectContent>
