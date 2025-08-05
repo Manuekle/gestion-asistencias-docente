@@ -125,7 +125,7 @@
     "uuid": "^11.1.0",
     "xlsx": "^0.18.5",
     "zod": "^3.25.67",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.7"
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
