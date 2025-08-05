@@ -151,36 +151,38 @@ Toda la documentación detallada del proyecto, incluyendo la visión, arquitectu
 
 ### **Instalación**
 
-1.  **Clonar el repositorio:**
+1. **Clonar el repositorio:**
 
     ```bash
-    git clone https://github.com/fup-asistencias/gestion-asistencias-docente.git
+    git clone https://github.com/Manuekle/gestion-asistencias-docente.git
     cd gestion-asistencias-docente
     ```
 
-2.  **Instalar dependencias:**
+2. **Instalar dependencias:**
 
     ```bash
     npm install
     ```
 
-3.  **Configurar variables de entorno:**
+3. **Configurar variables de entorno:**
     Copia `.env.example` a `.env.local` y rellena las variables.
 
     ```bash
     cp .env.example .env.local
     ```
 
-4.  **Sincronizar la base de datos:**
+4. **Sincronizar la base de datos:**
 
     ```bash
     npx db (cliente Prisma centralizado) db push
     ```
 
-5.  **Ejecutar el proyecto:**
+5. **Ejecutar el proyecto:**
+
     ```bash
     npm run dev
     ```
+
     La aplicación estará disponible en `http://localhost:3000` por defecto, o en la URL configurada en `NEXTAUTH_URL`.
 
 ---
@@ -189,23 +191,23 @@ Toda la documentación detallada del proyecto, incluyendo la visión, arquitectu
 
 Este es un proyecto académico, pero las sugerencias son bienvenidas.
 
-1.  Fork del repositorio.
-2.  Crear una nueva rama para tu feature (`git checkout -b feature/AmazingFeature`).
-3.  Realizar un commit con tus cambios (`git commit -m 'feat: Add some AmazingFeature'`).
-4.  Hacer push a la rama (`git push origin feature/AmazingFeature`).
-5.  Abrir un Pull Request.
+1. Fork del repositorio.
+2. Crear una nueva rama para tu feature (`git checkout -b feature/AmazingFeature`).
+3. Realizar un commit con tus cambios (`git commit -m 'feat: Add some AmazingFeature'`).
+4. Hacer push a la rama (`git push origin feature/AmazingFeature`).
+5. Abrir un Pull Request.
 
 ---
 
 ## 📞 Soporte y Contacto
 
 **Desarrollador Principal**: Manuel Esteban Erazo Medina  
-**Email**: manuel.erazo@estudiante.fup.edu.co  
+**Email**: <manuel.erazo@estudiante.fup.edu.co>  
 **Institución**: Fundación Universitaria de Popayán (FUP)  
 **Proyecto**: Trabajo de Grado - Ingeniería de Sistemas
 
-**Repositorio**: [fup-asistencias/gestion-asistencias-docente](https://github.com/fup-asistencias/gestion-asistencias-docente)  
-**Issues**: [Reportar un Bug o Solicitar una Feature](https://github.com/fup-asistencias/gestion-asistencias-docente/issues)
+**Repositorio**: [Manuekle/gestion-asistencias-docente](https://github.com/Manuekle/gestion-asistencias-docente)  
+**Issues**: [Reportar un Bug o Solicitar una Feature](https://github.com/Manuekle/gestion-asistencias-docente/issues)
 
 ---
 
