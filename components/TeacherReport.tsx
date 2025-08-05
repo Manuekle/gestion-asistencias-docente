@@ -17,7 +17,6 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, Tooltip, XAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart';
-import { LoadingPage } from './ui/loading';
 
 interface Teacher {
   id: string;
@@ -554,7 +553,7 @@ export function TeacherReport() {
               ))}
             </div>
           ) : (
-            <div className="space-y-1 px-3">
+            <div className="space-y-1 px-3 sm:pb-2 pb-4">
               {paginatedTeachers.map(teacher => (
                 <Button
                   key={teacher.id}
@@ -581,7 +580,7 @@ export function TeacherReport() {
               ))}
             </div>
           )}
-          {loadingData && <LoadingPage />}
+          {/* {loadingData && <LoadingPage />} */}
         </CardContent>
         {totalPages > 1 && (
           <CardFooter className="p-2 border-t">
@@ -770,7 +769,7 @@ export function TeacherReport() {
             )}
           </div>
         ) : (
-          <Card className="flex items-center justify-center h-[calc(100vh-10rem)] border p-0 m-0">
+          <Card className="flex items-center justify-center h-56 sm:h-[calc(100vh-10rem)] border p-0 m-0">
             <div className="p-8">
               <div className="text-center">
                 <h3 className="text-sm font-medium">Selecciona un docente</h3>

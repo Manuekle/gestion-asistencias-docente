@@ -2,6 +2,7 @@
 
 import { CreateUserModal } from '@/components/modals/create-user-modal';
 import { EditUserRoleModal } from '@/components/modals/edit-user-role-modal';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -255,11 +256,11 @@ export default function GestionUsuariosPage() {
           </CardDescription>
         </CardHeader>
         <div className="flex gap-2">
-          <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+          <Button variant="default" onClick={() => setIsCreateModalOpen(true)} className="gap-2">
             <span>Nuevo Usuario</span>
           </Button>
           <Link href="/dashboard/admin/usuarios/cargar-usuarios">
-            <Button className="gap-2">
+            <Button variant="outline" className="gap-2">
               <span>Cargar Usuarios</span>
             </Button>
           </Link>
@@ -292,8 +293,8 @@ export default function GestionUsuariosPage() {
         </CardHeader>
 
         <CardContent className="p-0">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 pb-4 border-b">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 pb-5 border-b">
+            <div className="flex items-center gap-2 p-0">
               <p className="text-sm text-muted-foreground whitespace-nowrap">Mostrar</p>
               <Select
                 value={itemsPerPage.toString()}
@@ -319,7 +320,7 @@ export default function GestionUsuariosPage() {
               </Select>
               <p className="text-sm text-muted-foreground whitespace-nowrap">por página</p>
             </div>
-            <div className="text-sm text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-md">
+            <div className="text-sm text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-md hidden sm:block">
               Página <span className="font-normal">{currentPage}</span> de{' '}
               <span className="font-normal">{totalPages || 1}</span>
             </div>
@@ -333,7 +334,7 @@ export default function GestionUsuariosPage() {
                     <div className="flex items-center">Usuario</div>
                   </TableHead>
                   <TableHead className="px-4 py-3 font-normal text-muted-foreground">
-                    <div className="flex items-center">Email</div>
+                    <div className="flex items-center">Correo</div>
                   </TableHead>
                   <TableHead className="px-4 py-3 font-normal text-muted-foreground">
                     <div className="flex items-center">Rol</div>
@@ -408,7 +409,7 @@ export default function GestionUsuariosPage() {
                               {user.name || 'Usuario sin nombre'}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              ID: {user.id.split('-')[0]}...
+                              ID: {user.document ? `${user.document.split('-')[0]}...` : 'N/A'}
                             </div>
                           </div>
                         </div>
@@ -424,17 +425,27 @@ export default function GestionUsuariosPage() {
                         </div>
                       </TableCell>
                       <TableCell className="px-4 py-3">
-                        <span>{user.role.toLowerCase()}</span>
+                        <Badge variant="outline">{user.role.toLowerCase()}</Badge>
                       </TableCell>
                       <TableCell className="px-4 py-3">
                         <div className="flex justify-center lowercase">
                           {user.isActive ? (
                             <>
-                              <span>Activo</span>
+                              <Badge variant="outline">
+                                <span className="flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                  Activo
+                                </span>
+                              </Badge>
                             </>
                           ) : (
                             <>
-                              <span>Inactivo</span>
+                              <Badge variant="outline">
+                                <span className="flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                                  Inactivo
+                                </span>
+                              </Badge>
                             </>
                           )}
                         </div>

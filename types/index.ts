@@ -9,6 +9,7 @@ export type User = {
   role: Role;
   isActive: boolean;
   signatureUrl?: string | null;
+  document?: string | null;
 };
 
 // API Response Types
