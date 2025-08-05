@@ -1,5 +1,5 @@
 {
-  "name": "gestion-asistencias-docente",
+  "name": "edutrack",
   "version": "1.0.0",
   "description": "Software para la gestión automatizada de asistencias estudiantiles mediante códigos QR",
   "scripts": {
