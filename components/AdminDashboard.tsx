@@ -226,17 +226,8 @@ const AdminDashboardComponent = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" style={gridStyle} />
-                <XAxis
-                  dataKey="month"
-                  tick={axisStyle}
-                  tickLine={false}
-                  axisLine={{ stroke: 'hsl(var(--border))' }}
-                />
-                <YAxis
-                  tick={axisStyle}
-                  tickLine={false}
-                  axisLine={{ stroke: 'hsl(var(--border))' }}
-                />
+                <XAxis dataKey="month" tick={axisStyle} tickLine={false} />
+                <YAxis tick={axisStyle} tickLine={false} />
                 <Tooltip content={<ChartTooltipContent />} />
                 <Area
                   type="monotone"
@@ -277,17 +268,8 @@ const AdminDashboardComponent = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} style={gridStyle} />
-                <XAxis
-                  dataKey="label"
-                  tick={axisStyle}
-                  tickLine={false}
-                  axisLine={{ stroke: 'hsl(var(--border))' }}
-                />
-                <YAxis
-                  tick={axisStyle}
-                  tickLine={false}
-                  axisLine={{ stroke: 'hsl(var(--border))' }}
-                />
+                <XAxis dataKey="label" tick={axisStyle} tickLine={false} />
+                <YAxis tick={axisStyle} tickLine={false} />
                 <Tooltip content={<ChartTooltipContent />} />
                 <Bar dataKey="value" fill="url(#barGradient)" radius={[4, 4, 0, 0]}>
                   {data.charts.attendanceDistribution.map((entry, index) => (
