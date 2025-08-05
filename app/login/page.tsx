@@ -15,11 +15,9 @@ import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -36,12 +34,15 @@ export default function LoginPage() {
         redirect: false,
         email,
         password,
+        callbackUrl: '/dashboard',
       });
 
       if (result?.error) {
         setError('Credenciales inválidas. Por favor, inténtalo de nuevo.');
       } else {
-        router.push('/dashboard'); // Redirigir a un dashboard después del login
+        // Usar la URL de retorno si existe, de lo contrario ir a dashboard
+        const returnUrl = new URL(window.location.href).searchParams.get('callbackUrl');
+        window.location.href = returnUrl || '/dashboard';
       }
     } catch {
       setError('Ha ocurrido un error inesperado.');

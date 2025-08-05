@@ -12,7 +12,6 @@ if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
 }
 const useSecureCookies = baseUrl.startsWith('https://') || isProduction;
 const cookiePrefix = useSecureCookies ? '__Secure-' : '';
-const hostName = new URL(baseUrl).hostname;
 
 // URL base ya configurada arriba
 console.log('Configurando NextAuth con URL base:', baseUrl);
