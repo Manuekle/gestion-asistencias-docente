@@ -303,7 +303,6 @@ function SubjectDetailsPanel({
                     cy="50%"
                     outerRadius={100}
                     fill="#8884d8"
-                    paddingAngle={5}
                     label
                   >
                     {pieData.map((entry, index) => (
@@ -318,7 +317,7 @@ function SubjectDetailsPanel({
                   </Pie>
                 </PieChart>
               </ChartContainer>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-8">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-8 [&>*:nth-child(3)]:col-span-2 md:[&>*:nth-child(3)]:col-span-1">
                 {pieData.map((item, index) => (
                   <div
                     key={index}

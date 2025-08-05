@@ -165,7 +165,6 @@ const AdminDashboardComponent = () => {
                   cy="50%"
                   outerRadius={100}
                   fill="#8884d8"
-                  paddingAngle={5}
                   label
                 >
                   {data.charts.roleDistribution.map((entry, index) => (
