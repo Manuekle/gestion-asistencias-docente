@@ -154,7 +154,7 @@ Toda la documentación detallada del proyecto, incluyendo la visión, arquitectu
 1. **Clonar el repositorio:**
 
     ```bash
-    git clone https://github.com/Manuekle/gestion-asistencias-docente.git
+    git clone https://github.com/Manuekle/edutrack.git
     cd gestion-asistencias-docente
     ```
 
@@ -206,7 +206,7 @@ Este es un proyecto académico, pero las sugerencias son bienvenidas.
 **Institución**: Fundación Universitaria de Popayán (FUP)  
 **Proyecto**: Trabajo de Grado - Ingeniería de Sistemas
 
-**Repositorio**: [Manuekle/gestion-asistencias-docente](https://github.com/Manuekle/gestion-asistencias-docente)  
+**Repositorio**: [Manuekle/gestion-asistencias-docente](https://github.com/Manuekle/edutrack)  
 **Issues**: [Reportar un Bug o Solicitar una Feature](https://github.com/Manuekle/gestion-asistencias-docente/issues)
 
 ---

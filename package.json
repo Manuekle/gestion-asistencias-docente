@@ -31,15 +31,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Manuekle/gestion-asistencias-docente"
+    "url": "git+https://github.com/Manuekle/edutrack"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Manuekle/gestion-asistencias-docente/issues"
+    "url": "https://github.com/Manuekle/edutrack/issues"
   },
-  "homepage": "https://github.com/Manuekle/gestion-asistencias-docente#readme",
+  "homepage": "https://github.com/Manuekle/edutrack#readme",
   "resolutions": {
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1"
