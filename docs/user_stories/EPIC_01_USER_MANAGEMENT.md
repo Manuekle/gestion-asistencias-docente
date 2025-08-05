@@ -14,13 +14,10 @@ Sistema completo para la gestión de usuarios, autenticación segura y administr
 
 **Criterios de Aceptación:**
 
-- [ ] Formulario de registro individual con validación en tiempo real
 - [ ] Carga masiva mediante archivo CSV/Excel con plantilla descargable
 - [ ] Validación de datos (formato, duplicados, integridad) antes del procesamiento
 - [ ] Generación automática de credenciales temporales seguras
 - [ ] Notificación por correo electrónico con instrucciones de primer acceso
-- [ ] Reporte detallado de registros exitosos y fallidos
-- [ ] Sistema de reintentos para registros fallidos
 
 **Requisitos Técnicos:**
 
@@ -44,12 +41,10 @@ Sistema completo para la gestión de usuarios, autenticación segura y administr
 **Criterios de Aceptación:**
 
 - [ ] Formulario de inicio de sesión con validación
-- [ ] Integración con proveedores de identidad (Google, Microsoft)
 - [ ] Autenticación en dos pasos (2FA) opcional
 - [ ] Mecanismo de recuperación de cuenta seguro
 - [ ] Registro de actividad sospechosa
 - [ ] Bloqueo temporal tras 5 intentos fallidos
-- [ ] Notificaciones de inicio de sesión exitoso/fallido
 
 **Requisitos de Seguridad:**
 
@@ -74,11 +69,8 @@ Sistema completo para la gestión de usuarios, autenticación segura y administr
 
 - [ ] Edición de información personal (nombre, correo, teléfono)
 - [ ] Cambio de contraseña con requisitos de seguridad
-- [ ] Subida de foto de perfil con validación
-- [ ] Configuración de preferencias de notificación
-- [ ] Historial de cambios en la cuenta
+- [ ] Firma digital del usuario
 - [ ] Validación de correo electrónico
-- [ ] Exportación de datos personales
 
 **Requisitos de UX:**
 

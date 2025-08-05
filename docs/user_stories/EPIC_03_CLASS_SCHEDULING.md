@@ -66,36 +66,6 @@ Sistema completo para la planificación, programación y control de clases, perm
 
 ### HU-009: Visualización de Cronograma Académico
 
-... (contenido existente)
-
----
-
-### HU-032: Integración con Calendario Outlook
-
-**Como** docente y estudiante
-**Quiero** sincronizar los eventos de clases con mi calendario de Outlook
-**Para** recibir recordatorios y gestionar mejor mi tiempo
-
-**Criterios de Aceptación:**
-- [ ] Autenticación segura con cuentas Microsoft 365
-- [ ] Creación/actualización automática de eventos al programar o modificar clases
-- [ ] Sincronización de cancelaciones y cambios de horario
-- [ ] Opción de activar/desactivar sincronización por usuario
-
-**Requisitos Técnicos:**
-- Uso de Microsoft Graph API
-- Manejo de tokens OAuth y refresco
-- Logs de errores de sincronización
-
-**Prioridad:** Media  
-**Story Points:** 8  
-**Sprint:** 5  
-**Dependencias:** HU-007
-
-**Como** usuario del sistema  
-**Quiero** consultar mi horario de clases  
-**Para** organizar mis actividades académicas
-
 **Criterios de Aceptación:**
 
 - [ ] Vista semanal/mensual de clases programadas

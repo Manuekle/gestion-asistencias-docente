@@ -77,12 +77,14 @@ Sistema integral para el registro, seguimiento y gestión de asistencias, ofreci
 **Para** llevar un control y justificar ausencias ante auditorías
 
 **Criterios de Aceptación:**
+
 - [ ] Formulario para detallar motivo de cancelación/ausencia
 - [ ] Adjuntar evidencias (documentos, capturas)
 - [ ] Flujo de aprobación/rechazo de observación
 - [ ] Reporte exportable de observaciones
 
 **Requisitos Técnicos:**
+
 - Estado de observación: pendiente, aprobado, rechazado
 - Notificaciones automáticas a los interesados
 

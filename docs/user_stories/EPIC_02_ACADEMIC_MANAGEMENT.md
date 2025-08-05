@@ -6,21 +6,18 @@ Sistema integral para la gestión de asignaturas, docentes y estudiantes, facili
 
 ## Historias de Usuario
 
-### HU-004: Creación y Configuración de Asignaturas
+### HU-004: Carga Masiva de Asignaturas
 
 **Como** administrador académico  
-**Quiero** crear y configurar asignaturas  
+**Quiero** cargar asignaturas de forma masiva  
 **Para** organizar la oferta académica de la institución
 
 **Criterios de Aceptación:**
 
-- [ ] Formulario completo con validación en tiempo real
-- [ ] Campos obligatorios: código, nombre, créditos, horas teóricas/prácticas
+- [ ] Carga masiva mediante archivo CSV/Excel con plantilla descargable
+- [ ] Validación de datos (formato, duplicados, integridad) antes del procesamiento
+- [ ] Campos obligatorios: código, nombre, créditos, horas teóricas/prácticas, temas
 - [ ] Asignación de programas académicos y semestres
-- [ ] Configuración de requisitos y correquisitos
-- [ ] Definición de competencias y resultados de aprendizaje
-- [ ] Plantillas predefinidas para diferentes tipos de asignatura
-- [ ] Vista previa de la ficha técnica
 
 **Requisitos Técnicos:**
 
@@ -47,15 +44,12 @@ Sistema integral para la gestión de asignaturas, docentes y estudiantes, facili
 - [ ] Calendario de clases y eventos
 - [ ] Indicadores clave (asistencia, calificaciones, pendientes)
 - [ ] Accesos rápidos a funciones frecuentes
-- [ ] Notificaciones importantes
-- [ ] Personalización de widgets
 - [ ] Vista móvil optimizada
 
 **Requisitos de UX:**
 
 - Carga rápida de datos
 - Interfaz intuitiva
-- Personalización por usuario
 
 **Prioridad:** Alta  
 **Story Points:** 13  

@@ -2,7 +2,7 @@
 
 ## 📈 Control de Avances
 
-### Sprint Actual: 6
+### Sprint Actual: 8 (Agosto 2025)
 
 | Historia                                       | Estado        | Avance | Completado | Fecha      |
 | ---------------------------------------------- | ------------- | ------ | ---------- | ---------- |
@@ -26,63 +26,94 @@
 | HU-013: Registro Automático via QR             | ✅ Completado | 100%   | Sprint 5   | 2025-06-11 |
 | HU-014: Dashboard de Asistencia en Tiempo Real | ✅ Completado | 100%   | Sprint 5   | 2025-06-11 |
 | HU-015: Gestión Manual de Asistencias          | ✅ Completado | 100%   | Sprint 5   | 2025-06-11 |
+| **Sprint 6**                                   |               |        |            |            |
+| HU-016: Reportes de Asistencia por Estudiante  | ✅ Completado | 100%   | Sprint 6   | 2025-07-05 |
+| HU-017: Estadísticas de Asistencia por Asignatura | ✅ Completado | 100% | Sprint 6   | 2025-07-07 |
+| HU-018: Exportación de Datos                   | ✅ Completado | 100%   | Sprint 6   | 2025-07-09 |
+| **Sprint 7**                                   |               |        |            |            |
+| HU-019: Notificaciones Automáticas             | ✅ Completado | 100%   | Sprint 7   | 2025-07-25 |
+| HU-027: Dashboard Estadístico Admin/Docente    | ✅ Completado | 100%   | Sprint 7   | 2025-07-28 |
+| HU-031: Sistema de Observación de Clases Canceladas | ✅ Completado | 100% | Sprint 7   | 2025-07-30 |
+| **Sprint 8 (En Progreso)**                     |               |        |            |            |
+| HU-021: Gestión de Usuarios y Permisos         | 🟡 En Progreso | 60%   | Sprint 8   | 2025-08-05 |
+| HU-022: Panel de Administración                | ✅ Completado | 100%  | Sprint 8   | 2025-08-05 |
 
 ### Próximos Sprints
 
-- **Sprint 6 (Próximo)**:
-  - HU-016: Reportes de Asistencia por Estudiante (0%)
-  - HU-017: Estadísticas de Asistencia por Asignatura (0%)
-  - HU-018: Exportación de Datos (0%)
-- **Sprint 7**:
-  - HU-019: Notificaciones Automáticas (0%)
-- **Sprint 8**:
-  - HU-021: Configuración del Sistema (0%)
-  - HU-022: UI Panel de Administración (0%)
+- **Sprint 9 (Planificado)**:
+  - Revisión de Código y Documentación
+  - Optimización de Rendimiento
+  - Pruebas de Carga y Estrés
+  - Preparación para Lanzamiento
+
+- **Sprint 10 (Lanzamiento)**:
+  - Despliegue en Producción
+  - Monitoreo Post-Implementación
+  - Capacitación de Usuarios Finales
+  - Retrospectiva del Proyecto
 
 ## 📝 Planificación
 
 ### Matriz de Trazabilidad
 
-| Epic | Historia | Prioridad | Sprint | Dependencies   |
-| ---- | -------- | --------- | ------ | -------------- |
-| 1    | HU-001   | Alta      | 1      | -              |
-| 1    | HU-002   | Alta      | 1      | HU-001         |
-| 1    | HU-003   | Media     | 2      | HU-002         |
-| 2    | HU-004   | Alta      | 2      | HU-002         |
-| 2    | HU-005   | Alta      | 2      | HU-004         |
-| 2    | HU-006   | Alta      | 3      | HU-004, HU-005 |
-| 3    | HU-007   | Alta      | 3      | HU-004         |
-| 3    | HU-008   | Alta      | 3      | HU-007         |
-| 3    | HU-009   | Media     | 4      | HU-007, HU-008 |
-| 4    | HU-010   | Alta      | 4      | HU-008         |
-| 4    | HU-011   | Alta      | 4      | HU-010         |
-| 4    | HU-012   | Media     | 4      | HU-010, HU-011 |
-| 5    | HU-013   | Alta      | 5      | HU-011         |
-| 5    | HU-014   | Alta      | 5      | HU-013         |
-| 5    | HU-015   | Media     | 5      | HU-013, HU-014 |
-| 6    | HU-016   | Alta      | 6      | HU-014, HU-015 |
-| 6    | HU-017   | Media     | 6      | HU-013         |
-| 6    | HU-018   | Media     | 6      | HU-016         |
-| 7    | HU-019   | Media     | 7      | HU-006         |
-| 7    | HU-021   | Media     | 7      | HU-019         |
-| 7    | HU-022   | Media     | 7      | HU-019         |
-| 8    | HU-023   | Alta      | 8      | HU-001, HU-002 |
-| 8    | HU-024   | Media     | 8      | HU-023         |
+| Epic | Historia | Prioridad | Sprint | Dependencias   | Estado        |
+| ---- | -------- | --------- | ------ | -------------- | ------------- |
+| 1    | HU-001   | Alta      | 1      | -              | ✅ Completado |
+| 1    | HU-002   | Alta      | 1      | HU-001         | ✅ Completado |
+| 1    | HU-003   | Media     | 2      | HU-002         | ✅ Completado |
+| 2    | HU-004   | Alta      | 2      | HU-002         | ✅ Completado |
+| 2    | HU-005   | Alta      | 2      | HU-004         | ✅ Completado |
+| 2    | HU-006   | Alta      | 3      | HU-004, HU-005 | ✅ Completado |
+| 3    | HU-007   | Alta      | 3      | HU-004         | ✅ Completado |
+| 3    | HU-008   | Alta      | 3      | HU-007         | ✅ Completado |
+| 3    | HU-009   | Media     | 4      | HU-007, HU-008 | ✅ Completado |
+| 4    | HU-010   | Alta      | 4      | HU-008         | ✅ Completado |
+| 4    | HU-011   | Alta      | 4      | HU-010         | ✅ Completado |
+| 4    | HU-012   | Media     | 4      | HU-010, HU-011 | ✅ Completado |
+| 5    | HU-013   | Alta      | 5      | HU-011         | ✅ Completado |
+| 5    | HU-014   | Alta      | 5      | HU-013         | ✅ Completado |
+| 5    | HU-015   | Media     | 5      | HU-013, HU-014 | ✅ Completado |
+| 6    | HU-016   | Alta      | 6      | HU-014, HU-015 | ✅ Completado |
+| 6    | HU-017   | Media     | 6      | HU-013         | ✅ Completado |
+| 6    | HU-018   | Media     | 6      | HU-016         | ✅ Completado |
+| 6    | HU-027   | Alta      | 7      | HU-016, HU-018 | ✅ Completado |
+| 5    | HU-031   | Alta      | 7      | HU-013, HU-014 | ✅ Completado |
+| 7    | HU-019   | Media     | 7      | HU-006         | ✅ Completado |
+| 8    | HU-021   | Alta      | 8      | HU-001, HU-002 | 🟡 En Progreso (60%) |
+| 8    | HU-022   | Media     | 8      | HU-021         | ✅ Completado |
 
 ### Estimación de Esfuerzo
 
-| Sprint | Story Points | Duración  | Historias                      |
-| ------ | ------------ | --------- | ------------------------------ |
-| 1      | 21           | 2 semanas | HU-001, HU-002                 |
-| 2      | 26           | 2 semanas | HU-003, HU-004, HU-005         |
-| 3      | 34           | 3 semanas | HU-006, HU-007, HU-008         |
-| 4      | 29           | 3 semanas | HU-009, HU-010, HU-011, HU-012 |
-| 5      | 29           | 3 semanas | HU-013, HU-014, HU-015         |
-| 6      | 34           | 3 semanas | HU-016, HU-017, HU-018         |
-| 7      | 21           | 2 semanas | HU-019, HU-020                 |
-| 8      | 26           | 2 semanas | HU-021, HU-022                 |
+| Historia | Story Points | Estado        | Completado |
+| -------- | ------------ | ------------- | ---------- |
+| HU-001   | 5            | ✅ Completado | 100%       |
+| HU-002   | 8            | ✅ Completado | 100%       |
+| HU-003   | 5            | ✅ Completado | 100%       |
+| HU-004   | 8            | ✅ Completado | 100%       |
+| HU-005   | 5            | ✅ Completado | 100%       |
+| HU-006   | 8            | ✅ Completado | 100%       |
+| HU-007   | 8            | ✅ Completado | 100%       |
+| HU-008   | 5            | ✅ Completado | 100%       |
+| HU-009   | 8            | ✅ Completado | 100%       |
+| HU-010   | 8            | ✅ Completado | 100%       |
+| HU-011   | 8            | ✅ Completado | 100%       |
+| HU-012   | 5            | ✅ Completado | 100%       |
+| HU-013   | 8            | ✅ Completado | 100%       |
+| HU-014   | 8            | ✅ Completado | 100%       |
+| HU-015   | 5            | ✅ Completado | 100%       |
+| HU-016   | 8            | ✅ Completado | 100%       |
+| HU-017   | 5            | ✅ Completado | 100%       |
+| HU-018   | 5            | ✅ Completado | 100%       |
+| HU-019   | 8            | ✅ Completado | 100%       |
+| HU-021   | 8            | 🟡 En Progreso | 60%        |
+| HU-022   | 5            | ✅ Completado | 100%       |
+| HU-027   | 5            | ✅ Completado | 100%       |
+| HU-031   | 8            | ✅ Completado | 100%       |
 
-**Total Estimado**: 220 Story Points (~20 semanas)
+**Total Estimado**: 179 Story Points  
+**Completado**: 153 SP (85.5%)  
+**En Progreso**: 15.5 SP (8.7%)  
+**Pendiente**: 10.5 SP (5.8%) (~20 semanas)
 
 ## 🎯 Requerimientos No Funcionales
 
@@ -102,7 +133,6 @@
 
 - **Responsive Design**: Soporte móvil completo
 - **Accesibilidad**: Cumplimiento WCAG 2.1 AA
-- **Internacionalización**: Soporte español/inglés
 
 ### 🔧 Compatibilidad
 

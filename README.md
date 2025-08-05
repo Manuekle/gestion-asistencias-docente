@@ -65,44 +65,49 @@ Digitalizar y automatizar el proceso de registro de asistencia en la FUP, elimin
 
 Toda la documentación detallada del proyecto, incluyendo la visión, arquitectura, historias de usuario y especificaciones de la API, se encuentra centralizada en la carpeta `/docs`.
 
-### **[➡️ Haz clic aquí para ver la Documentación Completa](./docs/README.md)**
+### **[➡️ Documentación Completa](./docs/README.md)**
 
 ---
 
-## 📋 Estado del Desarrollo
+## 📋 Estado del Desarrollo - ACTUALIZADO
 
-### 🏁 **Fase 1: Análisis y Diseño** (100% ✅)
+### 📊 Progreso del Proyecto  
+  
+| Fase                       | Progreso | Estado         |  
+| -------------------------- | -------- | -------------- |  
+| **1. Planeación**          | 100%     | ✅ Completado  |  
+| **2. Desarrollo Backend**  | 95%      | ✅ Casi completo |  
+| **3. Desarrollo Frontend** | 90%      | ✅ Casi completo |  
+| **4. Testing**             | 45%      | 🚧 En progreso |  
+| **5. Despliegue**          | 70%      | 🚧 En progreso |  
+  
+### 🎯 Funcionalidades Completadas  
+  
+#### ✅ Panel de Administración (100%)  
 
-### 🎯 Funcionalidades Principales
+- Gestión completa de usuarios (CRUD)  
+- Carga masiva de datos  
+- Dashboard con analíticas  
+- Reportes administrativos  
+  
+#### ✅ Panel Docente (95%)  
 
-#### 👨‍💻 Panel de Administración
+- Generación de códigos QR  
+- Control de asistencia manual  
+- Generación de reportes PDF  
+- Dashboard con estadísticas  
+  
+#### ✅ Panel Estudiante (90%)  
 
-- Gestión de usuarios (estudiantes, docentes, administradores)
-- Configuración de asignaturas y programas académicos
-- Reportes y analíticas avanzadas
+- Escaneo de códigos QR  
+- Historial de asistencias  
+- Visualización de estadísticas personales  
+  
+#### 🚧 Funcionalidades en Desarrollo  
 
-#### 👨‍🏫 Panel Docente
-
-- Control de asistencia mediante códigos QR
-- Gestión de clases y horarios
-- Generación de reportes de asistencia
-- Dashboard con estadísticas en tiempo real
-
-#### 👨‍🎓 Panel Estudiante
-
-- Registro de asistencia mediante escaneo QR
-- Consulta de historial de asistencias
-- Visualización de estadísticas personales
-
-### 📊 Estado del Proyecto
-
-| Fase                       | Progreso | Estado         |
-| -------------------------- | -------- | -------------- |
-| **1. Planeación**          | 100%     | ✅ Completado  |
-| **2. Desarrollo Backend**  | 85%      | 🚧 En progreso |
-| **3. Desarrollo Frontend** | 75%      | 🚧 En progreso |
-| **4. Testing**             | 30%      | 🔄 En progreso |
-| **5. Despliegue**          | 0%       | ⏳ Pendiente   |
+- Notificaciones por email y WhatsApp  
+- Integración con calendario Outlook  
+- Testing automatizado completo  
 
 ---
 
@@ -112,7 +117,7 @@ Toda la documentación detallada del proyecto, incluyendo la visión, arquitectu
 | ----------------- | ----------------------------------------------------- |
 | **Frontend**      | Next.js 14, React, TypeScript, Tailwind CSS           |
 | **UI Components** | shadcn/ui                                             |
-| **Backend**       | Next.js API Routes, Node.js                           |
+| **Backend**       | Next.js API Routes                                    |
 | **Base de Datos** | MongoDB Atlas                                         |
 | **ORM**           | Prisma ORM (importado como 'db' desde '@/lib/prisma') |
 | **Autenticación** | NextAuth.js (JWT)                                     |
@@ -141,51 +146,49 @@ Toda la documentación detallada del proyecto, incluyendo la visión, arquitectu
 
 ---
 
-## 🚦 Inicio Rápido
+## 🚦 Inicio Rápido  
+  
+### **Prerrequisitos**  
+  
+- Node.js (v18+)  
+- npm (v9+)  
+- Una cuenta de MongoDB Atlas  
+  
+### **Instalación**  
+  
+1. **Clonar el repositorio:**  
 
-### **Prerrequisitos**
+    ```bash  
+    git clone https://github.com/Manuekle/edutrack.git  
+    cd edutrack  
+    ```  
+  
+2. **Instalar dependencias:**  
 
-- Node.js (v18+)
-- npm (v9+)
-- Una cuenta de MongoDB Atlas
+    ```bash  
+    npm install  
+    ```  
+  
+3. **Configurar variables de entorno:**  
 
-### **Instalación**
+    ```bash  
+    cp .env.example .env.local  
+    ```  
+  
+4. **Sincronizar la base de datos:**  
 
-1. **Clonar el repositorio:**
+    ```bash  
+    npx prisma db push  
+    npx prisma db seed  
+    ```  
+  
+5. **Ejecutar el proyecto:**  
 
-    ```bash
-    git clone https://github.com/Manuekle/edutrack.git
-    cd edutrack
-    ```
-
-2. **Instalar dependencias:**
-
-    ```bash
-    npm install
-    ```
-
-3. **Configurar variables de entorno:**
-    Copia `.env.example` a `.env.local` y rellena las variables.
-
-    ```bash
-    cp .env.example .env.local
-    ```
-
-4. **Sincronizar la base de datos:**
-
-    ```bash
-    npx db (cliente Prisma centralizado) db push
-    ```
-
-5. **Ejecutar el proyecto:**
-
-    ```bash
-    npm run dev
-    ```
-
-    La aplicación estará disponible en `http://localhost:3000` por defecto, o en la URL configurada en `NEXTAUTH_URL`.
-
----
+    ```bash  
+    npm run dev  
+    ```  
+  
+---  
 
 ## 🤝 Contribución
 
@@ -208,6 +211,7 @@ Este es un proyecto académico, pero las sugerencias son bienvenidas.
 
 **Repositorio**: [Manuekle/edutrack](https://github.com/Manuekle/edutrack)  
 **Issues**: [Reportar un Bug o Solicitar una Feature](https://github.com/Manuekle/edutrack/issues)
+**Documentación**: [Documentación del Proyecto](https://deepwiki.com/Manuekle/edutrack/)
 
 ---
 

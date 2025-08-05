@@ -15,12 +15,8 @@ Sistema completo de generación de reportes y análisis de datos que permite a d
 **Criterios de Aceptación:**
 
 - [ ] Selección de parámetros (rango de fechas, asignatura, grupo)
-- [ ] Visualización de datos en tablas y gráficos
 - [ ] Filtros avanzados por estado de asistencia
-- [ ] Exportación en múltiples formatos (PDF, Excel, CSV)
-- [ ] Comparativas entre períodos académicos
-- [ ] Identificación de patrones de asistencia
-- [ ] Alertas de estudiantes en riesgo
+- [ ] Exportación en PDF
 
 **Requisitos Técnicos:**
 
@@ -43,10 +39,8 @@ Sistema completo de generación de reportes y análisis de datos que permite a d
 
 **Criterios de Aceptación:**
 
-- [ ] Plantillas personalizables de bitácoras
 - [ ] Registro detallado por sesión de clase
 - [ ] Incrustación de evidencias (fotos, documentos)
-- [ ] Firma digital de documentos
 - [ ] Aprobación de coordinación académica
 - [ ] Histórico de versiones
 - [ ] Exportación en formatos institucionales
@@ -75,15 +69,11 @@ Sistema completo de generación de reportes y análisis de datos que permite a d
 - [ ] Porcentaje de asistencia por asignatura
 - [ ] Gráficos de tendencia temporal
 - [ ] Comparación con el promedio del grupo
-- [ ] Alertas de riesgo académico
 - [ ] Historial detallado por clase
-- [ ] Proyecciones de asistencia final
-- [ ] Consejos para mejorar la asistencia
 
 **Requisitos Técnicos:**
 
 - Cálculos en tiempo real
-- Notificaciones push para alertas
 - Modo fuera de línea con datos recientes
 
 **Prioridad:** Media  
@@ -93,54 +83,31 @@ Sistema completo de generación de reportes y análisis de datos que permite a d
 
 ---
 
-### HU-019: Dashboard Institucional
+### HU-019: Dashboard Institucional y de Desempeño
 
-**Como** administrador  
-**Quiero** analizar métricas globales  
-**Para** tomar decisiones basadas en datos
+**Como** administrador o docente  
+**Quiero** analizar métricas globales y de desempeño  
+**Para** tomar decisiones basadas en datos e identificar áreas críticas
 
 **Criterios de Aceptación:**
 
-- [ ] Panel con KPIs clave de asistencia
-- [ ] Filtros por período, facultad, programa
+- [ ] Filtros por período, facultad, programa y asignatura
 - [ ] Identificación de tendencias y anomalías
-- [ ] Comparativas históricas
-- [ ] Exportación de datos para análisis avanzado
-- [ ] Alertas tempranas de problemas
-- [ ] Reportes programados por correo
-
-**Requisitos de Seguridad:**
-
-- Control de acceso granular
-- Anonimización de datos sensibles
-- Registro de auditoría de consultas
-
-**Prioridad:** Media  
-**Story Points:** 13  
-**Sprint:** 6  
-**Dependencias:** HU-016, HU-017
-
----
-
-### HU-027: Dashboard Estadístico Administrador/Docente
-
-**Como** administrador y docente
-**Quiero** visualizar métricas de cumplimiento y desempeño en un dashboard
-**Para** identificar rápidamente el avance y las áreas críticas
-
-**Criterios de Aceptación:**
-- [ ] Gráfica de barras que muestre docentes al día vs. en mora
-- [ ] Porcentaje de cumplimiento de bitácoras por docente
+- [ ] Exportación de datos para análisis avanzado (PDF, Excel)
 - [ ] Conteo de temas impartidos en un rango de fechas
 - [ ] Indicadores porcentuales globales para administradores/directores
-- [ ] Sección de reportes descargables con estadísticas agregadas
+- [ ] Vista consolidada de cumplimiento de objetivos
+- [ ] Comparativas históricas y entre grupos
 
 **Requisitos Técnicos:**
+
 - Fuentes de datos en tiempo real mediante API
-- Actualización automática cada 5 minutos sin recargar página
-- Exportación a PDF y Excel
+- Control de acceso basado en roles
+- Anonimización de datos sensibles
+- Registro de auditoría de consultas
+- Caché para consultas frecuentes
 
 **Prioridad:** Alta  
-**Story Points:** 8  
+**Story Points:** 13  
 **Sprint:** 6  
-**Dependencias:** HU-016, HU-018
+**Dependencias:** HU-016, HU-017, HU-018
