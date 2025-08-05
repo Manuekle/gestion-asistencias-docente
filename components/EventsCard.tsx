@@ -225,7 +225,9 @@ export function EventsCard({ subjectId }: EventsCardProps) {
             </div>
             <Dialog open={isCreateEventDialogOpen} onOpenChange={setIsCreateEventDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={resetEventForm}>Crear Evento</Button>
+                <Button variant="outline" onClick={resetEventForm}>
+                  Crear Evento
+                </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>

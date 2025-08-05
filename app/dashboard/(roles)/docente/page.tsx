@@ -327,8 +327,12 @@ export default function DocenteDashboard() {
               </div>
             ) : (
               <div className="text-center py-16">
-                <p className="text-sm text-black font-medium">No hay clases programadas</p>
-                <p className="text-xs text-black/70 mt-1">Las próximas clases aparecerán aquí</p>
+                <p className="text-xs text-muted-foreground font-medium">
+                  No hay clases programadas
+                </p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  Las próximas clases aparecerán aquí
+                </p>
               </div>
             )}
           </CardContent>

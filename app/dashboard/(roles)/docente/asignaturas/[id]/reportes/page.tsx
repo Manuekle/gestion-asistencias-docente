@@ -34,40 +34,23 @@ interface Report {
 const ReportStatusBadge = ({ status }: { status: Report['status'] }) => {
   const statusConfig = {
     PENDIENTE: {
-      variant: 'secondary',
       text: 'Pendiente',
     },
     EN_PROCESO: {
-      variant: 'default',
       text: 'Procesando',
     },
     COMPLETADO: {
-      variant: 'success',
       text: 'Completado',
     },
     FALLIDO: {
-      variant: 'destructive',
       text: 'Fallido',
     },
   };
 
-  const { variant, text } = statusConfig[status] || statusConfig.PENDIENTE;
-
-  // Define a type that matches the expected variant values for the Badge component
-  type BadgeVariant =
-    | 'default'
-    | 'secondary'
-    | 'destructive'
-    | 'outline'
-    | 'success'
-    | 'warning'
-    | 'info';
+  const { text } = statusConfig[status] || statusConfig.PENDIENTE;
 
   return (
-    <Badge
-      variant={variant as BadgeVariant}
-      className="flex items-center gap-1.5 whitespace-nowrap w-1/2"
-    >
+    <Badge variant="outline">
       <span className="text-xs font-normal">{text}</span>
     </Badge>
   );
@@ -225,6 +208,7 @@ const SubjectReportPage = () => {
         </CardHeader>
         <Button
           onClick={handleGenerateReport}
+          variant="outline"
           disabled={isGenerating || !classes.every(c => c.status === 'REALIZADA')}
           title={
             !classes.every(c => c.status === 'REALIZADA')
@@ -242,9 +226,6 @@ const SubjectReportPage = () => {
             <TableRow className="bg-muted/60">
               <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
                 Fecha de Solicitud
-              </TableHead>
-              <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
-                Formato
               </TableHead>
               <TableHead className="text-xs tracking-tight font-normal px-4 py-2">Estado</TableHead>
               <TableHead className="text-right text-xs tracking-tight font-normal px-4 py-2">
@@ -271,11 +252,7 @@ const SubjectReportPage = () => {
                       locale: es,
                     })}
                   </TableCell>
-                  <TableCell className="text-sm px-4 py-2">
-                    <Badge variant="outline" className="text-xs font-normal lowercase">
-                      {report.format}
-                    </Badge>
-                  </TableCell>
+
                   <TableCell className="text-sm py-2 font-normal">
                     <ReportStatusBadge status={report.status} />
                   </TableCell>
@@ -283,6 +260,7 @@ const SubjectReportPage = () => {
                     {report.status === 'COMPLETADO' && report.fileUrl ? (
                       <Button
                         size="sm"
+                        variant="link"
                         onClick={() => handleDownload(report)}
                         disabled={downloadingReportId === report.id}
                       >

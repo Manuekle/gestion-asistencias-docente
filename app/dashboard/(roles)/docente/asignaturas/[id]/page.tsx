@@ -528,7 +528,7 @@ export default function SubjectDetailPage() {
           <CardDescription className="text-xs">Gestiona tus clases y eventos.</CardDescription>
         </div>
         <Link href={`/dashboard/docente/asignaturas/${subjectId}/reportes`}>
-          <Button>Ver Reporte</Button>
+          <Button variant="outline">Ver Reporte</Button>
         </Link>
       </div>
 
