@@ -534,20 +534,20 @@ export function TeacherReport() {
   );
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-background">
-      {/* Sidebar */}
-      <Card className="w-full md:w-96 shadow-lg rounded-xl flex flex-col self-start md:sticky md:top-0 md:h-screen z-10">
-        <CardHeader className="p-4 border-b">
-          <div className="relative">
+    <div className="flex flex-col md:flex-row min-h-screen bg-background">
+      {/* Sidebar - Only sticky on desktop */}
+      <Card className="p-0 w-full md:w-96 shadow-sm rounded-xl flex flex-col self-start md:sticky md:top-0 h-auto md:h-[53dvh] z-10 overflow-y-auto">
+        <CardHeader className="p-0">
+          <div className="relative p-0 px-3 pt-4">
             <Input
               placeholder="Buscar..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-ring h-9 text-xs"
+              className="text-xs"
             />
           </div>
         </CardHeader>
-        <CardContent className="p-2 overflow-y-auto relative [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar-track]:hidden [&::-webkit-scrollbar-thumb]:hidden">
+        <CardContent className="p-0 overflow-y-auto relative [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar-track]:hidden [&::-webkit-scrollbar-thumb]:hidden">
           {loadingTeachers ? (
             <div className="space-y-2 p-2">
               {Array.from({ length: TEACHERS_PER_PAGE }).map((_, i) => (
@@ -555,7 +555,7 @@ export function TeacherReport() {
               ))}
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-1 px-3">
               {paginatedTeachers.map(teacher => (
                 <Button
                   key={teacher.id}
@@ -614,7 +614,7 @@ export function TeacherReport() {
       </Card>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto px-0 md:pl-6 pt-4 md:pt-0 [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar-track]:hidden [&::-webkit-scrollbar-thumb]:hidden">
+      <div className="flex-1 w-full overflow-auto md:pl-6 pt-4 md:pt-0 [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar-track]:hidden [&::-webkit-scrollbar-thumb]:hidden">
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertTitle>Error</AlertTitle>
@@ -628,7 +628,7 @@ export function TeacherReport() {
               <CardHeader>
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center text-lg font-semibold">
+                    <div className="h-12 w-12 rounded-full bg-muted border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xs font-medium text-muted-foreground">
                       {selectedTeacher.name
                         .split(' ')
                         .map(n => n[0])

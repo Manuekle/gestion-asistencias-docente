@@ -102,7 +102,7 @@ const AdminDashboardComponent = () => {
   };
 
   // Paleta colorida solo para la dona
-  const PIE_COLORS = ['#5409DA', '#4E71FF', '#8DD8FF', '#BBFBFF'];
+  const PIE_COLORS = ['#4CAF50', '#4E71FF', '#F44336', '#FF9800'];
   // Paleta neutra para área y barras
   const NEUTRAL_PALETTE = ['#525252', '#737373', '#a3a3a3', '#d4d4d4', '#e5e7eb'];
 
@@ -159,25 +159,14 @@ const AdminDashboardComponent = () => {
                 </defs>
                 <Pie
                   data={data.charts.roleDistribution}
+                  dataKey="value"
+                  nameKey="name"
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={2}
-                  dataKey="value"
-                  label={({ name, percent = 0 }) => (
-                    <text
-                      x={0}
-                      y={0}
-                      textAnchor="middle"
-                      fill="hsl(var(--foreground))"
-                      fontSize={12}
-                      fontWeight={500}
-                    >
-                      {`${name}\n${(percent * 100).toFixed(0)}%`}
-                    </text>
-                  )}
-                  labelLine={false}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  paddingAngle={5}
+                  label
                 >
                   {data.charts.roleDistribution.map((entry, index) => (
                     <Cell
@@ -185,7 +174,9 @@ const AdminDashboardComponent = () => {
                       fill={PIE_COLORS[index % PIE_COLORS.length]}
                       stroke="#fff"
                       strokeWidth={1}
-                      className="lowercase"
+                      style={{
+                        transition: 'all 0.3s ease',
+                      }}
                     />
                   ))}
                 </Pie>
@@ -195,7 +186,7 @@ const AdminDashboardComponent = () => {
                   verticalAlign="bottom"
                   wrapperStyle={{ paddingTop: '20px' }}
                   formatter={value => (
-                    <span className="text-xs text-muted-foreground lowercase">{value}</span>
+                    <span className="text-xs text-muted-foreground">{value}</span>
                   )}
                 />
               </PieChart>
@@ -231,7 +222,7 @@ const AdminDashboardComponent = () => {
                 <Tooltip content={<ChartTooltipContent />} />
                 <Area
                   type="monotone"
-                  dataKey="count"
+                  dataKey="clases"
                   stroke={NEUTRAL_PALETTE[0]}
                   strokeWidth={2}
                   fillOpacity={1}
@@ -271,7 +262,7 @@ const AdminDashboardComponent = () => {
                 <XAxis dataKey="label" tick={axisStyle} tickLine={false} />
                 <YAxis tick={axisStyle} tickLine={false} />
                 <Tooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="value" fill="url(#barGradient)" radius={[4, 4, 0, 0]}>
+                <Bar dataKey="asistencia" fill={NEUTRAL_PALETTE[0]} radius={[4, 4, 0, 0]}>
                   {data.charts.attendanceDistribution.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}

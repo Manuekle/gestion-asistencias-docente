@@ -115,7 +115,7 @@ export async function GET() {
 
     // Formatear datos para las gráficas
     const roleDistribution = usersByRole.map((role: { role: Role; _count: { role: number } }) => ({
-      name: role.role,
+      name: role.role.charAt(0).toUpperCase() + role.role.slice(1).toLowerCase(),
       value: role._count.role,
       label:
         role.role === Role.ESTUDIANTE
@@ -130,7 +130,7 @@ export async function GET() {
     const attendanceDistribution = attendanceStats.map(
       (stat: { status: AttendanceStatus; _count: { status: number } }) => ({
         name: stat.status,
-        value: stat._count.status,
+        asistencia: stat._count.status,
         label:
           stat.status === AttendanceStatus.PRESENTE
             ? 'Presente'
@@ -181,16 +181,19 @@ export async function GET() {
 
     const monthlyClasses = Array.from(monthlyClassesMap.entries()).map(([month, count]) => ({
       month,
-      count,
+      clases: count,
     }));
 
-    // Formatear datos de materias con más estudiantes
-    const topSubjects = (subjectEnrollmentData as SubjectWithCounts[]).map(subject => ({
-      name: subject.name,
-      code: subject.code,
-      students: subject.studentIds.length,
-      classes: subject._count.classes,
-    }));
+    // Obtener las 3 materias con más clases
+    const topSubjects = (subjectEnrollmentData as SubjectWithCounts[])
+      .map(subject => ({
+        name: subject.name,
+        code: subject.code,
+        students: subject.studentIds.length,
+        classes: subject._count.classes,
+      }))
+      .sort((a, b) => b.classes - a.classes)
+      .slice(0, 3);
 
     // Calcular métricas adicionales
     const activeTeachers =
