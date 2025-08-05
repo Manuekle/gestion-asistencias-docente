@@ -5,7 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 // Configuración de cookies para desarrollo y producción
 const isProduction = process.env.NODE_ENV === 'production';
-let baseUrl = process.env.NEXTAUTH_URL || 'https://gestion-asistencias-docente.vercel.app';
+let baseUrl = process.env.NEXTAUTH_URL || 'https://edutrack-fup.vercel.app';
 // Ensure the URL has a protocol
 if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
   baseUrl = `https://${baseUrl}`;

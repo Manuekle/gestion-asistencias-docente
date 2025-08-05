@@ -75,7 +75,7 @@ export async function POST(request: Request, context: { params: { classId: strin
     );
   }
 
-  let baseUrl = process.env.NEXTAUTH_URL || 'https://gestion-asistencias-docente.vercel.app';
+  let baseUrl = process.env.NEXTAUTH_URL || 'https://edutrack-fup.vercel.app';
   // Ensure the URL has a protocol
   if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
     baseUrl = `https://${baseUrl}`;
