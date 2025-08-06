@@ -23,21 +23,43 @@ export async function uploadSignature(formData: FormData) {
   }
 
   const userId = session.user.id;
-  const filename = `signatures/signature-${userId}-${file.name}`;
+  const filename = `signatures/signature-${userId}-${Date.now()}-${file.name}`;
 
   try {
-    const blob = await put(filename, file, {
-      access: 'public',
-      allowOverwrite: true, // Permitir sobrescribir la firma existente
+    // Get current user to check for existing signature
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { signatureUrl: true },
     });
 
+    // Upload the new signature
+    const blob = await put(filename, file, {
+      access: 'public',
+    });
+
+    // Update user with new signature URL
     await prisma.user.update({
       where: { id: userId },
       data: { signatureUrl: blob.url },
     });
 
-    revalidatePath('/dashboard/profile');
+    // Delete old signature if it exists
+    if (currentUser?.signatureUrl) {
+      try {
+        const oldSignatureUrl = new URL(currentUser.signatureUrl);
+        const oldFilename = oldSignatureUrl.pathname.split('/').pop();
+        if (oldFilename) {
+          await fetch(`/api/blob/delete?filename=${encodeURIComponent(oldFilename)}`, {
+            method: 'DELETE',
+          });
+        }
+      } catch (error) {
+        console.error('Error deleting old signature:', error);
+        // Continue even if deletion fails
+      }
+    }
 
+    revalidatePath('/dashboard/profile');
     return { success: true, url: blob.url };
   } catch (error) {
     console.error('Error uploading signature:', error);

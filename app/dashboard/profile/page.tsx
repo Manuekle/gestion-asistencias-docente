@@ -543,7 +543,7 @@ export default function ProfilePage() {
                           fill
                           style={{ objectFit: 'contain' }}
                           sizes="(max-width: 768px) 100vw, 50vw"
-                          className="rounded-sm"
+                          className="rounded-sm dark:invert"
                         />
                       </div>
                     ) : (
