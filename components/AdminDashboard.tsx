@@ -242,35 +242,41 @@ const AdminDashboardComponent = () => {
             </div>
           </CardHeader>
           <CardContent className="flex-1 pb-0">
-            <ChartContainer
-              config={{}}
-              className="mx-auto aspect-square max-h-[250px] w-full justify-center items-center"
-            >
-              <BarChart
-                data={data.charts.attendanceDistribution}
-                margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
-                barSize={40}
+            {data.charts.attendanceDistribution.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground text-xs">No hay datos disponibles</p>
+              </div>
+            ) : (
+              <ChartContainer
+                config={{}}
+                className="mx-auto aspect-square max-h-[250px] w-full justify-center items-center"
               >
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={NEUTRAL_PALETTE[0]} />
-                    <stop offset="100%" stopColor={NEUTRAL_PALETTE[2]} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} style={gridStyle} />
-                <XAxis dataKey="label" tick={axisStyle} tickLine={false} />
-                <YAxis tick={axisStyle} tickLine={false} />
-                <Tooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="asistencia" fill={NEUTRAL_PALETTE[0]} radius={[4, 4, 0, 0]}>
-                  {data.charts.attendanceDistribution.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={NEUTRAL_PALETTE[index % NEUTRAL_PALETTE.length]}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
+                <BarChart
+                  data={data.charts.attendanceDistribution}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+                  barSize={40}
+                >
+                  <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={NEUTRAL_PALETTE[0]} />
+                      <stop offset="100%" stopColor={NEUTRAL_PALETTE[2]} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} style={gridStyle} />
+                  <XAxis dataKey="label" tick={axisStyle} tickLine={false} />
+                  <YAxis tick={axisStyle} tickLine={false} />
+                  <Tooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="asistencia" fill={NEUTRAL_PALETTE[0]} radius={[4, 4, 0, 0]}>
+                    {data.charts.attendanceDistribution.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={NEUTRAL_PALETTE[index % NEUTRAL_PALETTE.length]}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
 
