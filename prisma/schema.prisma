@@ -52,7 +52,6 @@ model User {
   name                String?
   document            String?   @unique
   emailVerified       DateTime?
-  image               String?
   // Información de contacto y códigos
   correoPersonal      String?   @unique
   correoInstitucional String?   @unique

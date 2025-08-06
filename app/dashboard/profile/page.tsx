@@ -51,6 +51,9 @@ export default function ProfilePage() {
   const [name, setName] = useState('');
   const [correoInstitucional, setCorreoInstitucional] = useState('');
   const [correoPersonal, setCorreoPersonal] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [codigoEstudiantil, setCodigoEstudiantil] = useState('');
+  const [codigoDocente, setCodigoDocente] = useState('');
 
   // Password form
   const [currentPassword, setCurrentPassword] = useState('');
@@ -94,6 +97,9 @@ export default function ProfilePage() {
       setName(session.user.name || '');
       setCorreoInstitucional(session.user?.correoInstitucional || '');
       setCorreoPersonal(session.user?.correoPersonal || '');
+      setTelefono(session.user?.telefono || '');
+      setCodigoEstudiantil(session.user?.codigoEstudiantil || '');
+      setCodigoDocente(session.user?.codigoDocente || '');
       // Set initial preview from session
       if (!signatureFile) {
         setSignaturePreview(session.user?.signatureUrl || null);
@@ -150,7 +156,14 @@ export default function ProfilePage() {
       const response = await fetch('/api/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, correoPersonal, correoInstitucional }),
+        body: JSON.stringify({
+          name,
+          correoPersonal,
+          correoInstitucional,
+          telefono,
+          codigoEstudiantil: session?.user?.role === 'ESTUDIANTE' ? codigoEstudiantil : undefined,
+          codigoDocente: session?.user?.role !== 'ESTUDIANTE' ? codigoDocente : undefined,
+        }),
       });
 
       if (!response.ok) {
@@ -158,7 +171,14 @@ export default function ProfilePage() {
         throw new Error(error.message || 'Error al actualizar el perfil');
       }
 
-      await update({ name, correoPersonal, correoInstitucional });
+      await update({
+        name,
+        correoPersonal,
+        correoInstitucional,
+        telefono,
+        codigoEstudiantil: session?.user?.role === 'ESTUDIANTE' ? codigoEstudiantil : undefined,
+        codigoDocente: session?.user?.role !== 'ESTUDIANTE' ? codigoDocente : undefined,
+      });
       toast.success('Perfil actualizado correctamente');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error al actualizar el perfil';
@@ -331,6 +351,41 @@ export default function ProfilePage() {
                         className="text-xs"
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="telefono">Teléfono</Label>
+                      <Input
+                        id="telefono"
+                        type="tel"
+                        value={telefono}
+                        onChange={e => setTelefono(e.target.value)}
+                        placeholder="+51 999 999 999"
+                        className="text-xs"
+                      />
+                    </div>
+                    {session?.user?.role === 'ESTUDIANTE' ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="codigoEstudiantil">Código Estudiantil</Label>
+                        <Input
+                          id="codigoEstudiantil"
+                          value={codigoEstudiantil}
+                          onChange={e => setCodigoEstudiantil(e.target.value)}
+                          placeholder="Ingrese su código estudiantil"
+                          className="text-xs"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label htmlFor="codigoDocente">Código Docente</Label>
+                        <Input
+                          id="codigoDocente"
+                          value={codigoDocente}
+                          disabled
+                          onChange={e => setCodigoDocente(e.target.value)}
+                          placeholder="Ingrese su código docente"
+                          className="text-xs"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

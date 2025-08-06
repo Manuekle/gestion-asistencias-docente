@@ -50,6 +50,11 @@ export const authOptions: NextAuthOptions = {
             correoPersonal: user.correoPersonal,
             correoInstitucional: user.correoInstitucional,
             signatureUrl: user.signatureUrl,
+            codigoDocente: user.codigoDocente,
+            codigoEstudiantil: user.codigoEstudiantil,
+            telefono: user.telefono,
+            document: user.document,
+            isActive: user.isActive,
           };
         }
 
@@ -67,6 +72,11 @@ export const authOptions: NextAuthOptions = {
         token.correoPersonal = user.correoPersonal;
         token.correoInstitucional = user.correoInstitucional;
         token.signatureUrl = user.signatureUrl;
+        token.codigoDocente = user.codigoDocente;
+        token.codigoEstudiantil = user.codigoEstudiantil;
+        token.telefono = user.telefono;
+        token.document = user.document;
+        token.isActive = user.isActive;
       }
 
       // Cuando se actualiza la sesión (por ejemplo, al cambiar la firma)
@@ -81,6 +91,11 @@ export const authOptions: NextAuthOptions = {
           token.correoPersonal = dbUser.correoPersonal;
           token.correoInstitucional = dbUser.correoInstitucional;
           token.signatureUrl = dbUser.signatureUrl;
+          token.codigoDocente = dbUser.codigoDocente;
+          token.codigoEstudiantil = dbUser.codigoEstudiantil;
+          token.telefono = dbUser.telefono;
+          token.document = dbUser.document;
+          token.isActive = dbUser.isActive;
         }
       }
 
@@ -94,6 +109,11 @@ export const authOptions: NextAuthOptions = {
         session.user.correoPersonal = token.correoPersonal;
         session.user.correoInstitucional = token.correoInstitucional;
         session.user.signatureUrl = token.signatureUrl;
+        session.user.codigoDocente = token.codigoDocente;
+        session.user.codigoEstudiantil = token.codigoEstudiantil;
+        session.user.telefono = token.telefono;
+        session.user.document = token.document;
+        session.user.isActive = token.isActive;
         // Incluir el token de acceso en la sesión
         session.accessToken = token.accessToken;
       }

@@ -10,16 +10,27 @@ declare module 'next-auth' {
       correoPersonal?: string | null;
       correoInstitucional?: string | null;
       signatureUrl?: string | null;
+      codigoDocente?: string | null;
+      codigoEstudiantil?: string | null;
+      telefono?: string | null;
+      document?: string | null;
+      isActive: boolean;
     } & DefaultSession['user'];
     accessToken?: string;
   }
 
   interface User {
     id: string;
+    name: string | null;
     role: Role;
     correoPersonal?: string | null;
     correoInstitucional?: string | null;
     signatureUrl?: string | null;
+    codigoDocente?: string | null;
+    codigoEstudiantil?: string | null;
+    telefono?: string | null;
+    document?: string | null;
+    isActive: boolean;
   }
 }
 
@@ -30,6 +41,11 @@ declare module 'next-auth/jwt' {
     correoPersonal?: string | null;
     correoInstitucional?: string | null;
     signatureUrl?: string | null;
+    codigoDocente?: string | null;
+    codigoEstudiantil?: string | null;
+    telefono?: string | null;
+    document?: string | null;
+    isActive: boolean;
     accessToken?: string;
   }
 }

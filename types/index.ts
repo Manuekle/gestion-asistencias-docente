@@ -10,6 +10,9 @@ export type User = {
   isActive: boolean;
   signatureUrl?: string | null;
   document?: string | null;
+  codigoDocente?: string | null;
+  codigoEstudiantil?: string | null;
+  telefono?: string | null;
 };
 
 // API Response Types
