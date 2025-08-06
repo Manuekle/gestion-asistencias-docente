@@ -129,10 +129,19 @@ export default function ProfilePage() {
     sigCanvas.current?.clear();
   };
 
+  // Prevent page scroll when drawing on mobile
+  const preventScroll = (e: TouchEvent) => {
+    if (e.target === sigCanvas.current?.getCanvas()) {
+      e.preventDefault();
+    }
+  };
+
   const clearCanvas = () => {
     sigCanvas.current?.clear();
     setSignatureFile(null);
     setSignaturePreview(session?.user?.signatureUrl || null);
+    // Remove any existing event listeners to prevent memory leaks
+    document.removeEventListener('touchmove', preventScroll);
   };
 
   const saveCanvas = () => {
@@ -502,26 +511,31 @@ export default function ProfilePage() {
                     <Label className="text-xs font-medium">Dibujar Firma</Label>
                     <div
                       ref={canvasWrapperRef}
-                      className="w-full aspect-[2.5/1] items-center justify-center border border-dashed rounded-lg p-6 space-y-2 cursor-pointer transition-colors"
+                      className="w-full aspect-[2.5/1] items-center justify-center border border-dashed rounded-lg p-6 space-y-2 touch-none"
                     >
                       <SignatureCanvas
                         ref={sigCanvas}
                         penColor="hsl(0 0% 0%)"
                         canvasProps={{
-                          className: 'w-full h-full rounded-md dark:invert',
-                          style: { touchAction: 'none' },
+                          className: 'w-full h-full rounded-md dark:invert touch-none',
+                          style: {
+                            touchAction: 'none',
+                            WebkitUserSelect: 'none',
+                            WebkitTouchCallout: 'none',
+                            WebkitTapHighlightColor: 'transparent',
+                          },
                         }}
                         onBegin={() => {
-                          // Add visual feedback when drawing starts
-                          document.body.style.cursor = 'grabbing';
+                          // Prevent default touch behavior
+                          document.addEventListener('touchmove', preventScroll, { passive: false });
                         }}
                         onEnd={() => {
-                          document.body.style.cursor = '';
+                          document.removeEventListener('touchmove', preventScroll);
                         }}
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={clearCanvas} className="flex-1">
+                      <Button variant="outline" size="sm" onClick={clearCanvas} className="flex-1 ">
                         Limpiar
                       </Button>
                       <Button variant="default" size="sm" onClick={saveCanvas} className="flex-1">
