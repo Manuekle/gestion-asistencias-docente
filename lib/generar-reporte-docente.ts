@@ -1,9 +1,23 @@
+import ReportReadyEmail from '@/app/emails/ReportReadyEmail';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/prisma';
-import { Class, Subject, User } from '@prisma/client';
+import { Class, Report, Subject, User } from '@prisma/client';
 import { put } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
 import puppeteer from 'puppeteer';
+
+// Define types for the report details
+interface ReportWithRelations extends Report {
+  requestedBy: {
+    correoPersonal: string | null;
+    name: string | null;
+  } | null;
+  subject: {
+    name: string;
+    code: string | null;
+  } | null;
+}
 
 // Tipos de datos para el nuevo formato de reporte de clases
 type ClassReportData = {
@@ -307,16 +321,56 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
       access: 'public',
     });
 
+    // First, update the report with the file URL
     await db.report.update({
       where: { id: reportId },
-      data: {
-        status: 'COMPLETADO',
-        fileUrl: blob.url,
-        fileName: fileName,
-      },
+      data: { status: 'COMPLETADO', fileUrl: blob.url, fileName: fileName },
     });
 
     console.log(`Reporte generado exitosamente y subido a: ${blob.url}`);
+
+    // Then fetch the related data in a separate query with proper includes
+    const reportWithDetails = (await db.report.findUnique({
+      where: { id: reportId },
+      include: {
+        requestedBy: {
+          select: {
+            correoPersonal: true, // Using correoPersonal instead of email
+            name: true,
+          },
+        },
+        subject: {
+          select: {
+            name: true,
+            code: true,
+          },
+        },
+      },
+    })) as unknown as ReportWithRelations | null;
+
+    // Send email notification to the teacher if we have the required data
+    if (reportWithDetails?.requestedBy?.correoPersonal && reportWithDetails.subject) {
+      const subjectName = reportWithDetails.subject?.name || 'la asignatura';
+      const userName = reportWithDetails.requestedBy?.name || 'Docente';
+
+      try {
+        await sendEmail({
+          to: reportWithDetails.requestedBy.correoPersonal,
+          subject: `Reporte de asistencia listo - ${subjectName}`,
+          react: ReportReadyEmail({
+            subjectName,
+            reportName: fileName,
+            downloadUrl: blob.url,
+            userName,
+            supportEmail: 'soporte@institucion.edu.co',
+          }),
+        });
+        console.log(`Notificación enviada a: ${reportWithDetails.requestedBy.correoPersonal}`);
+      } catch (emailError) {
+        console.error('Error enviando notificación por correo:', emailError);
+        // Don't fail the whole process if email fails
+      }
+    }
   } catch (error) {
     console.error(`Error al generar el reporte para la asignatura ${subjectId}:`, error);
     await db.report.update({

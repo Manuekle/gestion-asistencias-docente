@@ -14,22 +14,22 @@ import {
   Text,
 } from '@react-email/components';
 
-interface WelcomeUserEmailProps {
-  name: string;
-  email: string;
-  password: string;
+interface ReportReadyEmailProps {
+  subjectName: string;
+  reportName: string;
+  downloadUrl: string;
+  userName: string;
   supportEmail: string;
-  loginUrl: string;
 }
 
-const WelcomeUserEmail = ({
-  name,
-  email,
-  password,
+const ReportReadyEmail = ({
+  subjectName,
+  reportName,
+  downloadUrl,
+  userName,
   supportEmail,
-  loginUrl,
-}: WelcomeUserEmailProps) => {
-  const previewText = 'Bienvenido a la Plataforma de Gestión de Asistencias';
+}: ReportReadyEmailProps) => {
+  const previewText = `Tu reporte de ${subjectName} está listo para descargar`;
 
   return (
     <Html lang="es" dir="ltr">
@@ -53,10 +53,10 @@ const WelcomeUserEmail = ({
             {/* Header */}
             <Section className="bg-black px-[32px] py-[24px]">
               <Heading className="text-xl font-semibold text-white m-0 leading-[28px]">
-                ¡Bienvenido/a!
+                Reporte Listo
               </Heading>
               <Text className="text-zinc-300 text-sm m-0 mt-[4px] leading-[20px]">
-                Tu cuenta ha sido creada exitosamente
+                Tu reporte de asistencia está disponible para descarga
               </Text>
             </Section>
 
@@ -65,57 +65,86 @@ const WelcomeUserEmail = ({
               {/* Welcome Message */}
               <Section className="mb-[32px] text-center">
                 <div className="inline-flex items-center justify-center w-[64px] h-[64px] rounded-full bg-zinc-100 mb-[16px]">
-                  <Text className="text-2xl text-zinc-600 m-0">👋</Text>
+                  <Text className="text-2xl text-zinc-600 m-0">📊</Text>
                 </div>
                 <Heading className="text-xl font-semibold text-black m-0 mb-[8px] leading-[32px]">
-                  Hola, {name}
+                  Hola, {userName}
                 </Heading>
                 <Text className="text-zinc-600 text-xs leading-[24px] m-0">
-                  Un administrador ha creado una cuenta para ti en la plataforma de gestión de
-                  asistencias.
+                  Tu reporte de asistencia ha sido generado exitosamente y está listo para
+                  descargar.
                 </Text>
               </Section>
 
-              {/* Credentials */}
+              {/* Report Details */}
               <Section className="mb-[32px]">
                 <Text className="text-xs font-medium text-zinc-500 tracking-normal m-0 mb-[12px]">
-                  Credenciales de acceso
+                  Detalles del reporte
                 </Text>
                 <div className="bg-zinc-50 border border-zinc-200 rounded-[8px] px-[16px] py-[16px] space-y-[12px]">
                   <div>
                     <Text className="text-xs font-medium text-zinc-500 tracking-normal m-0 mb-[4px]">
-                      Correo electrónico
+                      Asignatura
                     </Text>
-                    <Text className="text-xs text-black m-0 leading-[20px]">{email}</Text>
+                    <Text className="text-sm text-black m-0 leading-[20px]">{subjectName}</Text>
                   </div>
 
                   <div>
                     <Text className="text-xs font-medium text-zinc-500 tracking-normal m-0 mb-[4px]">
-                      Contraseña temporal
+                      Nombre del archivo
                     </Text>
-                    <Text className="text-xs text-black m-0 leading-[20px]">{password}</Text>
+                    <Text className="text-sm text-black m-0 leading-[20px]">{reportName}</Text>
+                  </div>
+
+                  <div>
+                    <Text className="text-xs font-medium text-zinc-500 tracking-normal m-0 mb-[4px]">
+                      Fecha de generación
+                    </Text>
+                    <Text className="text-sm text-black m-0 leading-[20px]">
+                      {new Date().toLocaleDateString('es-CO', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </Text>
                   </div>
                 </div>
               </Section>
 
-              {/* Security Notice */}
+              {/* Download Button */}
+              <Section className="mb-[32px] text-center">
+                <Button
+                  href={downloadUrl}
+                  className="bg-black text-white text-sm font-medium px-[24px] py-[12px] rounded-[8px] box-border inline-block text-center no-underline leading-[20px]"
+                >
+                  📥 Descargar Reporte
+                </Button>
+              </Section>
+
+              {/* Alternative Download */}
               <Section className="mb-[32px]">
-                <div className="bg-amber-50 border border-amber-200 rounded-[8px] px-[16px] py-[12px]">
-                  <Text className="text-xs text-amber-800 m-0 leading-[20px]">
-                    <strong>Importante:</strong> Por seguridad, te recomendamos cambiar tu
-                    contraseña después de iniciar sesión por primera vez.
+                <div className="bg-blue-50 border border-blue-200 rounded-[8px] px-[16px] py-[12px]">
+                  <Text className="text-xs font-medium text-blue-800 m-0 mb-[8px]">
+                    Enlace alternativo
+                  </Text>
+                  <Text className="text-xs text-blue-700 m-0 mb-[8px] leading-[16px]">
+                    Si el botón no funciona, copia y pega este enlace en tu navegador:
+                  </Text>
+                  <Text className="text-xs text-blue-600 m-0 leading-[16px] break-all">
+                    {downloadUrl}
                   </Text>
                 </div>
               </Section>
 
-              {/* CTA Button */}
-              <Section className="mb-[32px] text-center">
-                <Button
-                  href={loginUrl}
-                  className="bg-black text-white text-sm font-medium px-[24px] py-[12px] rounded-[8px] box-border inline-block text-center no-underline leading-[20px]"
-                >
-                  Iniciar sesión ahora
-                </Button>
+              {/* Important Notice */}
+              <Section className="mb-[32px]">
+                <div className="bg-amber-50 border border-amber-200 rounded-[8px] px-[16px] py-[12px]">
+                  <Text className="text-sm text-amber-800 m-0 leading-[20px]">
+                    <strong>Importante:</strong> Este enlace estará disponible por 30 días a partir
+                    de hoy. Te recomendamos descargar el reporte lo antes posible.
+                  </Text>
+                </div>
               </Section>
 
               <Hr className="border-zinc-200 my-[24px]" />
@@ -123,26 +152,27 @@ const WelcomeUserEmail = ({
               {/* Next Steps */}
               <Section className="mb-[24px]">
                 <Text className="text-xs font-medium text-zinc-500 tracking-normal m-0 mb-[12px]">
-                  Próximos pasos
+                  ¿Necesitas ayuda?
                 </Text>
                 <div className="space-y-[8px]">
                   <Text className="text-sm text-zinc-700 m-0 leading-[20px]">
-                    • Inicia sesión con las credenciales proporcionadas
+                    • Si tienes problemas para descargar el archivo
                   </Text>
                   <Text className="text-sm text-zinc-700 m-0 leading-[20px]">
-                    • Cambia tu contraseña por una más segura
+                    • Si necesitas un formato diferente del reporte
                   </Text>
                   <Text className="text-sm text-zinc-700 m-0 leading-[20px]">
-                    • Explora las funcionalidades de la plataforma
+                    • Si requieres información adicional
                   </Text>
                 </div>
               </Section>
 
               <Text className="text-xs text-zinc-500 m-0">
-                Si no reconoces esta actividad o necesitas ayuda, contáctanos en{' '}
+                Contáctanos en{' '}
                 <Link href={`mailto:${supportEmail}`} className="text-zinc-700 underline">
                   {supportEmail}
-                </Link>
+                </Link>{' '}
+                y te ayudaremos inmediatamente.
               </Text>
             </Section>
 
@@ -163,4 +193,4 @@ const WelcomeUserEmail = ({
   );
 };
 
-export default WelcomeUserEmail;
+export default ReportReadyEmail;

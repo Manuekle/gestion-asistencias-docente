@@ -13,97 +13,85 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { AlertCircle, Loader2 } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { AlertCircle, CheckCircle, Clock, FileText, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-// Interfaz para el objeto Reporte, coincidiendo con el modelo de Prisma
 interface Report {
   id: string;
+  subjectId: string;
+  subject: {
+    name: string;
+    code: string;
+  };
   status: 'PENDIENTE' | 'EN_PROCESO' | 'COMPLETADO' | 'FALLIDO';
-  format: 'pdf' | 'csv';
+  format: 'PDF' | 'CSV';
   fileUrl: string | null;
   fileName: string | null;
   error: string | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 const ReportStatusBadge = ({ status }: { status: Report['status'] }) => {
   const statusConfig = {
     PENDIENTE: {
       text: 'Pendiente',
+      icon: <Clock className="h-3.5 w-3.5 mr-1.5" />,
+      variant: 'outline' as const,
     },
     EN_PROCESO: {
       text: 'Procesando',
+      icon: <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />,
+      variant: 'outline' as const,
     },
     COMPLETADO: {
       text: 'Completado',
+      icon: <CheckCircle className="h-3.5 w-3.5 mr-1.5 text-green-500" />,
+      variant: 'outline' as const,
     },
     FALLIDO: {
       text: 'Fallido',
+      icon: <AlertCircle className="h-3.5 w-3.5 mr-1.5 text-destructive" />,
+      variant: 'outline' as const,
     },
   };
 
-  const { text } = statusConfig[status] || statusConfig.PENDIENTE;
+  const { text, icon, variant } = statusConfig[status] || statusConfig.PENDIENTE;
 
   return (
-    <Badge variant="outline">
+    <Badge variant={variant} className="gap-1">
+      {icon}
       <span className="text-xs font-normal">{text}</span>
     </Badge>
   );
 };
 
-const SubjectReportPage = () => {
-  const params = useParams();
-  const subjectId = params.id as string;
-
+export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null);
-  const [classes, setClasses] = useState<Array<{ status: string }>>([]);
-
-  const fetchClasses = useCallback(async () => {
-    if (!subjectId) return;
-    try {
-      const response = await fetch(`/api/docente/clases?subjectId=${subjectId}`);
-      if (!response.ok) {
-        throw new Error('No se pudieron cargar las clases.');
-      }
-      const data = await response.json();
-      setClasses(data.data || []);
-    } catch (error: unknown) {
-      console.error('Error al cargar las clases:', error);
-      toast.error('No se pudieron cargar las clases');
-    }
-  }, [subjectId]);
 
   const fetchReports = useCallback(async () => {
-    if (!subjectId) return;
     try {
-      const response = await fetch(`/api/docente/asignaturas/${subjectId}/reportes`);
+      const response = await fetch('/api/docente/reportes');
       if (!response.ok) {
         throw new Error('No se pudo cargar el historial de reportes.');
       }
-      const data: Report[] = await response.json();
+      const data = await response.json();
       setReports(data);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error al cargar los reportes';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  }, [subjectId]);
-
-  useEffect(() => {
-    fetchReports();
-    fetchClasses();
-  }, [fetchReports, fetchClasses]);
+  }, []);
 
   // Polling para actualizar el estado de los reportes en proceso
   useEffect(() => {
@@ -119,30 +107,9 @@ const SubjectReportPage = () => {
     return () => clearInterval(interval);
   }, [reports, fetchReports]);
 
-  const handleGenerateReport = async () => {
-    setIsGenerating(true);
-    toast.info('Iniciando la generación del reporte...');
-    try {
-      const response = await fetch(`/api/docente/asignaturas/${subjectId}/reportes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ format: 'PDF' }),
-      });
-
-      if (response.status !== 202) {
-        throw new Error('El servidor no pudo iniciar la generación del reporte.');
-      }
-
-      toast.success('Solicitud de reporte enviada. Aparecerá en el historial en breve.');
-      await fetchReports(); // Actualizar la lista inmediatamente
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Ocurrió un error al generar el reporte';
-      toast.error(errorMessage);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const handleDownload = async (report: Report) => {
     if (!report.fileUrl || !report.fileName) {
@@ -179,7 +146,7 @@ const SubjectReportPage = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingPage />;
   }
 
@@ -200,24 +167,12 @@ const SubjectReportPage = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <CardHeader className="p-0 w-full">
           <CardTitle className="text-2xl font-semibold tracking-tight">
-            Gestión de Reportes de Asistencia
+            Reportes de Asistencia
           </CardTitle>
           <CardDescription className="text-xs">
-            Genera y descarga los reportes de asistencia de la asignatura.
+            Revisa el historial de reportes generados para todas tus asignaturas
           </CardDescription>
         </CardHeader>
-        <Button
-          onClick={handleGenerateReport}
-          variant="outline"
-          disabled={isGenerating || !classes.every(c => c.status === 'REALIZADA')}
-          title={
-            !classes.every(c => c.status === 'REALIZADA')
-              ? 'No se puede generar el reporte hasta que todas las clases estén marcadas como REALIZADA'
-              : ''
-          }
-        >
-          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Generar Reporte</>}
-        </Button>
       </div>
 
       <div className="border rounded-md overflow-x-auto">
@@ -225,10 +180,11 @@ const SubjectReportPage = () => {
           <TableHeader>
             <TableRow className="bg-muted/60">
               <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
-                Fecha de Solicitud
+                Asignatura
               </TableHead>
+              <TableHead className="text-xs tracking-tight font-normal px-4 py-2">Fecha</TableHead>
               <TableHead className="text-xs tracking-tight font-normal px-4 py-2">Estado</TableHead>
-              <TableHead className="text-right text-xs tracking-tight font-normal px-4 py-2">
+              <TableHead className="text-xs tracking-tight font-normal px-4 py-2 text-right">
                 Acciones
               </TableHead>
             </TableRow>
@@ -236,46 +192,73 @@ const SubjectReportPage = () => {
           <TableBody>
             {reports.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  {!classes.every(c => c.status === 'REALIZADA') && (
-                    <span className="text-xs opacity-80">
-                      Requiere que todas las clases estén realizadas.
-                    </span>
-                  )}
+                <TableCell colSpan={5} className="h-24 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-2 py-6">
+                    <FileText className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm font-medium text-muted-foreground">
+                      No hay reportes generados
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Los reportes que generes aparecerán aquí
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               reports.map(report => (
-                <TableRow key={report.id}>
-                  <TableCell className="text-sm px-4 py-2">
-                    {format(new Date(report.createdAt), "d 'de' MMMM, yyyy 'a las' HH:mm", {
-                      locale: es,
-                    })}
+                <TableRow key={report.id} className="group">
+                  <TableCell className="px-4 py-2 text-xs">
+                    <div className="font-medium">
+                      {report.subject?.name || 'Asignatura no disponible'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {report.subject?.code || 'Código no disponible'}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-2 text-xs">
+                    <div className="text-sm">
+                      {format(new Date(report.createdAt), 'PPP', { locale: es })}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {format(new Date(report.createdAt), 'pp', { locale: es })}
+                    </div>
                   </TableCell>
 
-                  <TableCell className="text-sm py-2 font-normal">
+                  <TableCell className="py-2 text-xs">
                     <ReportStatusBadge status={report.status} />
                   </TableCell>
-                  <TableCell className="text-right text-sm py-2">
+                  <TableCell className="py-2 text-right">
                     {report.status === 'COMPLETADO' && report.fileUrl ? (
                       <Button
-                        size="sm"
                         variant="link"
+                        size="sm"
+                        className="text-xs"
                         onClick={() => handleDownload(report)}
                         disabled={downloadingReportId === report.id}
                       >
                         {downloadingReportId === report.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
                         ) : (
                           'Descargar'
                         )}
                       </Button>
                     ) : report.status === 'FALLIDO' ? (
-                      <span className="text-xs text-destructive">
-                        {report.error || 'Error desconocido'}
-                      </span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex items-center text-xs text-destructive">
+                            No se pudo generar el reporte
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-[200px] text-xs">
+                            {report.error || 'Error desconocido al generar el reporte'}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
                     ) : (
-                      <span className="text-xs text-muted-foreground">No disponible</span>
+                      <span className="text-xs text-muted-foreground">
+                        {report.status === 'EN_PROCESO' ? 'En progreso...' : 'Pendiente'}
+                      </span>
                     )}
                   </TableCell>
                 </TableRow>
@@ -286,6 +269,4 @@ const SubjectReportPage = () => {
       </div>
     </div>
   );
-};
-
-export default SubjectReportPage;
+}

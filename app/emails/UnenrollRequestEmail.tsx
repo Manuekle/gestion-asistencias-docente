@@ -38,7 +38,7 @@ const UnenrollRequestEmail = ({
         <Head>
           <Font
             fontFamily="Geist"
-            fallbackFontFamily="Helvetica"
+            fallbackFontFamily="sans-serif"
             webFont={{
               url: 'https://cdn.jsdelivr.net/npm/@vercel/style-guide@6.0.0/fonts/GeistVF.woff2',
               format: 'woff2',

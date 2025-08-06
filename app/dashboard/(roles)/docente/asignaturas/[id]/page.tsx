@@ -1,8 +1,22 @@
 'use client';
 
-import type React from 'react';
-
 import { EventsCard } from '@/components/EventsCard';
+import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import {
+  Ban,
+  Calendar as CalendarIcon,
+  CheckCircle,
+  Clock,
+  Edit,
+  Loader2,
+  MoreHorizontal,
+  UserCheck,
+  UserX,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import React, { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import {
   AlertDialog,
@@ -17,7 +31,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
@@ -33,7 +46,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -61,47 +73,30 @@ import { cn } from '@/lib/utils';
 import type { Class } from '@prisma/client';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import {
-  Ban,
-  CalendarIcon,
-  CheckCircle,
-  Clock,
-  Edit,
-  MoreHorizontal,
-  UserCheck,
-  UserX,
-} from 'lucide-react';
-// Removed unused import
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
 
-// Tipos
-type Student = {
+interface Student {
   id: string;
   name: string | null;
   correoInstitucional: string | null;
   correoPersonal: string | null;
   document?: string | null;
   telefono?: string | null;
-};
+}
 
-type StudentAttendance = {
+interface StudentAttendance {
   id: string;
   name: string | null;
   status: string;
-};
+}
 
-// Se definen tipos locales para asegurar que los campos necesarios estén presentes.
-// Esto soluciona los errores de TypeScript después de modificar el schema.prisma.
-type ClassWithStatus = Class & {
-  status: 'PROGRAMADA' | 'REALIZADA' | 'CANCELADA';
-  cancellationReason?: string | null;
-};
-type ClassStatus = ClassWithStatus['status'];
+type ClassStatus = 'PROGRAMADA' | 'REALIZADA' | 'CANCELADA';
 
-const classStatusMap: Record<ClassStatus, { label: string; color: string }> = {
+interface ClassWithStatus extends Omit<Class, 'cancellationReason'> {
+  status: ClassStatus;
+  cancellationReason: string | null;
+}
+
+const classStatusMap = {
   PROGRAMADA: {
     label: 'Programada',
     color: 'text-xs font-normal',
@@ -114,32 +109,81 @@ const classStatusMap: Record<ClassStatus, { label: string; color: string }> = {
     label: 'Cancelada',
     color: 'text-xs font-normal',
   },
+} as const;
+
+interface GenerateReportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onGenerate: () => Promise<void>;
+  subjectName: string;
+  isLoading: boolean;
+}
+
+const GenerateReportModal = ({
+  isOpen,
+  onClose,
+  onGenerate,
+  subjectName,
+  isLoading,
+}: GenerateReportModalProps) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold tracking-heading">
+            Generar Bitacora Docente
+          </DialogTitle>
+          <DialogDescription>
+            Se generará un reporte de asistencia para la asignatura:
+          </DialogDescription>
+          <div className="mt-2 p-4 border rounded-md">
+            <p className="font-normal text-xs">{subjectName}</p>
+            <p className="text-xs text-muted-foreground/70 mt-2">
+              El reporte se generará en formato PDF y se descargará automáticamente. También
+              recibirás un correo con el enlace de descarga.
+            </p>
+          </div>
+        </DialogHeader>
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+            Cancelar
+          </Button>
+          <Button onClick={onGenerate} disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generando...
+              </>
+            ) : (
+              'Generar Reporte'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
+interface Subject {
+  id: string;
+  name: string;
+  code: string;
+  // Add other subject properties as needed
+}
+
 export default function SubjectDetailPage() {
+  const router = useRouter();
   const params = useParams();
-  const subjectId = params.id as string;
+  const subjectId = Array.isArray(params?.id) ? params.id[0] : params?.id || '';
 
-  // --- STATE MANAGEMENT ---
-
-  // State for Subject
-  const [subjectName, setSubjectName] = useState<string>('');
+  // Subject state
+  const [subject, setSubject] = useState<Subject | null>(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isLoadingSubject, setIsLoadingSubject] = useState(true);
 
-  // State for Classes
-  const [classes, setClasses] = useState<ClassWithStatus[]>([]);
-  const [isLoadingClasses, setIsLoadingClasses] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 1,
-  });
-
+  // Class management state
   const [isEditClassDialogOpen, setIsEditClassDialogOpen] = useState(false);
   const [currentClass, setCurrentClass] = useState<ClassWithStatus | null>(null);
-
   const [classDate, setClassDate] = useState<Date | undefined>(new Date());
   const [startTime, setStartTime] = useState<string>('');
   const [endTime, setEndTime] = useState<string>('');
@@ -147,6 +191,56 @@ export default function SubjectDetailPage() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isStartTimePickerOpen, setIsStartTimePickerOpen] = useState(false);
   const [isEndTimePickerOpen, setIsEndTimePickerOpen] = useState(false);
+
+  // Classes state
+  const [classes, setClasses] = useState<ClassWithStatus[]>([]);
+  const [isLoadingClasses, setIsLoadingClasses] = useState(true);
+
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
+
+  // Other UI state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleGenerateReport = useCallback(async () => {
+    if (!subject) return;
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch(`/api/docente/reportes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subjectId: subject.id,
+          format: 'PDF',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Error al generar el reporte');
+      }
+
+      const data = await response.json();
+
+      toast.success('El reporte se está generando. Recibirás un correo cuando esté listo.');
+      setIsReportModalOpen(false);
+      router.push('/dashboard/docente/reportes');
+    } catch (error) {
+      console.error('Error generating report:', error);
+      toast.error(error instanceof Error ? error.message : 'Error al generar el reporte');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [subject, router]);
+
+  // --- STATE MANAGEMENT ---
 
   // State for Students & Attendance
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
@@ -260,22 +354,47 @@ export default function SubjectDetailPage() {
   const fetchSubject = useCallback(async () => {
     if (!subjectId) {
       console.error('No se proporcionó un ID de asignatura');
-      setSubjectName('Asignatura');
       setIsLoadingSubject(false);
       return;
     }
 
     try {
       setIsLoadingSubject(true);
-      const response = await fetch(`/api/subjects/${subjectId}`);
+      const response = await fetch(`/api/docente/asignaturas/${subjectId}`);
+
       if (!response.ok) {
-        throw new Error('Error al cargar la asignatura');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error al cargar los detalles de la asignatura');
       }
-      const data = await response.json();
-      setSubjectName(data.name);
+
+      const { data } = await response.json();
+
+      if (!data) {
+        throw new Error('No se recibieron datos de la asignatura');
+      }
+
+      // Debug log to check the received data
+      console.log('Subject data received:', data);
+
+      // Set the subject with the correct property names from the API response
+      setSubject({
+        id: data.id,
+        name: data.name || 'Asignatura sin nombre',
+        code: data.code || 'N/A',
+      });
     } catch (error) {
       console.error('Error al cargar la asignatura:', error);
-      setSubjectName('Asignatura');
+      // Set a default subject if there's an error
+      setSubject({
+        id: subjectId,
+        name: 'Asignatura',
+        code: 'N/A',
+      });
+
+      // Show error toast to the user
+      toast.error(
+        error instanceof Error ? error.message : 'No se pudo cargar la información de la asignatura'
+      );
     } finally {
       setIsLoadingSubject(false);
     }
@@ -522,14 +641,23 @@ export default function SubjectDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="pb-4 w-full flex sm:flex-row flex-col items-start gap-4 justify-between ">
+      {/* Report Generation Modal */}
+      <GenerateReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onGenerate={handleGenerateReport}
+        subjectName={subject?.name || 'Cargando asignatura...'}
+        isLoading={isSubmitting}
+      />
+
+      <div className="pb-4 w-full flex sm:flex-row flex-col items-start gap-4 justify-between">
         <div>
           <CardTitle className="text-2xl font-semibold tracking-heading">Mis Clases</CardTitle>
           <CardDescription className="text-xs">Gestiona tus clases y eventos.</CardDescription>
         </div>
-        <Link href={`/dashboard/docente/asignaturas/${subjectId}/reportes`}>
-          <Button variant="outline">Ver Reporte</Button>
-        </Link>
+        <Button variant="outline" onClick={() => setIsReportModalOpen(true)}>
+          Generar Reporte
+        </Button>
       </div>
 
       {/* SECCIÓN DE GESTIÓN DE ESTUDIANTES */}
@@ -1033,7 +1161,7 @@ export default function SubjectDetailPage() {
                       )}
                       type="button"
                     >
-                      <CalendarIcon className="mr-3 h-4 w-4 opacity-50" />
+                      <CalendarIcon className="mr-2 h-4 w-4" />
                       {classDate ? (
                         format(classDate, "EEEE, d 'de' MMMM 'de' yyyy", {
                           locale: es,
@@ -1048,20 +1176,11 @@ export default function SubjectDetailPage() {
                     align="start"
                     onOpenAutoFocus={e => e.preventDefault()}
                   >
-                    <Calendar
-                      mode="single"
-                      selected={classDate}
-                      onSelect={date => {
-                        if (date) {
-                          setClassDate(date);
-                          setIsDatePickerOpen(false);
-                        }
-                      }}
-                      initialFocus
-                      locale={es}
-                      disabled={date => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                      className="rounded-md"
-                    />
+                    <div className="p-4">
+                      <p className="text-sm text-muted-foreground">
+                        La funcionalidad de calendario estará disponible próximamente.
+                      </p>
+                    </div>
                   </PopoverContent>
                 </Popover>
               </div>

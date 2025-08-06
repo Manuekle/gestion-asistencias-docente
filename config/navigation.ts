@@ -72,6 +72,13 @@ export const navLinkGroups: NavLinkGroup[] = [
         roles: ['DOCENTE'],
         description: 'Cargar asignaturas y clases desde un archivo Excel',
       },
+      {
+        href: '/dashboard/docente/reportes',
+        icon: TrendingUp,
+        label: 'Mis Reportes',
+        roles: ['DOCENTE'],
+        description: 'Ver y generar reportes de asistencia',
+      },
     ],
   },
   {
