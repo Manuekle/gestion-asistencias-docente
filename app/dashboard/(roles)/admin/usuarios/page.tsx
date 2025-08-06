@@ -425,10 +425,12 @@ export default function GestionUsuariosPage() {
                         </div>
                       </TableCell>
                       <TableCell className="px-4 py-3">
-                        <Badge variant="outline">{user.role.toLowerCase()}</Badge>
+                        <Badge className="text-xs font-normal" variant="outline">
+                          {user.role.toLowerCase()}
+                        </Badge>
                       </TableCell>
                       <TableCell className="px-4 py-3">
-                        <div className="flex justify-center lowercase">
+                        <div className="flex justify-center lowercase text-xs font-normal">
                           {user.isActive ? (
                             <>
                               <Badge variant="outline">
