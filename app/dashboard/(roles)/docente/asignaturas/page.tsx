@@ -273,7 +273,7 @@ export default function SubjectsPage() {
         </div>
         <div className="justify-end col-span-1 w-full items-center flex">
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger>
+            <SelectTrigger className="text-xs">
               <SelectValue placeholder="Seleccionar período" />
             </SelectTrigger>
             <SelectContent>

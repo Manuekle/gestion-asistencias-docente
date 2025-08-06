@@ -774,7 +774,12 @@ export default function SubjectDetailPage() {
                                   {currentStudentForUnenroll?.name} de la asignatura.
                                 </p>
                                 <div className="space-y-2">
-                                  <Label htmlFor="reason">Motivo de la solicitud</Label>
+                                  <Label
+                                    className="text-xs font-normal text-black dark:text-white"
+                                    htmlFor="reason"
+                                  >
+                                    Motivo de la solicitud
+                                  </Label>
                                   <Input
                                     id="reason"
                                     placeholder="Ingrese el motivo de la solicitud"

@@ -117,7 +117,7 @@ export default function DocenteDashboard() {
         </CardHeader>
         <div className="flex justify-between items-center">
           <div className="flex space-x-2">
-            <Button onClick={() => router.push('/dashboard/docente/asignaturas')}>
+            <Button variant="outline" onClick={() => router.push('/dashboard/docente/asignaturas')}>
               Ver todas las asignaturas
             </Button>
           </div>
