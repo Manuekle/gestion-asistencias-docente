@@ -1,10 +1,10 @@
 import UnenrollRequestEmail from '@/app/emails/UnenrollRequestEmail';
 import { authOptions } from '@/lib/auth';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
 import React from 'react';
-import { sendEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {

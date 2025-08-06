@@ -38,6 +38,9 @@ const getReportHTMLForClassRegistry = (
   const { subject } = data;
   const { teacher, classes } = subject;
 
+  // Validar que el período sea 1 o 2
+  const periodo = subject.semester?.toString() === '2' ? '2' : '1'; // Por defecto 1 si no es 2
+
   const formatTime = (date: Date | null | undefined): string => {
     if (!date) return '';
     return new Date(date).toLocaleTimeString('es-CO', {
@@ -53,7 +56,11 @@ const getReportHTMLForClassRegistry = (
     return Math.round(diff / (1000 * 60 * 60));
   };
 
-  const classRows = classes
+  // Separar clases normales de canceladas
+  const normalClasses = classes.filter(cls => cls.status !== 'CANCELADA');
+  const canceledClasses = classes.filter(cls => cls.status === 'CANCELADA');
+
+  const classRows = normalClasses
     .map(
       (cls, index) => `
     <tr>
@@ -63,6 +70,24 @@ const getReportHTMLForClassRegistry = (
       <td>${formatTime(cls.startTime)}</td>
       <td>${formatTime(cls.endTime)}</td>
       <td class="tema">${cls.topic || ''}</td>
+      <td>${calculateHours(cls.startTime, cls.endTime)}</td>
+      <td class="signature-cell">${signatureDataUri ? `<img src="${signatureDataUri}" alt="Firma" class="signature-image"/>` : ''}</td>
+    </tr>
+  `
+    )
+    .join('');
+
+  // Crear filas para las clases canceladas
+  const canceledClassRows = canceledClasses
+    .map(
+      (cls, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${new Date(cls.date).getDate()}</td>
+      <td>${new Date(cls.date).getMonth() + 1}</td>
+      <td>${formatTime(cls.startTime)}</td>
+      <td>${formatTime(cls.endTime)}</td>
+      <td class="tema">${cls.cancellationReason || (cls.description?.includes('cancelada') ? cls.description : 'Clase cancelada')}</td>
       <td>${calculateHours(cls.startTime, cls.endTime)}</td>
       <td class="signature-cell">${signatureDataUri ? `<img src="${signatureDataUri}" alt="Firma" class="signature-image"/>` : ''}</td>
     </tr>
@@ -200,7 +225,7 @@ const getReportHTMLForClassRegistry = (
           <p><span class="bold">PROGRAMA:</span> ${subject.program || ''}</p>
           <p><span class="bold">ASIGNATURA:</span> ${subject.name || ''}</p>
           <p><span class="bold">AÑO:</span> ${currentYear}</p>
-          <p><span class="bold">PERIODO:</span> ${subject.semester || '1'}</p>
+          <p><span class="bold">PERIODO:</span> ${periodo}</p>
         </div>
 
         <table class="main-table">
@@ -219,6 +244,30 @@ const getReportHTMLForClassRegistry = (
           </thead>
           <tbody>${classRows}</tbody>
         </table>
+
+        ${
+          canceledClasses.length > 0
+            ? `
+        <h3 style="margin-top: 30px; color: #000;">CLASES CANCELADAS</h3>
+        <table class="main-table">
+          <thead>
+            <tr>
+              <th rowspan="2">No.</th>
+              <th colspan="2">FECHA</th>
+              <th colspan="2">HORA</th>
+              <th rowspan="2" class="tema">RAZÓN DE CANCELACIÓN</th>
+              <th rowspan="2">HORAS</th>
+              <th rowspan="2">FIRMA DOCENTE</th>
+            </tr>
+            <tr>
+              <th>DD</th><th>MM</th><th>INICIO</th><th>FINAL</th>
+            </tr>
+          </thead>
+          <tbody>${canceledClassRows}</tbody>
+        </table>
+        `
+            : ''
+        }
       </body>
     </html>
   `;
@@ -368,7 +417,16 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
         console.log(`Notificación enviada a: ${reportWithDetails.requestedBy.correoPersonal}`);
       } catch (emailError) {
         console.error('Error enviando notificación por correo:', emailError);
-        // Don't fail the whole process if email fails
+        // Update the report with a warning about the email failure
+        await db.report.update({
+          where: { id: reportId },
+          data: {
+            status: 'COMPLETADO',
+            error:
+              'El reporte se generó correctamente, pero hubo un error al enviar la notificación por correo.',
+          },
+        });
+        return; // Exit early since the report was generated successfully
       }
     }
   } catch (error) {

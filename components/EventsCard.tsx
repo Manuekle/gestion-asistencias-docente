@@ -214,7 +214,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
     <>
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center flex-wrap gap-2">
             <div>
               <CardTitle className="text-xl font-semibold tracking-heading font-sans">
                 Eventos Especiales
@@ -240,26 +240,32 @@ export function EventsCard({ subjectId }: EventsCardProps) {
                 </DialogHeader>
                 <form onSubmit={handleCreateEvent} className="space-y-4 font-sans">
                   <div className="space-y-2">
-                    <Label htmlFor="event-title">Título</Label>
+                    <Label className="text-xs" htmlFor="event-title">
+                      Título
+                    </Label>
                     <Input
                       id="event-title"
                       value={eventTitle}
+                      placeholder="Título del evento"
                       className="text-xs"
                       onChange={e => setEventTitle(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="event-desc">Descripción (Opcional)</Label>
+                    <Label className="text-xs" htmlFor="event-desc">
+                      Descripción (Opcional)
+                    </Label>
                     <Textarea
                       id="event-desc"
                       value={eventDescription}
+                      placeholder="Descripción del evento"
                       className="resize-none text-xs"
                       onChange={e => setEventDescription(e.target.value)}
                     />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col sm:flex-row w-full gap-4">
                     <div className="space-y-2">
-                      <Label>Fecha</Label>
+                      <Label className="text-xs">Fecha</Label>
                       <Popover open={isEventDatePickerOpen} onOpenChange={setIsEventDatePickerOpen}>
                         <PopoverTrigger asChild>
                           <Button
@@ -289,7 +295,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
                       </Popover>
                     </div>
                     <div className="space-y-2">
-                      <Label>Tipo de Evento</Label>
+                      <Label className="text-xs">Tipo de Evento</Label>
                       <Select
                         value={eventType}
                         onValueChange={value => setEventType(value as EventType)}

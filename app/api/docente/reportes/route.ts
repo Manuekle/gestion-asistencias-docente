@@ -62,11 +62,22 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { subjectId, format } = createReportSchema.parse(body);
 
-    // Verify the subject belongs to the teacher
+    // Verify the subject belongs to the teacher and get its current period
     const subject = await db.subject.findFirst({
       where: {
         id: subjectId,
         teacherId: session.user.id,
+      },
+      include: {
+        classes: {
+          select: {
+            date: true,
+          },
+          orderBy: {
+            date: 'desc',
+          },
+          take: 1,
+        },
       },
     });
 
@@ -77,6 +88,28 @@ export async function POST(request: Request) {
       );
     }
 
+    // Determine the current period (1: Jan-Jun, 2: Jul-Dec)
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; // 1-12
+    const currentPeriod = currentMonth <= 6 ? 1 : 2; // 1 or 2
+    const currentYear = currentDate.getFullYear();
+
+    // Check if a report already exists for this subject and period
+    const existingReport = await db.report.findFirst({
+      where: {
+        subjectId,
+        period: currentPeriod,
+        year: currentYear,
+      },
+    });
+
+    if (existingReport) {
+      return NextResponse.json(
+        { error: 'Ya se ha generado un reporte para este período' },
+        { status: 400 }
+      );
+    }
+
     // Create the report record in the database
     const newReport = await db.report.create({
       data: {
@@ -84,6 +117,8 @@ export async function POST(request: Request) {
         requestedById: session.user.id,
         status: 'PENDIENTE',
         format,
+        period: currentPeriod,
+        year: currentYear,
       },
       include: {
         subject: {

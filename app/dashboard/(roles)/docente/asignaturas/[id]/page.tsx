@@ -195,6 +195,8 @@ export default function SubjectDetailPage() {
   // Classes state
   const [classes, setClasses] = useState<ClassWithStatus[]>([]);
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
+  const [hasScheduledClasses, setHasScheduledClasses] = useState(false);
+  const [reportExistsForCurrentPeriod, setReportExistsForCurrentPeriod] = useState(false);
 
   // Pagination state
   const [pagination, setPagination] = useState({
@@ -209,6 +211,18 @@ export default function SubjectDetailPage() {
 
   const handleGenerateReport = useCallback(async () => {
     if (!subject) return;
+
+    if (hasScheduledClasses) {
+      toast.error('No se puede generar el reporte porque hay clases programadas pendientes');
+      return;
+    }
+
+    if (reportExistsForCurrentPeriod) {
+      console.log('Reporte ya generado para el período actual');
+      toast.error('Este reporte ya ha sido generado para el período actual');
+      setIsReportModalOpen(false);
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -231,6 +245,7 @@ export default function SubjectDetailPage() {
 
       toast.success('El reporte se está generando. Recibirás un correo cuando esté listo.');
       setIsReportModalOpen(false);
+      setReportExistsForCurrentPeriod(true);
       router.push('/dashboard/docente/reportes');
     } catch (error) {
       console.error('Error generating report:', error);
@@ -238,7 +253,7 @@ export default function SubjectDetailPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [subject, router]);
+  }, [subject, router, hasScheduledClasses, reportExistsForCurrentPeriod]);
 
   // --- STATE MANAGEMENT ---
 
@@ -305,6 +320,34 @@ export default function SubjectDetailPage() {
   };
 
   // --- DATA FETCHING ---
+  // Function to check if a report exists for the current period
+  const checkReportExistsForPeriod = useCallback(
+    async (period: number) => {
+      if (!subjectId) return false;
+
+      try {
+        const response = await fetch(
+          `/api/docente/reportes?subjectId=${subjectId}&period=${period}`
+        );
+        if (!response.ok) {
+          throw new Error('Error al verificar reportes existentes');
+        }
+        const { exists } = await response.json();
+        return exists;
+      } catch (error) {
+        console.error('Error checking existing reports:', error);
+        return false;
+      }
+    },
+    [subjectId]
+  );
+
+  // Function to determine the current period (1 or 2) based on current date
+  const getCurrentPeriod = useCallback(() => {
+    const currentMonth = new Date().getMonth() + 1; // 1-12
+    return currentMonth <= 6 ? 1 : 2; // Jan-Jun: Period 1, Jul-Dec: Period 2
+  }, []);
+
   const fetchClasses = useCallback(
     async (page: number, limit: number) => {
       if (!subjectId) return;
@@ -320,6 +363,11 @@ export default function SubjectDetailPage() {
         }
 
         const { data, pagination: paginationData } = await response.json();
+
+        // Check if any class is in PROGRAMADA status
+        const hasScheduled = data.some((cls: ClassWithStatus) => cls.status === 'PROGRAMADA');
+        setHasScheduledClasses(hasScheduled);
+
         setClasses(data);
         setPagination(prev => ({
           ...prev,
@@ -328,6 +376,11 @@ export default function SubjectDetailPage() {
           total: paginationData.total,
           totalPages: paginationData.totalPages,
         }));
+
+        // Check if a report already exists for the current period
+        const currentPeriod = getCurrentPeriod();
+        const reportExists = await checkReportExistsForPeriod(currentPeriod);
+        setReportExistsForCurrentPeriod(reportExists);
       } catch (error) {
         console.error('Error fetching classes:', error);
         toast.error('Error al cargar las clases');
@@ -335,7 +388,7 @@ export default function SubjectDetailPage() {
         setIsLoadingClasses(false);
       }
     },
-    [subjectId]
+    [subjectId, checkReportExistsForPeriod, getCurrentPeriod]
   );
 
   // Pagination handlers
@@ -615,27 +668,37 @@ export default function SubjectDetailPage() {
 
   // --- MANEJADORES DE MATRÍCULA ---
 
-  const handleUnenrollRequest = async (studentId: string) => {
+  const handleUnenrollRequest = async (studentId: string, reason: string) => {
     if (!subjectId) return;
 
     try {
-      const response = await fetch(
-        `/api/docente/asignaturas/${subjectId}/estudiantes/${studentId}`,
-        {
-          method: 'DELETE',
-        }
-      );
+      const response = await fetch('/api/docente/solicitudes/desmatricula', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subjectId,
+          studentId,
+          reason,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Error al eliminar al estudiante');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error al enviar la solicitud de desmatriculación');
       }
 
       // Refresh the students list
       fetchEnrolledStudents();
-      toast.success('Estudiante eliminado correctamente');
+      toast.success('Solicitud de desmatriculación enviada correctamente');
+      setUnenrollReason('');
+      setCurrentStudentForUnenroll(null);
     } catch (error) {
-      console.error('Error al eliminar estudiante:', error);
-      toast.error('Error al eliminar al estudiante');
+      console.error('Error al enviar solicitud de desmatriculación:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Error al enviar la solicitud de desmatriculación'
+      );
     }
   };
 
@@ -655,8 +718,22 @@ export default function SubjectDetailPage() {
           <CardTitle className="text-2xl font-semibold tracking-heading">Mis Clases</CardTitle>
           <CardDescription className="text-xs">Gestiona tus clases y eventos.</CardDescription>
         </div>
-        <Button variant="outline" onClick={() => setIsReportModalOpen(true)}>
-          Generar Reporte
+        <Button
+          variant="outline"
+          onClick={() => setIsReportModalOpen(true)}
+          disabled={hasScheduledClasses || reportExistsForCurrentPeriod}
+          title={
+            hasScheduledClasses
+              ? 'No se puede generar el reporte porque hay clases programadas pendientes'
+              : reportExistsForCurrentPeriod
+                ? 'Ya se ha generado un reporte para este período'
+                : 'Generar reporte de asistencia'
+          }
+        >
+          {reportExistsForCurrentPeriod ? 'Reporte Generado' : 'Generar Reporte'}
+          {hasScheduledClasses && (
+            <span className="ml-2 text-xs text-yellow-500">(Clases pendientes)</span>
+          )}
         </Button>
       </div>
 
@@ -803,8 +880,15 @@ export default function SubjectDetailPage() {
                               </AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={async () => {
-                                  if (currentStudentForUnenroll) {
-                                    await handleUnenrollRequest(currentStudentForUnenroll.id);
+                                  if (currentStudentForUnenroll && unenrollReason.trim()) {
+                                    await handleUnenrollRequest(
+                                      currentStudentForUnenroll.id,
+                                      unenrollReason
+                                    );
+                                  } else {
+                                    toast.error(
+                                      'Por favor ingrese un motivo para la desmatriculación'
+                                    );
                                   }
                                 }}
                                 className="bg-amber-600 text-white hover:bg-amber-700 font-sans"

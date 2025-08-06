@@ -153,6 +153,8 @@ model Report {
   requestedById String       @db.ObjectId
   status        ReportStatus @default(PENDIENTE)
   format        ReportFormat @default(PDF)
+  period        Int          @default(1) // 1: Jan-Jun, 2: Jul-Dec
+  year          Int          @default(2023) // Year of the report
   fileUrl       String?
   fileName      String?
   error         String?

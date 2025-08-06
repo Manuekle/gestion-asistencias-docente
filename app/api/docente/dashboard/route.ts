@@ -1,12 +1,13 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { NextResponse } from 'next/server';
 
 interface Class {
   id: string;
   date: Date;
   topic: string | null;
+  status: string;
 }
 
 interface Subject {
@@ -31,9 +32,6 @@ export async function GET() {
       },
       include: {
         classes: {
-          where: {
-            status: 'PROGRAMADA',
-          },
           select: {
             id: true,
             date: true,
@@ -53,15 +51,20 @@ export async function GET() {
     sevenDaysFromNow.setDate(now.getDate() + 7);
 
     const processedSubjects = subjects.map((subject: Subject) => {
-      const completedClasses = subject.classes.filter(cls => new Date(cls.date) < now).length;
+      const totalClasses = subject.classes.length;
+      const completedClasses = subject.classes.filter(
+        cls => cls.status === 'REALIZADA' || cls.status === 'CANCELADA'
+      ).length;
 
-      const upcomingClass = subject.classes.find(cls => new Date(cls.date) >= now);
+      const upcomingClass = subject.classes.find(
+        cls => cls.status === 'PROGRAMADA' && new Date(cls.date) >= now
+      );
 
       return {
         id: subject.id,
         name: subject.name,
         code: subject.code,
-        totalClasses: subject.classes.length,
+        totalClasses,
         completedClasses,
         nextClass: upcomingClass
           ? {
