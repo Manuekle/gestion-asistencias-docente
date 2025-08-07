@@ -162,7 +162,8 @@ export default function ProfilePage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch('/api/users', {
+      console.log('Sending update with phone:', telefono); // Log the phone being sent
+      const response = await fetch(`/api/users?id=${session?.user?.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -180,13 +181,21 @@ export default function ProfilePage() {
         throw new Error(error.message || 'Error al actualizar el perfil');
       }
 
+      // Get the updated user data from the response
+      const result = await response.json();
+      console.log('API Response:', result); // Log the full response
+
+      if (!result.data) {
+        throw new Error('No se recibieron datos actualizados del servidor');
+      }
+
+      const updatedUser = result.data;
+      console.log('Updating session with:', updatedUser); // Log the data being used to update the session
+
+      // Update the session with all the updated fields
       await update({
-        name,
-        correoPersonal,
-        correoInstitucional,
-        telefono,
-        codigoEstudiantil: session?.user?.role === 'ESTUDIANTE' ? codigoEstudiantil : undefined,
-        codigoDocente: session?.user?.role !== 'ESTUDIANTE' ? codigoDocente : undefined,
+        ...session?.user, // Keep existing session data
+        ...updatedUser, // Override with updated fields
       });
       toast.success('Perfil actualizado correctamente');
     } catch (error: unknown) {
@@ -367,11 +376,11 @@ export default function ProfilePage() {
                         type="tel"
                         value={telefono}
                         onChange={e => setTelefono(e.target.value)}
-                        placeholder="+51 999 999 999"
+                        placeholder="+57 312 312 312"
                         className="text-xs"
                       />
                     </div>
-                    {session?.user?.role === 'ESTUDIANTE' ? (
+                    {session?.user?.role === 'ESTUDIANTE' && (
                       <div className="space-y-2">
                         <Label htmlFor="codigoEstudiantil">Código Estudiantil</Label>
                         <Input
@@ -382,7 +391,8 @@ export default function ProfilePage() {
                           className="text-xs"
                         />
                       </div>
-                    ) : (
+                    )}
+                    {session?.user?.role === 'DOCENTE' && (
                       <div className="space-y-2">
                         <Label htmlFor="codigoDocente">Código Docente</Label>
                         <Input

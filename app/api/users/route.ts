@@ -203,7 +203,15 @@ export async function POST(req: NextRequest) {
 // Maneja las peticiones PUT para actualizar un usuario existente
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (session?.user?.role !== Role.ADMIN) {
+  if (!session?.user) {
+    return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get('id') || session.user.id; // Use session user ID if no ID provided
+
+  // Only allow admins to update other users' profiles
+  if (userId !== session.user.id && session.user.role !== Role.ADMIN) {
     return NextResponse.json({ message: 'No autorizado' }, { status: 403 });
   }
   try {
@@ -218,6 +226,7 @@ export async function PUT(req: NextRequest) {
       name?: string;
       correoInstitucional?: string;
       correoPersonal?: string | null;
+      telefono?: string | null;
       role?: Role;
       password?: string;
     } = {};
@@ -225,6 +234,7 @@ export async function PUT(req: NextRequest) {
     if (data.name) updateData.name = data.name;
     if (data.correoInstitucional) updateData.correoInstitucional = data.correoInstitucional;
     if (data.correoPersonal !== undefined) updateData.correoPersonal = data.correoPersonal;
+    if (data.telefono !== undefined) updateData.telefono = data.telefono;
     if (data.role) updateData.role = data.role;
     if (data.password) {
       updateData.password = await bcrypt.hash(data.password, 10);
