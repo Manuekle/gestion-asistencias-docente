@@ -514,7 +514,7 @@ export default function UploadSubjectsPage() {
                                 ) : (
                                   <Badge
                                     variant="outline"
-                                    className="text-xs font-normal text-green-600 border-green-300"
+                                    className="text-xs font-normal text-green-600"
                                   >
                                     Listo para cargar
                                   </Badge>
