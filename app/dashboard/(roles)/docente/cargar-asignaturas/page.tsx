@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -24,10 +25,16 @@ import {
 } from '@/components/ui/table';
 // Icons from lucide-react
 import { DatePicker } from '@/components/ui/date-picker';
-import { TimePicker } from '@/components/ui/time-picker';
-import { CheckCircle, ChevronDown, Download, Loader2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CheckCircle, ChevronDown, Clock, Download, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+
+declare module 'react' {
+  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+    onOpenAutoFocus?: (e: React.FocusEvent) => void;
+  }
+}
 
 // Interface for the raw data from the API/Excel file
 interface RawApiPreviewItem {
@@ -92,6 +99,10 @@ export default function UploadSubjectsPage() {
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<EditableClass | null>(null);
+  const [isStartTimePickerOpen, setIsStartTimePickerOpen] = useState(false);
+  const [isEndTimePickerOpen, setIsEndTimePickerOpen] = useState(false);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
 
   const handleFileSelect = (selectedFile: File | null) => {
     setFile(selectedFile);
@@ -249,16 +260,18 @@ export default function UploadSubjectsPage() {
     });
   };
 
-  const handleEditClick = (subject: PreviewItem, classItem: ClassDataItem) => {
+  const handleEditClick = (subject: PreviewItem, cls: ClassDataItem) => {
+    setStartTime(cls.horaInicio);
+    setEndTime(cls.horaFin);
     setEditingClass({
       subjectCodigo: subject.codigoAsignatura,
       subjectName: subject.nombreAsignatura,
-      classId: String(classItem.id),
-      fechaClase: classItem.fechaClase,
-      horaInicio: classItem.horaInicio,
-      horaFin: classItem.horaFin,
-      temaClase: classItem.temaClase,
-      descripcionClase: classItem.descripcionClase,
+      classId: cls.id.toString(),
+      fechaClase: cls.fechaClase,
+      horaInicio: cls.horaInicio,
+      horaFin: cls.horaFin,
+      temaClase: cls.temaClase,
+      descripcionClase: cls.descripcionClase,
     });
     setIsEditDialogOpen(true);
   };
@@ -266,27 +279,36 @@ export default function UploadSubjectsPage() {
   const handleSaveClass = () => {
     if (!editingClass) return;
 
-    const updatedPreviewData = previewData.map(subject => {
-      if (subject.codigoAsignatura === editingClass.subjectCodigo) {
-        const updatedClasses = subject.classes.map(classItem => {
-          if (String(classItem.id) === editingClass.classId) {
-            return {
-              ...classItem,
-              fechaClase: editingClass.fechaClase,
-              horaInicio: editingClass.horaInicio,
-              horaFin: editingClass.horaFin,
-              temaClase: editingClass.temaClase,
-              descripcionClase: editingClass.descripcionClase,
-            };
-          }
-          return classItem;
-        });
-        return { ...subject, classes: updatedClasses };
-      }
-      return subject;
-    });
+    // Update the editing class with the selected times
+    const updatedClass = {
+      ...editingClass,
+      horaInicio: startTime,
+      horaFin: endTime,
+    };
 
-    setPreviewData(updatedPreviewData);
+    // Update the preview data with the edited class
+    setPreviewData(prevData =>
+      prevData.map(subject => {
+        if (subject.codigoAsignatura !== updatedClass.subjectCodigo) return subject;
+
+        return {
+          ...subject,
+          classes: subject.classes.map(cls => {
+            if (cls.id.toString() !== updatedClass.classId) return cls;
+
+            return {
+              ...cls,
+              fechaClase: updatedClass.fechaClase,
+              horaInicio: updatedClass.horaInicio,
+              horaFin: updatedClass.horaFin,
+              temaClase: updatedClass.temaClase,
+              descripcionClase: updatedClass.descripcionClase,
+            };
+          }),
+        };
+      })
+    );
+
     setIsEditDialogOpen(false);
     setEditingClass(null);
     toast.success('Clase actualizada correctamente.');
@@ -576,7 +598,7 @@ export default function UploadSubjectsPage() {
       {/* Edit Dialog */}
       {editingClass && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle className="font-sans text-xl font-semibold tracking-tight">
                 Editar Clase
@@ -589,65 +611,210 @@ export default function UploadSubjectsPage() {
                 .
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="fechaClase" className="text-right">
-                  Fecha
-                </Label>
+            <div className="space-y-6 py-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-normal">Fecha</Label>
                 <DatePicker
                   value={editingClass.fechaClase ? new Date(editingClass.fechaClase) : undefined}
                   onChange={date => handleEditingClassChange('fechaClase', date)}
-                  className="col-span-3 text-xs "
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="horaInicio" className="text-right">
-                  Hora Inicio
-                </Label>
-                <TimePicker
-                  value={editingClass.horaInicio}
-                  onChange={time => handleEditingClassChange('horaInicio', time)}
-                  className="col-span-3 text-xs"
-                />
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Hora de Inicio */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-normal">Hora de inicio</Label>
+                    <Popover open={isStartTimePickerOpen} onOpenChange={setIsStartTimePickerOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal text-xs"
+                          type="button"
+                        >
+                          <Clock className="mr-2 h-4 w-4 opacity-50" />
+                          {startTime
+                            ? (() => {
+                                const hour = Number.parseInt(startTime.split(':')[0]);
+                                const period = hour >= 12 ? 'PM' : 'AM';
+                                const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                                return `${displayHour}:00 ${period}`;
+                              })()
+                            : 'Seleccionar'}
+                          {!startTime && <span className="text-muted-foreground">Requerido</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-48 p-0"
+                        align="start"
+                        onOpenAutoFocus={(e: Event) => e.preventDefault()}
+                      >
+                        <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 p-2">
+                          {Array.from({ length: 16 }, (_, i) => {
+                            const hour = i + 7; // 7AM a 10PM
+                            const time24 = `${hour.toString().padStart(2, '0')}:00`;
+                            const period = hour >= 12 ? 'PM' : 'AM';
+                            const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                            const timeDisplay = `${displayHour}:00 ${period}`;
+
+                            return (
+                              <Button
+                                key={time24}
+                                variant="ghost"
+                                className="font-sans w-full justify-center text-center h-9 px-3 text-xs hover:bg-accent rounded-sm"
+                                onClick={() => {
+                                  setStartTime(time24);
+                                  setIsStartTimePickerOpen(false);
+                                  // Auto-ajustar hora de fin si es necesaria
+                                  const startHour = Number.parseInt(time24.split(':')[0]);
+                                  const endHour = Math.min(startHour + 2, 22); // Mínimo 2 horas, máximo 10PM
+                                  const newEndTime = `${endHour.toString().padStart(2, '0')}:00`;
+                                  if (
+                                    !endTime ||
+                                    endTime <= time24 ||
+                                    Number.parseInt(endTime.split(':')[0]) - startHour < 2
+                                  ) {
+                                    setEndTime(newEndTime);
+                                  }
+                                }}
+                                type="button"
+                              >
+                                {timeDisplay}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Hora de Fin */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-normal">Hora de fin</Label>
+                    <Popover open={isEndTimePickerOpen} onOpenChange={setIsEndTimePickerOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal text-xs"
+                          type="button"
+                          disabled={!startTime}
+                        >
+                          <Clock className="mr-2 h-4 w-4 opacity-50" />
+                          {endTime
+                            ? (() => {
+                                const hour = Number.parseInt(endTime.split(':')[0]);
+                                const period = hour >= 12 ? 'PM' : 'AM';
+                                const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                                return `${displayHour}:00 ${period}`;
+                              })()
+                            : 'Seleccionar'}
+                          {!endTime && startTime && (
+                            <span className="text-muted-foreground ml-2">Requerido</span>
+                          )}
+                          {!startTime && (
+                            <span className="text-muted-foreground ml-2">
+                              Seleccione hora de inicio primero
+                            </span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-48 p-0"
+                        align="start"
+                        onOpenAutoFocus={(e: Event) => e.preventDefault()}
+                      >
+                        <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 p-2">
+                          {startTime &&
+                            Array.from({ length: 16 }, (_, i) => {
+                              const hour = i + 7; // 7AM a 10PM
+                              const time24 = `${hour.toString().padStart(2, '0')}:00`;
+                              const period = hour >= 12 ? 'PM' : 'AM';
+                              const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                              const timeDisplay = `${displayHour}:00 ${period}`;
+                              const startHour = Number.parseInt(startTime.split(':')[0]);
+                              const currentHour = Number.parseInt(time24.split(':')[0]);
+
+                              // Solo mostrar horas que sean al menos 2 horas después del inicio
+                              if (currentHour < startHour + 2) return null;
+
+                              return (
+                                <Button
+                                  key={time24}
+                                  variant="ghost"
+                                  className="font-sans w-full justify-center text-center h-9 px-3 text-xs hover:bg-accent rounded-sm"
+                                  onClick={() => {
+                                    setEndTime(time24);
+                                    setIsEndTimePickerOpen(false);
+                                  }}
+                                  type="button"
+                                >
+                                  {timeDisplay}
+                                </Button>
+                              );
+                            }).filter(Boolean)}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+
+                {/* Indicador de Duración */}
+                {startTime && endTime && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
+                    <Clock className="h-4 w-4" />
+                    <span>
+                      Duración:{' '}
+                      {(() => {
+                        const start = Number.parseInt(startTime.split(':')[0]);
+                        const end = Number.parseInt(endTime.split(':')[0]);
+                        const duration = end - start;
+                        return `${duration} ${duration === 1 ? 'hora' : 'horas'}`;
+                      })()}
+                    </span>
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="horaFin" className="text-right">
-                  Hora Fin
-                </Label>
-                <TimePicker
-                  value={editingClass.horaFin}
-                  onChange={time => handleEditingClassChange('horaFin', time)}
-                  className="col-span-3 text-xs"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="temaClase" className="text-right">
-                  Tema
+
+              <div className="space-y-2">
+                <Label htmlFor="topic-edit" className="text-xs font-normal">
+                  Tema de la Clase
                 </Label>
                 <Input
-                  id="temaClase"
+                  id="topic-edit"
                   value={editingClass.temaClase}
                   onChange={e => handleEditingClassChange('temaClase', e.target.value)}
-                  className="col-span-3 text-xs"
+                  className="text-xs"
+                  placeholder="Ej: Introducción a las Derivadas"
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="descripcionClase" className="text-right">
+              <div className="space-y-2">
+                <Label htmlFor="descripcionClase" className="text-xs font-normal">
                   Descripción
                 </Label>
                 <Input
                   id="descripcionClase"
                   value={editingClass.descripcionClase}
                   onChange={e => handleEditingClassChange('descripcionClase', e.target.value)}
-                  className="col-span-3 text-xs"
+                  className="text-xs"
+                  placeholder="Ej: Introducción a las Derivadas"
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancelar
+            <DialogFooter className="gap-2">
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  Cancelar
+                </Button>
+              </DialogClose>
+              <Button
+                className="min-w-[120px]"
+                disabled={
+                  !editingClass.fechaClase || !startTime || !endTime || startTime >= endTime
+                }
+                onClick={handleSaveClass}
+              >
+                Guardar Cambios
               </Button>
-              <Button onClick={handleSaveClass}>Guardar Cambios</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

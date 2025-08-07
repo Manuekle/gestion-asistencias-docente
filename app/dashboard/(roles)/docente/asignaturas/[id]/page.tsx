@@ -188,6 +188,7 @@ export default function SubjectDetailPage() {
   const [startTime, setStartTime] = useState<string>('');
   const [endTime, setEndTime] = useState<string>('');
   const [classTopic, setClassTopic] = useState('');
+  const [classDescription, setClassDescription] = useState('');
 
   const [isStartTimePickerOpen, setIsStartTimePickerOpen] = useState(false);
   const [isEndTimePickerOpen, setIsEndTimePickerOpen] = useState(false);
@@ -1285,7 +1286,7 @@ export default function SubjectDetailPage() {
             <DialogTitle className="text-foreground font-semibold text-xl tracking-tight">
               Editar Clase
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-sm">
+            <DialogDescription className="text-muted-foreground text-xs">
               Modifica los detalles de la clase. Haz clic en Guardar Cambios cuando hayas terminado.
             </DialogDescription>
           </DialogHeader>
@@ -1304,16 +1305,15 @@ export default function SubjectDetailPage() {
 
               {/* Selector de Horario */}
               <div className="space-y-4">
-                <Label className="text-xs font-normal">Horario de Clase</Label>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Hora de Inicio */}
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Hora de inicio</Label>
+                    <Label className="text-xs text-normal">Hora de inicio</Label>
                     <Popover open={isStartTimePickerOpen} onOpenChange={setIsStartTimePickerOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full justify-start text-left font-normal h-11 text-xs"
+                          className="w-full justify-start text-left font-normal text-xs"
                           type="button"
                         >
                           <Clock className="mr-2 h-4 w-4 opacity-50" />
@@ -1374,12 +1374,12 @@ export default function SubjectDetailPage() {
 
                   {/* Hora de Fin */}
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Hora de fin</Label>
+                    <Label className="text-xs text-normal">Hora de fin</Label>
                     <Popover open={isEndTimePickerOpen} onOpenChange={setIsEndTimePickerOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full justify-start text-left font-normal h-11 text-xs"
+                          className="w-full justify-start text-left font-normal text-xs"
                           type="button"
                           disabled={!startTime}
                         >
@@ -1468,7 +1468,20 @@ export default function SubjectDetailPage() {
                   id="topic-edit"
                   value={classTopic}
                   onChange={e => setClassTopic(e.target.value)}
-                  className="h-11 text-xs"
+                  className="text-xs"
+                  placeholder="Ej: Introducción a las Derivadas"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="descripcionClase" className="text-xs font-normal">
+                  Descripción
+                </Label>
+                <Input
+                  id="descripcionClase"
+                  value={classDescription}
+                  onChange={e => setClassDescription(e.target.value)}
+                  className="text-xs"
                   placeholder="Ej: Introducción a las Derivadas"
                 />
               </div>
@@ -1476,7 +1489,7 @@ export default function SubjectDetailPage() {
 
             <DialogFooter className="gap-2">
               <DialogClose asChild>
-                <Button type="button" variant="secondary">
+                <Button type="button" variant="outline">
                   Cancelar
                 </Button>
               </DialogClose>

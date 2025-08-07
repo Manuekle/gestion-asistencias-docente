@@ -228,7 +228,7 @@ export const FileUploadDropZone = ({
               Click para subir <span className="md:hidden">y adjuntar archivos</span>
             </Button>
           </label>
-          <span className="text-sm text-muted-foreground max-md:hidden">o arrastrar y soltar</span>
+          <span className="text-xs text-muted-foreground max-md:hidden">o arrastrar y soltar</span>
         </div>
         <p
           className={cn(
