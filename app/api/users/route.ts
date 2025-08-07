@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
       where: {
         OR: [
           { correoInstitucional: data.correoInstitucional },
-          { correoPersonal: data.correoInstitucional },
+          { correoPersonal: data.correoPersonal },
         ],
       },
     });
@@ -203,17 +203,37 @@ export async function POST(req: NextRequest) {
 // Maneja las peticiones PUT para actualizar un usuario existente
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions);
+
   if (!session?.user) {
     return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
   }
 
   try {
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('id') || session.user.id; // Use session user ID if no ID provided
+    const userId = searchParams.get('id');
 
-    // Only allow admins to update other users' profiles
-    if (userId !== session.user.id && session.user.role !== Role.ADMIN) {
-      return NextResponse.json({ message: 'No autorizado' }, { status: 403 });
+    // If no ID is provided, use the session user's ID
+    const targetUserId = userId || session.user.id;
+
+    // Convert both IDs to strings for reliable comparison
+    const sessionUserId = String(session.user.id);
+    const targetUserIdStr = String(targetUserId);
+
+    // Allow users to update their own profile or admins to update any profile
+    const isAdmin = session.user.role === 'ADMIN' || session.user.role === 'COORDINADOR';
+    const isUpdatingOwnProfile = sessionUserId === targetUserIdStr;
+
+    if (!isUpdatingOwnProfile && !isAdmin) {
+      return NextResponse.json(
+        {
+          message: 'No autorizado para actualizar este perfil',
+          sessionUserId,
+          targetUserId: targetUserIdStr,
+          role: session.user.role,
+          isAdmin,
+        },
+        { status: 403 }
+      );
     }
     const body = await req.json();
     const data = UserUpdateSchema.parse({ ...body, id: userId });

@@ -1,6 +1,6 @@
+import { Role } from '@prisma/client';
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
-import { Role } from '@prisma/client';
 
 export default withAuth(
   function middleware(req) {
@@ -42,7 +42,8 @@ export default withAuth(
       if (
         pathname.startsWith('/api/users') &&
         userRole !== Role.ADMIN &&
-        userRole !== Role.DOCENTE
+        userRole !== Role.DOCENTE &&
+        userRole !== Role.ESTUDIANTE
       ) {
         return unauthorizedResponse;
       }

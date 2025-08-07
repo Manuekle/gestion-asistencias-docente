@@ -190,7 +190,7 @@ export default function CargarUsuariosPage() {
         </div>
         {/* card */}
         <div className="lg:col-span-2">
-          <Card className="min-h-[400px]">
+          <Card className="min-h-[400px] sm:h-[calc(75vh-9rem)]">
             <CardHeader>
               <CardTitle className="text-xl font-semibold tracking-heading">
                 Previsualización y Confirmación
@@ -200,13 +200,13 @@ export default function CargarUsuariosPage() {
                 procesadas.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col justify-center h-full">
               {isLoading && !isPreview ? (
                 <div className="flex items-center justify-center h-64">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                  <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
                 </div>
               ) : isPreview && previewData.length > 0 ? (
-                <>
+                <div className="flex flex-col h-full">
                   <div className="rounded-lg border max-h-[60vh] overflow-y-auto">
                     <Table>
                       <TableHeader>
@@ -252,7 +252,7 @@ export default function CargarUsuariosPage() {
                       Confirmar Carga
                     </Button>
                   </div>
-                </>
+                </div>
               ) : finalResults.length > 0 ? (
                 (() => {
                   const createdCount = finalResults.filter(r => r.status === 'created').length;

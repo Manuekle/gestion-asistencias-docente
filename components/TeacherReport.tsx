@@ -771,7 +771,7 @@ export function TeacherReport() {
             )}
           </div>
         ) : (
-          <Card className="flex items-center justify-center h-56 sm:h-[calc(100vh-10rem)] border p-0 m-0">
+          <Card className="flex items-center justify-center h-56 sm:h-[calc(65vh-7rem)] border p-0 m-0">
             <div className="p-8">
               <div className="text-center">
                 <h3 className="text-xs text-muted-foreground">Selecciona un docente</h3>

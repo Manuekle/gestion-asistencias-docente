@@ -429,7 +429,7 @@ export default function UploadSubjectsPage() {
         </div>
 
         <div className="lg:col-span-2">
-          <Card className="min-h-[400px]">
+          <Card className="min-h-[400px] sm:h-[calc(75vh-9rem)]">
             <CardHeader>
               <CardTitle className="text-xl font-semibold tracking-heading">
                 Previsualización y Confirmación
@@ -439,10 +439,10 @@ export default function UploadSubjectsPage() {
                 procesadas.
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col justify-center">
+            <CardContent className="flex flex-col justify-center h-full">
               {isLoading && !isPreview ? (
                 <div className="flex items-center justify-center h-64">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                  <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
                 </div>
               ) : uploadResult ? (
                 <div className="mt-4 bg-card text-center">
@@ -472,7 +472,7 @@ export default function UploadSubjectsPage() {
                   </Button>
                 </div>
               ) : isPreview && previewData.length > 0 ? (
-                <>
+                <div className="flex flex-col h-full">
                   <div className="rounded-lg border bg-card">
                     <Table>
                       <TableHeader>
@@ -645,7 +645,7 @@ export default function UploadSubjectsPage() {
                       Confirmar Carga
                     </Button>
                   </div>
-                </>
+                </div>
               ) : (
                 <div className="text-center text-xs font-normal text-muted-foreground py-24">
                   <p>Sube un archivo para ver la previsualización aquí.</p>
