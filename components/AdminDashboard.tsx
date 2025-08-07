@@ -243,7 +243,7 @@ const AdminDashboardComponent = () => {
           </CardHeader>
           <CardContent className="flex-1 pb-0">
             {data.charts.attendanceDistribution.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex items-center justify-center h-16">
                 <p className="text-muted-foreground text-xs">No hay datos disponibles</p>
               </div>
             ) : (
