@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 interface Class {
   id: string;
   date: Date;
+  startTime?: Date | null;
   topic: string | null;
   status: string;
 }
@@ -35,6 +36,7 @@ export async function GET() {
           select: {
             id: true,
             date: true,
+            startTime: true,
             topic: true,
             status: true,
           },
@@ -70,6 +72,7 @@ export async function GET() {
           ? {
               id: upcomingClass.id,
               date: upcomingClass.date.toISOString(),
+              startTime: upcomingClass.startTime?.toISOString() || null,
               topic: upcomingClass.topic || 'Sin tema definido',
             }
           : undefined,
@@ -90,6 +93,7 @@ export async function GET() {
             subjectName: subject.name,
             subjectCode: subject.code,
             date: cls.date.toISOString(),
+            startTime: cls.startTime?.toISOString() || null,
             topic: cls.topic || 'Sin tema definido',
           }))
       )
