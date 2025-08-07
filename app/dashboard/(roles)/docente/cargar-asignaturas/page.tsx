@@ -26,9 +26,47 @@ import {
 // Icons from lucide-react
 import { DatePicker } from '@/components/ui/date-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CheckCircle, ChevronDown, Clock, Download, Loader2 } from 'lucide-react';
+import { CalendarX, CheckCircle, ChevronDown, Clock, Download, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+
+// Helper function to format time with AM/PM
+function formatTimeWithAmPm(timeString: string): string {
+  try {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12; // Convert 0 to 12 for 12AM
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  } catch (error) {
+    console.error('Error formatting time:', error);
+    return timeString;
+  }
+}
+
+// Helper function to calculate duration between two time strings (format: HH:MM)
+function calculateDuration(startTime: string, endTime: string): string {
+  try {
+    const [startHours, startMinutes] = startTime.split(':').map(Number);
+    const [endHours, endMinutes] = endTime.split(':').map(Number);
+
+    let totalMinutes = endHours * 60 + endMinutes - (startHours * 60 + startMinutes);
+
+    if (totalMinutes < 0) {
+      totalMinutes += 24 * 60; // Handle overnight
+    }
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  } catch (error) {
+    console.error('Error calculating duration:', error);
+    return '--';
+  }
+}
 
 declare module 'react' {
   interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
@@ -500,68 +538,88 @@ export default function UploadSubjectsPage() {
                             </TableRow>
 
                             {expandedSubjects.has(subject.codigoAsignatura) && (
-                              <TableRow className="hover:bg-none">
+                              <TableRow className="hover:bg-muted/5 transition-colors">
                                 <TableCell colSpan={5} className="p-0">
-                                  <div className="bg-muted/20 px-4 py-3">
+                                  <div className="px-6 py-4">
                                     <div className="flex items-center justify-between mb-4">
-                                      <h4 className="font-medium text-sm">Clases Programadas</h4>
-                                      <Badge variant="outline" className="text-xs font-normal">
-                                        {subject.classes.length} clases
+                                      <div className="flex items-center gap-3">
+                                        <h4 className="font-normal text-sm">Clases Programadas</h4>
+                                      </div>
+                                      <Badge variant="secondary" className="font-normal">
+                                        {subject.classes.length}{' '}
+                                        {subject.classes.length === 1 ? 'clase' : 'clases'}
                                       </Badge>
                                     </div>
 
                                     {subject.classes.length > 0 ? (
-                                      <div className="space-y-3">
+                                      <div className="grid gap-3">
                                         {subject.classes.map(cls => (
                                           <div
                                             key={cls.id}
-                                            className="bg-background rounded-md border p-4 hover:bg-muted/30 transition-colors"
+                                            className="group relative bg-card border rounded-lg p-4"
                                           >
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center gap-6">
-                                                <div>
-                                                  <p className="text-xs text-muted-foreground mb-1">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 flex-1">
+                                                <div className="space-y-1">
+                                                  <p className="text-xs text-muted-foreground">
                                                     Fecha
                                                   </p>
-                                                  <p className="text-sm font-medium">
-                                                    {cls.fechaClase}
+                                                  <p className="text-xs ">
+                                                    {new Date(cls.fechaClase).toLocaleDateString(
+                                                      'es-ES',
+                                                      {
+                                                        day: '2-digit',
+                                                        month: 'short',
+                                                        year: 'numeric',
+                                                      }
+                                                    )}
                                                   </p>
                                                 </div>
-                                                <div>
-                                                  <p className="text-xs text-muted-foreground mb-1">
-                                                    Inicio
+                                                <div className="space-y-1">
+                                                  <p className="text-xs text-muted-foreground">
+                                                    Hora
                                                   </p>
-                                                  <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
-                                                    {cls.horaInicio}
-                                                  </code>
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="inline-flex items-center text-xs font-normal">
+                                                      {formatTimeWithAmPm(cls.horaInicio)}
+                                                    </span>
+                                                    <span className="text-muted-foreground">-</span>
+                                                    <span className="inline-flex items-center text-xs font-normal">
+                                                      {formatTimeWithAmPm(cls.horaFin)}
+                                                    </span>
+                                                  </div>
                                                 </div>
-                                                <div>
-                                                  <p className="text-xs text-muted-foreground mb-1">
-                                                    Fin
+                                                <div className="space-y-1">
+                                                  <p className="text-xs text-muted-foreground">
+                                                    Duración
                                                   </p>
-                                                  <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
-                                                    {cls.horaFin}
-                                                  </code>
+                                                  <p className="text-xs">
+                                                    {calculateDuration(cls.horaInicio, cls.horaFin)}
+                                                  </p>
                                                 </div>
                                               </div>
                                               <Button
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => handleEditClick(subject, cls)}
-                                                className="h-8 px-3 text-xs"
+                                                className="w-full sm:w-auto justify-center gap-1.5"
                                               >
-                                                Editar
+                                                Ver detalle
                                               </Button>
                                             </div>
                                           </div>
                                         ))}
                                       </div>
                                     ) : (
-                                      <div className="bg-background rounded-md border p-8 text-center">
-                                        <div className="text-muted-foreground">
-                                          <p className="text-sm">No hay clases programadas</p>
-                                          <p className="text-xs mt-1">
-                                            Las clases aparecerán aquí cuando sean agregadas
+                                      <div className="rounded-lg border-2 border-dashed border-muted-foreground/20 p-8 text-center hover:border-muted-foreground/30 transition-colors">
+                                        <div className="flex flex-col items-center justify-center space-y-2">
+                                          <CalendarX className="h-10 w-10 text-muted-foreground/50" />
+                                          <p className="text-sm font-medium text-muted-foreground">
+                                            No hay clases programadas
+                                          </p>
+                                          <p className="text-xs text-muted-foreground/70 max-w-md">
+                                            Las clases aparecerán aquí cuando sean agregadas al
+                                            sistema.
                                           </p>
                                         </div>
                                       </div>
