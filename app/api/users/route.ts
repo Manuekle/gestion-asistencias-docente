@@ -207,18 +207,13 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
   }
 
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get('id') || session.user.id; // Use session user ID if no ID provided
-
-  // Only allow admins to update other users' profiles
-  if (userId !== session.user.id && session.user.role !== Role.ADMIN) {
-    return NextResponse.json({ message: 'No autorizado' }, { status: 403 });
-  }
   try {
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('id');
-    if (!userId) {
-      return NextResponse.json({ message: 'El ID del usuario es requerido' }, { status: 400 });
+    const userId = searchParams.get('id') || session.user.id; // Use session user ID if no ID provided
+
+    // Only allow admins to update other users' profiles
+    if (userId !== session.user.id && session.user.role !== Role.ADMIN) {
+      return NextResponse.json({ message: 'No autorizado' }, { status: 403 });
     }
     const body = await req.json();
     const data = UserUpdateSchema.parse({ ...body, id: userId });
@@ -229,6 +224,8 @@ export async function PUT(req: NextRequest) {
       telefono?: string | null;
       role?: Role;
       password?: string;
+      codigoEstudiantil?: string | null;
+      codigoDocente?: string | null;
     } = {};
 
     if (data.name) updateData.name = data.name;
@@ -239,6 +236,8 @@ export async function PUT(req: NextRequest) {
     if (data.password) {
       updateData.password = await bcrypt.hash(data.password, 10);
     }
+    if (data.codigoEstudiantil !== undefined) updateData.codigoEstudiantil = data.codigoEstudiantil;
+    if (data.codigoDocente !== undefined) updateData.codigoDocente = data.codigoDocente;
     const updatedUser = await db.user.update({
       where: { id: data.id },
       data: updateData,

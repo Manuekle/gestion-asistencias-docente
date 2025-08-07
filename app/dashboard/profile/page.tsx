@@ -162,18 +162,37 @@ export default function ProfilePage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      console.log('Sending update with phone:', telefono); // Log the phone being sent
+      console.log('Sending update with:', {
+        telefono,
+        codigoEstudiantil: session?.user?.role === 'ESTUDIANTE' ? codigoEstudiantil : undefined,
+        codigoDocente: session?.user?.role !== 'ESTUDIANTE' ? codigoDocente : undefined,
+      });
+
+      const updateData: {
+        name: string;
+        correoPersonal: string | null;
+        correoInstitucional: string;
+        telefono: string | null;
+        codigoEstudiantil?: string | null;
+        codigoDocente?: string | null;
+      } = {
+        name,
+        correoPersonal: correoPersonal || null,
+        correoInstitucional,
+        telefono: telefono || null,
+      };
+
+      // Only include the appropriate code based on user role
+      if (session?.user?.role === 'ESTUDIANTE') {
+        updateData.codigoEstudiantil = codigoEstudiantil || null;
+      } else {
+        updateData.codigoDocente = codigoDocente || null;
+      }
+
       const response = await fetch(`/api/users?id=${session?.user?.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          correoPersonal,
-          correoInstitucional,
-          telefono,
-          codigoEstudiantil: session?.user?.role === 'ESTUDIANTE' ? codigoEstudiantil : undefined,
-          codigoDocente: session?.user?.role !== 'ESTUDIANTE' ? codigoDocente : undefined,
-        }),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
@@ -196,7 +215,14 @@ export default function ProfilePage() {
       await update({
         ...session?.user, // Keep existing session data
         ...updatedUser, // Override with updated fields
+        // Ensure these fields are explicitly included in the session
+        telefono: updatedUser.telefono || null,
+        codigoEstudiantil: updatedUser.codigoEstudiantil || null,
+        codigoDocente: updatedUser.codigoDocente || null,
       });
+
+      // Force a session refresh to ensure all fields are up to date
+      await update();
       toast.success('Perfil actualizado correctamente');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error al actualizar el perfil';
