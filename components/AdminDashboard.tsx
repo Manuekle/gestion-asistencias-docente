@@ -146,7 +146,7 @@ const AdminDashboardComponent = () => {
           <CardContent className="flex-1 pb-0">
             <ChartContainer
               config={{}}
-              className="mx-auto aspect-square max-h-[250px] w-full justify-center items-center"
+              className="mx-auto aspect-square max-h-[310px] sm:max-h-[250px] w-full justify-center items-center"
             >
               <PieChart>
                 <defs>
@@ -203,7 +203,7 @@ const AdminDashboardComponent = () => {
           <CardContent className="flex-1 pb-0">
             <ChartContainer
               config={{}}
-              className="mx-auto aspect-square max-h-[250px] w-full justify-center items-center"
+              className="mx-auto aspect-square max-h-[310px] sm:max-h-[250px] w-full justify-center items-center"
             >
               <AreaChart
                 data={data.charts.monthlyClasses}
@@ -243,13 +243,13 @@ const AdminDashboardComponent = () => {
           </CardHeader>
           <CardContent className="flex-1 pb-0">
             {data.charts.attendanceDistribution.length === 0 ? (
-              <div className="flex items-center justify-center h-16">
+              <div className="flex items-center justify-center h-32 sm:h-full">
                 <p className="text-muted-foreground text-xs">No hay datos disponibles</p>
               </div>
             ) : (
               <ChartContainer
                 config={{}}
-                className="mx-auto aspect-square max-h-[250px] w-full justify-center items-center"
+                className="mx-auto aspect-square max-h-[310px] sm:max-h-[250px] w-full justify-center items-center"
               >
                 <BarChart
                   data={data.charts.attendanceDistribution}
