@@ -3,7 +3,7 @@
 import { QRViewer } from '@/components/QRViewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardDescription, CardTitle } from '@/components/ui/card';
 import { LoadingPage } from '@/components/ui/loading';
 import {
   Select,
@@ -194,108 +194,110 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="font-semibold text-2xl tracking-heading">
-                Toma de Asistencia
-              </CardTitle>
-              {classInfo && (
-                <CardDescription className="mt-1">
-                  {classInfo.subject.name} -{' '}
-                  {new Date(classInfo.date).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                  <br />
-                  Tema: {classInfo.topic}
-                </CardDescription>
-              )}
-            </div>
-            {isClassPast && (
-              <Badge variant="outline" className="text-xs font-normal">
-                Realizada
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {qrData && expiresIn !== null ? (
-            <QRViewer
-              qrUrl={qrData.qrUrl}
-              qrToken={qrData.qrToken}
-              expiresIn={expiresIn}
-              onRefresh={handleGenerateQr}
-              onClose={() => {
-                setQrData(null);
-                setExpiresIn(null);
-                fetchData();
-              }}
-              isRefreshing={isGenerating}
-            />
-          ) : (
-            <>
-              <div className="flex justify-center mb-6">
-                <Button onClick={handleGenerateQr} disabled={isGenerating || isClassPast} size="lg">
-                  {isGenerating ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <QrCode className="mr-2 h-4 w-4" />
-                  )}
-                  Generar QR
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                {students.map(student => (
-                  <div
-                    key={student.studentId}
-                    className="flex flex-col md:flex-row items-start md:items-center justify-between p-3 border rounded-lg gap-4 md:gap-2"
-                  >
-                    <div className="w-full md:w-auto">
-                      <p className="font-medium tracking-card text-sm">{student.name}</p>
-                      <p className="text-xs text-muted-foreground truncate md:overflow-visible md:whitespace-normal md:max-w-full max-w-[220px]">
-                        {student.email}
-                      </p>
-                    </div>
-                    <Select
-                      value={student.status} // e.g., 'PRESENTE'
-                      onValueChange={(value: AttendanceStatusKey) =>
-                        handleStatusChange(student.studentId, value)
-                      }
-                      disabled={isClassPast}
-                    >
-                      <SelectTrigger className="w-full md:w-[180px]">
-                        <SelectValue placeholder="Seleccionar estado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(AttendanceStatusMap).map(([key, value]) => (
-                          <SelectItem
-                            key={key}
-                            value={key}
-                            className="font-sans text-xs font-normal"
-                          >
-                            {value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-end mt-6">
-                <Button onClick={handleSaveChanges} disabled={isSaving || isClassPast}>
-                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Guardar Cambios
-                </Button>
-              </div>
-            </>
+    <div className="space-y-4">
+      <div className="flex justify-between items-start">
+        <div>
+          <CardTitle className="font-semibold text-2xl tracking-heading">
+            Toma de Asistencia
+          </CardTitle>
+          {classInfo && (
+            <CardDescription className="mt-1">
+              {classInfo.subject.name} -{' '}
+              {new Date(classInfo.date).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+              <br />
+              Tema: {classInfo.topic}
+            </CardDescription>
           )}
-        </CardContent>
-      </Card>
+        </div>
+        {isClassPast && (
+          <Badge variant="outline" className="text-xs font-normal">
+            Realizada
+          </Badge>
+        )}
+      </div>
+
+      <div className="pt-4">
+        {qrData && expiresIn !== null ? (
+          <QRViewer
+            qrUrl={qrData.qrUrl}
+            qrToken={qrData.qrToken}
+            expiresIn={expiresIn}
+            onRefresh={handleGenerateQr}
+            onClose={() => {
+              setQrData(null);
+              setExpiresIn(null);
+              fetchData();
+            }}
+            isRefreshing={isGenerating}
+          />
+        ) : (
+          <>
+            <div className="flex justify-center mb-6">
+              <Button
+                variant="outline"
+                onClick={handleGenerateQr}
+                disabled={isGenerating || isClassPast}
+                size="lg"
+              >
+                {isGenerating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <QrCode className="mr-2 h-4 w-4" />
+                )}
+                Generar QR
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {students.map(student => (
+                <div
+                  key={student.studentId}
+                  className="flex flex-col md:flex-row items-start md:items-center justify-between p-3 border rounded-lg gap-4 md:gap-2"
+                >
+                  <div className="w-full md:w-auto">
+                    <p className="font-medium tracking-card text-sm">{student.name}</p>
+                    <p className="text-xs text-muted-foreground truncate md:overflow-visible md:whitespace-normal md:max-w-full max-w-[220px]">
+                      {student.email}
+                    </p>
+                  </div>
+                  <Select
+                    value={student.status} // e.g., 'PRESENTE'
+                    onValueChange={(value: AttendanceStatusKey) =>
+                      handleStatusChange(student.studentId, value)
+                    }
+                    disabled={isClassPast}
+                  >
+                    <SelectTrigger className="w-full md:w-[180px]">
+                      <SelectValue placeholder="Seleccionar estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(AttendanceStatusMap).map(([key, value]) => (
+                        <SelectItem key={key} value={key} className="font-sans text-xs font-normal">
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end mt-6">
+              <Button
+                variant="outline"
+                onClick={handleSaveChanges}
+                disabled={isSaving || isClassPast}
+              >
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Guardar Cambios
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

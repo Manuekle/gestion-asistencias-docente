@@ -247,8 +247,10 @@ export default function ScanPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl tracking-tight">Registro de Asistencia</CardTitle>
             <CardDescription>
-              {scanState.status === 'loading' && authStatus === 'authenticated'
-                ? 'Procesando registro...'
+              {authStatus === 'authenticated'
+                ? scanState.status === 'loading' 
+                  ? 'Procesando registro...'
+                  : 'Procesando asistencia...'
                 : 'Inicia sesión para continuar'}
             </CardDescription>
           </CardHeader>

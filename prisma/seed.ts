@@ -22,17 +22,27 @@ const generateClassDates = (startDate: Date, numberOfClasses: number): Date[] =>
     const classDate = new Date(currentDate);
 
     if (i % 2 === 0) {
-      // Monday
+      // Monday at 10:00 AM
+      classDate.setHours(10, 0, 0, 0);
       dates.push(classDate);
     } else {
-      // Thursday (3 days after Monday)
-      dates.push(addDays(classDate, 3));
+      // Thursday (3 days after Monday) at 10:00 AM
+      const thursdayDate = addDays(classDate, 3);
+      thursdayDate.setHours(10, 0, 0, 0);
+      dates.push(thursdayDate);
       // Move to next week
       currentDate = addDays(currentDate, 7);
     }
   }
 
   return dates.slice(0, numberOfClasses);
+};
+
+// Helper function to create end time (10 PM)
+const createEndTime = (startTime: Date): Date => {
+  const endTime = new Date(startTime);
+  endTime.setHours(22, 0, 0, 0); // 10 PM
+  return endTime;
 };
 
 // Hash password helper
@@ -172,19 +182,22 @@ async function main() {
     const classDates = generateClassDates(new Date(), 16);
 
     for (let i = 0; i < 16; i++) {
-      const classDate = classDates[i];
+      const startTime = classDates[i];
+      const endTime = createEndTime(startTime);
 
-      // Create class with only the essential fields
+      // Create class with start and end times
       await prisma.class.create({
         data: {
-          date: classDate,
+          date: startTime,
+          startTime: startTime,
+          endTime: endTime,
           topic: `Clase ${i + 1}: ${subject.name}`,
           status: ClassStatus.PROGRAMADA,
           subjectId: subject.id,
         },
       });
     }
-    console.log(`   ✅ Created 16 classes for ${subject.name}`);
+    console.log(`   ✅ Created 16 classes for ${subject.name} (10:00 AM - 10:00 PM)`);
   }
 
   console.log('\n🎉 Seeding completed successfully!');
@@ -195,6 +208,7 @@ async function main() {
   console.log(`👨‍🎓 Students: 2 users`);
   console.log(`📚 Subjects: 3 subjects`);
   console.log(`📅 Classes: 48 classes total (16 per subject)`);
+  console.log(`⏰ Schedule: Monday & Thursday, 10:00 AM - 10:00 PM`);
   console.log('================================');
   console.log('Credentials:');
   console.log('Admin:');

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Check, Clock, Copy, Loader2, Maximize2, RefreshCw } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 interface QRViewerProps {
   qrUrl: string;
@@ -60,9 +61,10 @@ export function QRViewer({
     try {
       await navigator.clipboard.writeText(qrToken);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      toast.success('Código copiado al portapapeles');
+      setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy token:', error);
+      toast.error('No se pudo copiar el código');
     }
   };
 
@@ -72,8 +74,8 @@ export function QRViewer({
       className={cn(
         'transition-all duration-300',
         isFullscreen
-          ? 'bg-white w-screen h-screen fixed inset-0 z-50 flex items-center justify-center'
-          : 'bg-background rounded-xl shadow-lg w-full max-w-md mx-auto p-8 flex flex-col items-center justify-center'
+          ? 'bg-white dark:bg-black w-screen h-screen fixed inset-0 z-50 flex items-center justify-center'
+          : 'bg-background rounded-xl shadow-sm dark:shadow-zinc-900 w-full max-w-md mx-auto p-8 flex flex-col items-center justify-center'
       )}
     >
       {isFullscreen ? (
@@ -84,7 +86,7 @@ export function QRViewer({
         <>
           {/* QR Code */}
           <div className="relative mb-8">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            <div className="bg-white p-4 rounded-lg shadow-sm dark:shadow-zinc-900">
               <QRCodeCanvas
                 value={qrUrl}
                 size={qrSize}
@@ -96,7 +98,7 @@ export function QRViewer({
 
             {/* Timer */}
             {expiresIn !== null && (
-              <div className="absolute -top-2 -right-2 bg-background border rounded-full px-3 py-1 shadow-sm">
+              <div className="absolute -top-5 -right-5 bg-background border rounded-full px-3 py-1 shadow-sm">
                 <div className="flex items-center gap-1 text-sm">
                   <Clock className="w-3 h-3" />
                   <span className="font-mono">{formatTime(expiresIn)}</span>
@@ -108,17 +110,36 @@ export function QRViewer({
           {/* Manual Code */}
           <div className="w-full mb-6 space-y-3">
             <div className="relative">
-              <div className="font-mono text-center p-3 bg-muted rounded-lg text-sm break-all select-all">
+              <div className="font-mono text-center p-3 pr-10 bg-muted rounded-lg text-sm break-all select-all">
                 {qrToken}
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={copyToken}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-              >
-                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-              </Button>
+              <div className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={copyToken}
+                  className="h-8 w-8 p-0 relative overflow-visible"
+                >
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center transition-all duration-300 transform ${
+                      copied
+                        ? 'translate-y-0 opacity-100'
+                        : '-translate-y-2 opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <Check className="h-3 w-3 text-green-500" />
+                  </div>
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center transition-all duration-300 transform ${
+                      copied
+                        ? 'translate-y-2 opacity-0 pointer-events-none'
+                        : 'translate-y-0 opacity-100'
+                    }`}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </div>
+                </Button>
+              </div>
             </div>
           </div>
 

@@ -8,7 +8,7 @@ import {
   getTeacherDashboardData,
   type LiveClassData,
 } from '@/services/dashboardService';
-import { BarChart2, BookOpen, Calendar, Clock } from 'lucide-react';
+import { BookOpen, Calendar, Clock } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -314,10 +314,16 @@ export default function DocenteDashboard() {
                             })}
                           </span>
                           <span>
-                            {new Date(cls.date).toLocaleTimeString('es-ES', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {cls.date
+                              ? new Date(cls.date)
+                                  .toLocaleTimeString('es-ES', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: true,
+                                  })
+                                  .replace(/a\.\s*m\./i, 'AM')
+                                  .replace(/p\.\s*m\./i, 'PM')
+                              : 'Sin hora definida'}
                           </span>
                         </div>
                       </div>
@@ -356,14 +362,12 @@ export default function DocenteDashboard() {
                       className="group relative rounded-lg border transition-all duration-200 hover:border-border hover:shadow-sm cursor-pointer bg-card p-4"
                       onClick={() => router.push(`/dashboard/docente/asignaturas/${subject.id}`)}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-end justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="text-sm font-medium truncate">{subject.name}</h4>
                           </div>
-                          <p className="text-xs text-muted-foreground mb-3 font-mono">
-                            {subject.code}
-                          </p>
+                          <p className="text-xs text-muted-foreground font-mono">{subject.code}</p>
 
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-xs">
@@ -383,12 +387,9 @@ export default function DocenteDashboard() {
                           </div>
                         </div>
 
-                        <div className="ml-4 flex flex-col items-end gap-2">
-                          <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
-                            <BarChart2 className="h-3 w-3 text-muted-foreground" />
-                          </div>
+                        <div className="ml-4 flex flex-col items-end">
                           <div className="text-right">
-                            <div className="text-sm font-semibold font-mono text-foreground">
+                            <div className="text-sm font-normal font-mono text-foreground">
                               {Math.round(progress)}%
                             </div>
                             <div className="text-xs text-muted-foreground">completado</div>
@@ -400,24 +401,13 @@ export default function DocenteDashboard() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <BookOpen className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <p className="text-sm text-muted-foreground font-light">
+              <div className="text-center py-16">
+                <p className="text-xs text-muted-foreground font-medium">
                   No tienes asignaturas asignadas
                 </p>
-                <p className="text-xs text-muted-foreground/70 mt-1 mb-4">
-                  Contacta al administrador para obtener acceso
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  Registra una asignatura para comenzar
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-border text-muted-foreground hover:bg-muted bg-transparent"
-                  onClick={() => router.push('/dashboard/docente/asignaturas')}
-                >
-                  Ver todas las asignaturas
-                </Button>
               </div>
             )}
           </CardContent>

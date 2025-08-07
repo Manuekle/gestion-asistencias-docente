@@ -1,10 +1,10 @@
 'use client';
 
 import { EventsCard } from '@/components/EventsCard';
+import { DatePicker } from '@/components/ui/date-picker';
 import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import {
   Ban,
-  Calendar as CalendarIcon,
   CheckCircle,
   Clock,
   Edit,
@@ -188,9 +188,10 @@ export default function SubjectDetailPage() {
   const [startTime, setStartTime] = useState<string>('');
   const [endTime, setEndTime] = useState<string>('');
   const [classTopic, setClassTopic] = useState('');
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
   const [isStartTimePickerOpen, setIsStartTimePickerOpen] = useState(false);
   const [isEndTimePickerOpen, setIsEndTimePickerOpen] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Classes state
   const [classes, setClasses] = useState<ClassWithStatus[]>([]);
@@ -994,19 +995,45 @@ export default function SubjectDetailPage() {
                 <TableBody>
                   {classes.map(cls => {
                     const now = new Date();
-                    const classEndTime = cls.endTime ? new Date(cls.endTime) : new Date(cls.date);
+                    const classDate = new Date(cls.date);
+                    const classEndTime = cls.endTime ? new Date(cls.endTime) : classDate;
                     const isPast = classEndTime < now;
-                    const isFuture = new Date(cls.date) > now;
+                    const isFuture = classDate > now;
+                    const isToday = classDate.toDateString() === now.toDateString();
+
                     const statusInfo = classStatusMap[cls.status as ClassStatus] || {
                       label: 'Desconocido',
                       color: 'bg-gray-100 text-gray-800',
                     };
 
-                    // Determine which actions should be enabled
-                    const canEdit = cls.status === 'PROGRAMADA' && isFuture;
-                    const canCancel = cls.status === 'PROGRAMADA' && isFuture;
-                    const canMarkAsDone = cls.status === 'PROGRAMADA' && isPast;
-                    const canTakeAttendance = cls.status !== 'CANCELADA' && (isPast || !isFuture);
+                    // Determine which actions should be enabled based on status and date
+                    const isProgramada = cls.status === 'PROGRAMADA';
+                    const isRealizada = cls.status === 'REALIZADA';
+                    const isCancelada = cls.status === 'CANCELADA';
+
+                    // Acciones disponibles según la tabla de requerimientos
+                    // 1. Para PROGRAMADA que aún no ha pasado:
+                    //    - Asistencia: No
+                    //    - Editar: Sí
+                    //    - Cancelar: Sí
+                    //    - Marcar como realizada: Sí (opcional)
+                    //
+                    // 2. Para PROGRAMADA que ya pasó:
+                    //    - Asistencia: Sí
+                    //    - Editar: No
+                    //    - Cancelar: No
+                    //    - Marcar como realizada: Sí
+                    //
+                    // 3. Para REALIZADA o CANCELADA:
+                    //    - Todas las acciones: No
+
+                    const classStartTime = new Date(cls.startTime || cls.date);
+                    const hasClassStarted = classStartTime < now;
+
+                    const canEdit = isProgramada && isFuture;
+                    const canCancel = isProgramada && isFuture; // Solo futuro, no incluir hoy
+                    const canMarkAsDone = isProgramada && hasClassStarted; // Solo disponible después de la hora de inicio
+                    const canTakeAttendance = isProgramada && isToday; // Solo disponible si es el mismo día de la clase
 
                     return (
                       <TableRow
@@ -1043,41 +1070,68 @@ export default function SubjectDetailPage() {
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel className="font-sans">Acciones</DropdownMenuLabel>
-                              <DropdownMenuItem asChild disabled={!canTakeAttendance}>
+                            <DropdownMenuContent align="end" className="min-w-[180px]">
+                              <DropdownMenuLabel className="font-sans font-medium">
+                                Acciones
+                              </DropdownMenuLabel>
+                              <DropdownMenuItem
+                                asChild
+                                disabled={!canTakeAttendance}
+                                className={
+                                  !canTakeAttendance
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : 'cursor-pointer'
+                                }
+                              >
                                 <Link
                                   href={`/dashboard/docente/clases/${cls.id}/asistencia`}
-                                  className={`flex items-center w-full ${canTakeAttendance ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+                                  className="flex items-center w-full"
+                                  onClick={e => !canTakeAttendance && e.preventDefault()}
                                 >
                                   <UserCheck className="mr-2 h-4 w-4" />
-                                  <span className="font-sans">Asistencia</span>
+                                  <span>Asistencia</span>
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => openEditClassDialog(cls)}
-                                disabled={!canEdit}
-                                className={!canEdit ? 'opacity-50 cursor-not-allowed' : ''}
+                                onSelect={e => {
+                                  e.preventDefault();
+                                  if (canEdit) openEditClassDialog(cls);
+                                }}
+                                className={
+                                  !canEdit ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                }
                               >
                                 <Edit className="mr-2 h-4 w-4" />
-                                <span className="font-sans">Editar</span>
+                                <span>Editar</span>
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
-                                onClick={() => setClassToCancel(cls)}
-                                disabled={!canCancel}
-                                className={`${!canCancel ? 'opacity-50 cursor-not-allowed' : 'text-amber-600 hover:text-amber-600 hover:bg-amber-50'}`}
+                                onSelect={e => {
+                                  e.preventDefault();
+                                  if (canCancel) setClassToCancel(cls);
+                                }}
+                                className={
+                                  !canCancel
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : 'text-amber-600 hover:text-amber-700 cursor-pointer'
+                                }
                               >
                                 <Ban className="mr-2 h-4 w-4" />
-                                <span className="font-sans">Cancelar Clase</span>
+                                <span>Cancelar Clase</span>
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => handleUpdateClassStatus(cls.id, 'REALIZADA')}
-                                disabled={!canMarkAsDone}
-                                className={!canMarkAsDone ? 'opacity-50 cursor-not-allowed' : ''}
+                                onSelect={e => {
+                                  e.preventDefault();
+                                  if (canMarkAsDone) handleUpdateClassStatus(cls.id, 'REALIZADA');
+                                }}
+                                className={
+                                  !canMarkAsDone
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : 'cursor-pointer'
+                                }
                               >
                                 <CheckCircle className="mr-2 h-4 w-4" />
-                                <span className="font-sans">Marcar como Realizada</span>
+                                <span>Marcar como Realizada</span>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1239,44 +1293,18 @@ export default function SubjectDetailPage() {
             <div className="space-y-6 py-4">
               {/* Selector de Fecha */}
               <div className="space-y-2">
-                <Label className="text-sm font-normal">Fecha</Label>
-                <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        'w-full justify-start text-left font-normal h-11 px-3',
-                        !classDate && 'text-muted-foreground'
-                      )}
-                      type="button"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {classDate ? (
-                        format(classDate, "EEEE, d 'de' MMMM 'de' yyyy", {
-                          locale: es,
-                        })
-                      ) : (
-                        <span>Selecciona una fecha</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-auto p-0 shadow-lg border"
-                    align="start"
-                    onOpenAutoFocus={e => e.preventDefault()}
-                  >
-                    <div className="p-4">
-                      <p className="text-sm text-muted-foreground">
-                        La funcionalidad de calendario estará disponible próximamente.
-                      </p>
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                <Label className="text-xs font-normal">Fecha</Label>
+                <DatePicker
+                  value={classDate}
+                  onChange={date => {
+                    setClassDate(date || undefined);
+                  }}
+                />
               </div>
 
               {/* Selector de Horario */}
               <div className="space-y-4">
-                <Label className="text-sm font-normal">Horario de Clase</Label>
+                <Label className="text-xs font-normal">Horario de Clase</Label>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Hora de Inicio */}
                   <div className="space-y-2">
@@ -1285,7 +1313,7 @@ export default function SubjectDetailPage() {
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full justify-start text-left font-normal h-11"
+                          className="w-full justify-start text-left font-normal h-11 text-xs"
                           type="button"
                         >
                           <Clock className="mr-2 h-4 w-4 opacity-50" />
@@ -1317,7 +1345,7 @@ export default function SubjectDetailPage() {
                               <Button
                                 key={time24}
                                 variant="ghost"
-                                className="font-sans w-full justify-center text-center h-9 px-3 text-sm hover:bg-accent rounded-sm"
+                                className="font-sans w-full justify-center text-center h-9 px-3 text-xs hover:bg-accent rounded-sm"
                                 onClick={() => {
                                   setStartTime(time24);
                                   setIsStartTimePickerOpen(false); // Cerrar popover
@@ -1351,7 +1379,7 @@ export default function SubjectDetailPage() {
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full justify-start text-left font-normal h-11"
+                          className="w-full justify-start text-left font-normal h-11 text-xs"
                           type="button"
                           disabled={!startTime}
                         >
@@ -1397,7 +1425,7 @@ export default function SubjectDetailPage() {
                                 <Button
                                   key={time24}
                                   variant="ghost"
-                                  className="font-sans w-full justify-center text-center h-9 px-3 text-sm hover:bg-accent rounded-sm"
+                                  className="font-sans w-full justify-center text-center h-9 px-3 text-xs hover:bg-accent rounded-sm"
                                   onClick={() => {
                                     setEndTime(time24);
                                     setIsEndTimePickerOpen(false);
@@ -1416,7 +1444,7 @@ export default function SubjectDetailPage() {
 
                 {/* Indicador de Duración */}
                 {startTime && endTime && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
                     <Clock className="h-4 w-4" />
                     <span>
                       Duración:{' '}
@@ -1433,7 +1461,7 @@ export default function SubjectDetailPage() {
 
               {/* Campo de Tema */}
               <div className="space-y-2">
-                <Label htmlFor="topic-edit" className="text-sm font-normal">
+                <Label htmlFor="topic-edit" className="text-xs font-normal">
                   Tema de la Clase
                 </Label>
                 <Input
