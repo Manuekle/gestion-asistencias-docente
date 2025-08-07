@@ -1,5 +1,6 @@
 'use client';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { LoadingPage } from '@/components/ui/loading';
@@ -153,9 +154,9 @@ export default function HistorialAsistenciasPage() {
             </div>
           </div>
         ) : attendances.length === 0 ? (
-          <p className="text-center font-normal text-xs text-muted-foreground dark:text-gray-400 h-[calc(100vh-20rem)] flex items-center justify-center">
-            No tienes asistencias registradas.
-          </p>
+          <Alert>
+            <AlertDescription>No tienes asistencias registradas.</AlertDescription>
+          </Alert>
         ) : (
           <div className="border rounded-md overflow-x-auto border-gray-200 dark:border-white/10">
             <Table>

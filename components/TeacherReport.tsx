@@ -751,8 +751,10 @@ export function TeacherReport() {
                   ) : (
                     <div className="flex items-center justify-center h-full text-muted-foreground">
                       <div className="text-center">
-                        <h3 className="text-xs font-medium">Sin datos disponibles</h3>
-                        <p className="text-xs">No hay información de asistencia para mostrar</p>
+                        <h3 className="text-xs text-muted-foreground">Sin datos disponibles</h3>
+                        <p className="text-xs text-muted-foreground/70">
+                          No hay información de asistencia para mostrar
+                        </p>
                       </div>
                     </div>
                   )}
@@ -772,8 +774,8 @@ export function TeacherReport() {
           <Card className="flex items-center justify-center h-56 sm:h-[calc(100vh-10rem)] border p-0 m-0">
             <div className="p-8">
               <div className="text-center">
-                <h3 className="text-xs font-medium">Selecciona un docente</h3>
-                <p className="text-muted-foreground text-xs max-w-md">
+                <h3 className="text-xs text-muted-foreground">Selecciona un docente</h3>
+                <p className="text-xs text-muted-foreground/70 max-w-md">
                   Elige un docente de la lista para ver su historial de asistencia y estadísticas
                   detalladas
                 </p>

@@ -448,10 +448,8 @@ export default function EstudianteDashboard() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-xs text-muted-foreground font-medium">
-                No hay eventos programados
-              </p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
+              <p className="text-xs text-muted-foreground">No hay eventos programados</p>
+              <p className="text-xs text-muted-foreground/70">
                 Los próximos eventos aparecerán aquí
               </p>
             </div>

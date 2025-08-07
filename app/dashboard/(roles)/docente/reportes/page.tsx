@@ -16,7 +16,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { AlertCircle, CheckCircle, Clock, FileText, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -193,12 +193,9 @@ export default function ReportsPage() {
             {reports.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                  <div className="flex flex-col items-center justify-center space-y-2 py-6">
-                    <FileText className="h-8 w-8 text-muted-foreground" />
-                    <p className="text-xs font-medium text-muted-foreground">
-                      No hay reportes generados
-                    </p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center py-6">
+                    <p className="text-xs  text-muted-foreground">No hay reportes generados</p>
+                    <p className="text-xs text-muted-foreground/70">
                       Los reportes que generes aparecerán aquí
                     </p>
                   </div>

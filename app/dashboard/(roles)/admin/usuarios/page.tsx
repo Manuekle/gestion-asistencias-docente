@@ -48,7 +48,6 @@ import {
   UserCog,
   User as UserIcon,
   UserX,
-  Users,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -390,8 +389,9 @@ export default function GestionUsuariosPage() {
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center py-6">
-                          <Users className="h-8 w-8 text-muted-foreground mb-2" />
-                          <p className="text-muted-foreground">No hay usuarios registrados</p>
+                          <p className="text-xs text-muted-foreground">
+                            No hay usuarios registrados
+                          </p>
                         </div>
                       )}
                     </TableCell>
