@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
               {isLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
             </Button>
 
-            <div className="text-center text-sm">
+            <div className="text-center text-xs">
               <Link href="/login" className="text-primary hover:underline">
                 Volver al inicio de sesión
               </Link>

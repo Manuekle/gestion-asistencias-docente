@@ -39,7 +39,7 @@ export function SignatureFileUpload({ onFileSelect }: SignatureFileUploadProps) 
       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
         <UploadCloud className="h-6 w-6 text-muted-foreground" />
       </div>
-      <p className="text-sm font-medium text-center">
+      <p className="text-xs font-medium text-center">
         {isDragActive ? 'Suelta la imagen aquí' : 'Seleccionar archivo'}
       </p>
       <p className="text-xs text-muted-foreground text-center">

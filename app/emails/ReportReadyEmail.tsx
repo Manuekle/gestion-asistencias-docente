@@ -55,7 +55,7 @@ const ReportReadyEmail = ({
               <Heading className="text-xl font-semibold text-white m-0 leading-[28px]">
                 Reporte Listo
               </Heading>
-              <Text className="text-zinc-300 text-sm m-0 mt-[4px] leading-[20px]">
+              <Text className="text-zinc-300 text-xs m-0 mt-[4px] leading-[20px]">
                 Tu reporte de asistencia está disponible para descarga
               </Text>
             </Section>
@@ -86,21 +86,21 @@ const ReportReadyEmail = ({
                     <Text className="text-xs font-medium text-zinc-500 tracking-normal m-0 mb-[4px]">
                       Asignatura
                     </Text>
-                    <Text className="text-sm text-black m-0 leading-[20px]">{subjectName}</Text>
+                    <Text className="text-xs text-black m-0 leading-[20px]">{subjectName}</Text>
                   </div>
 
                   <div>
                     <Text className="text-xs font-medium text-zinc-500 tracking-normal m-0 mb-[4px]">
                       Nombre del archivo
                     </Text>
-                    <Text className="text-sm text-black m-0 leading-[20px]">{reportName}</Text>
+                    <Text className="text-xs text-black m-0 leading-[20px]">{reportName}</Text>
                   </div>
 
                   <div>
                     <Text className="text-xs font-medium text-zinc-500 tracking-normal m-0 mb-[4px]">
                       Fecha de generación
                     </Text>
-                    <Text className="text-sm text-black m-0 leading-[20px]">
+                    <Text className="text-xs text-black m-0 leading-[20px]">
                       {new Date().toLocaleDateString('es-CO', {
                         weekday: 'long',
                         year: 'numeric',
@@ -116,7 +116,7 @@ const ReportReadyEmail = ({
               <Section className="mb-[32px] text-center">
                 <Button
                   href={downloadUrl}
-                  className="bg-black text-white text-sm font-medium px-[24px] py-[12px] rounded-[8px] box-border inline-block text-center no-underline leading-[20px]"
+                  className="bg-black text-white text-xs font-medium px-[24px] py-[12px] rounded-[8px] box-border inline-block text-center no-underline leading-[20px]"
                 >
                   📥 Descargar Reporte
                 </Button>
@@ -140,7 +140,7 @@ const ReportReadyEmail = ({
               {/* Important Notice */}
               <Section className="mb-[32px]">
                 <div className="bg-amber-50 border border-amber-200 rounded-[8px] px-[16px] py-[12px]">
-                  <Text className="text-sm text-amber-800 m-0 leading-[20px]">
+                  <Text className="text-xs text-amber-800 m-0 leading-[20px]">
                     <strong>Importante:</strong> Este enlace estará disponible por 30 días a partir
                     de hoy. Te recomendamos descargar el reporte lo antes posible.
                   </Text>
@@ -155,13 +155,13 @@ const ReportReadyEmail = ({
                   ¿Necesitas ayuda?
                 </Text>
                 <div className="space-y-[8px]">
-                  <Text className="text-sm text-zinc-700 m-0 leading-[20px]">
+                  <Text className="text-xs text-zinc-700 m-0 leading-[20px]">
                     • Si tienes problemas para descargar el archivo
                   </Text>
-                  <Text className="text-sm text-zinc-700 m-0 leading-[20px]">
+                  <Text className="text-xs text-zinc-700 m-0 leading-[20px]">
                     • Si necesitas un formato diferente del reporte
                   </Text>
-                  <Text className="text-sm text-zinc-700 m-0 leading-[20px]">
+                  <Text className="text-xs text-zinc-700 m-0 leading-[20px]">
                     • Si requieres información adicional
                   </Text>
                 </div>

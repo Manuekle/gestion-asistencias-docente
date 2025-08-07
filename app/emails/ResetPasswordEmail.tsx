@@ -46,7 +46,7 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
               <Heading className="text-[20px] font-semibold text-white m-0 leading-[28px]">
                 Restablecer Contraseña
               </Heading>
-              <Text className="text-zinc-300 text-sm m-0 mt-[4px] leading-[20px]">
+              <Text className="text-zinc-300 text-xs m-0 mt-[4px] leading-[20px]">
                 Solicitud de cambio de contraseña
               </Text>
             </Section>
@@ -61,7 +61,7 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
               {/* Email Display */}
               <Section className="mb-[32px]">
                 <div className="bg-zinc-50 border border-zinc-200 rounded-[8px] px-[16px] py-[12px] inline-block">
-                  <Text className="text-sm font-medium text-zinc-900 m-0">{userEmail}</Text>
+                  <Text className="text-xs font-medium text-zinc-900 m-0">{userEmail}</Text>
                 </div>
               </Section>
 
@@ -69,7 +69,7 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
               <Section className="mb-[32px]">
                 <Button
                   href={resetUrl}
-                  className="bg-black text-white text-sm font-medium py-[12px] px-[24px] rounded-[8px] box-border no-underline inline-block"
+                  className="bg-black text-white text-xs font-medium py-[12px] px-[24px] rounded-[8px] box-border no-underline inline-block"
                 >
                   Restablecer Contraseña
                 </Button>
@@ -98,7 +98,7 @@ const ResetPasswordEmail = ({ resetUrl, userEmail, supportEmail }: ResetPassword
                 </div>
               </Section>
 
-              <Text className="text-zinc-500 text-sm leading-[20px] m-0 mb-[16px]">
+              <Text className="text-zinc-500 text-xs leading-[20px] m-0 mb-[16px]">
                 Si no solicitaste este restablecimiento, puedes ignorar este correo de manera
                 segura.
               </Text>

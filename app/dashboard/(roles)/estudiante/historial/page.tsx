@@ -106,10 +106,10 @@ export default function HistorialAsistenciasPage() {
                 <XCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-normal text-red-800 dark:text-red-200">
+                <h3 className="text-xs font-normal text-red-800 dark:text-red-200">
                   Error al cargar el historial
                 </h3>
-                <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                <div className="mt-2 text-xs text-red-700 dark:text-red-300">
                   <p>{error}</p>
                 </div>
                 <div className="mt-4">
@@ -143,7 +143,7 @@ export default function HistorialAsistenciasPage() {
 
                       fetchAttendances();
                     }}
-                    className="inline-flex items-center rounded-md bg-red-50 dark:bg-red-900/30 px-3 py-2 text-sm font-normal text-red-800 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-900/50 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+                    className="inline-flex items-center rounded-md bg-red-50 dark:bg-red-900/30 px-3 py-2 text-xs font-normal text-red-800 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-900/50 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Reintentar
@@ -153,7 +153,7 @@ export default function HistorialAsistenciasPage() {
             </div>
           </div>
         ) : attendances.length === 0 ? (
-          <p className="text-center font-normal text-sm text-muted-foreground dark:text-gray-400 h-[calc(100vh-20rem)] flex items-center justify-center">
+          <p className="text-center font-normal text-xs text-muted-foreground dark:text-gray-400 h-[calc(100vh-20rem)] flex items-center justify-center">
             No tienes asistencias registradas.
           </p>
         ) : (

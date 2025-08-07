@@ -55,7 +55,7 @@ const UnenrollRequestEmail = ({
               <Heading className="text-[20px] font-semibold text-white m-0 leading-[28px]">
                 Solicitud de Desmatriculación
               </Heading>
-              <Text className="text-zinc-300 text-sm m-0 mt-[4px] leading-[20px]">
+              <Text className="text-zinc-300 text-xs m-0 mt-[4px] leading-[20px]">
                 Nueva solicitud pendiente de revisión
               </Text>
             </Section>
@@ -107,7 +107,7 @@ const UnenrollRequestEmail = ({
                     <Text className="text-xs font-medium text-zinc-500 tracking-normal m-0 mb-[4px]">
                       Fecha de solicitud
                     </Text>
-                    <Text className="text-sm text-black m-0 leading-[20px]">
+                    <Text className="text-xs text-black m-0 leading-[20px]">
                       {new Date(requestDate).toLocaleDateString('es-CO', {
                         weekday: 'long',
                         year: 'numeric',
@@ -127,7 +127,7 @@ const UnenrollRequestEmail = ({
                   Motivo de la solicitud
                 </Text>
                 <div className="bg-zinc-50 border-l-[4px] border-zinc-300 px-[16px] py-[12px]">
-                  <Text className="text-sm text-zinc-700 leading-[20px] m-0 italic">
+                  <Text className="text-xs text-zinc-700 leading-[20px] m-0 italic">
                     "{reason}"
                   </Text>
                 </div>
@@ -136,7 +136,7 @@ const UnenrollRequestEmail = ({
               {/* Action Required */}
               <Section className="mb-[24px]">
                 <div className="bg-blue-50 border border-blue-200 rounded-[8px] px-[16px] py-[12px]">
-                  <Text className="text-sm text-blue-800 m-0 leading-[20px]">
+                  <Text className="text-xs text-blue-800 m-0 leading-[20px]">
                     <strong>Acción requerida:</strong> Por favor, ingrese al sistema para revisar y
                     gestionar esta solicitud de desmatriculación.
                   </Text>

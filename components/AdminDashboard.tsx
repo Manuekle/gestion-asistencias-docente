@@ -86,8 +86,8 @@ const AdminDashboardComponent = () => {
       <div className="p-6 max-w-7xl mx-auto">
         <div className="text-center py-12">
           <AlertCircle className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">Error al cargar datos</h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <h3 className="mt-2 text-xs font-medium text-gray-900">Error al cargar datos</h3>
+          <p className="mt-1 text-xs text-gray-500">
             No se pudieron obtener los datos del dashboard
           </p>
         </div>
@@ -116,7 +116,7 @@ const AdminDashboardComponent = () => {
         {data.cards.map((card, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+              <CardTitle className="text-xs font-medium">{card.title}</CardTitle>
               <div className="text-muted-foreground">{getCardIcon(index)}</div>
             </CardHeader>
             <CardContent>
@@ -297,11 +297,11 @@ const AdminDashboardComponent = () => {
                   className="flex items-center justify-between py-2 border-b border-border last:border-b-0"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{subject.code}</p>
+                    <p className="text-xs font-medium">{subject.code}</p>
                     <p className="text-xs text-muted-foreground truncate">{subject.name}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">{subject.students}</p>
+                    <p className="text-xs font-medium">{subject.students}</p>
                     <p className="text-xs text-muted-foreground">estudiantes</p>
                   </div>
                 </div>

@@ -217,7 +217,7 @@ export const FileUploadDropZone = ({
             multiple={allowsMultiple}
             onChange={handleInputFileChange}
           />
-          <label htmlFor={id} className="flex cursor-pointer text-sm">
+          <label htmlFor={id} className="flex cursor-pointer text-xs">
             <Button
               variant="link"
               size="sm"

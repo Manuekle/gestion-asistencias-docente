@@ -295,7 +295,7 @@ export default function GestionUsuariosPage() {
         <CardContent className="p-0">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 pb-5 border-b">
             <div className="flex items-center gap-2 p-0">
-              <p className="text-sm text-muted-foreground whitespace-nowrap">Mostrar</p>
+              <p className="text-xs text-muted-foreground whitespace-nowrap">Mostrar</p>
               <Select
                 value={itemsPerPage.toString()}
                 onValueChange={value => {
@@ -311,16 +311,16 @@ export default function GestionUsuariosPage() {
                     <SelectItem
                       key={pageSize}
                       value={pageSize.toString()}
-                      className="text-sm font-semibold text-muted-foreground font-sans"
+                      className="text-xs font-semibold text-muted-foreground font-sans"
                     >
                       {pageSize}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-sm text-muted-foreground whitespace-nowrap">por página</p>
+              <p className="text-xs text-muted-foreground whitespace-nowrap">por página</p>
             </div>
-            <div className="text-sm text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-md hidden sm:block">
+            <div className="text-xs text-muted-foreground bg-muted/50 px-4 py-1.5 rounded-md hidden sm:block">
               Página <span className="font-normal">{currentPage}</span> de{' '}
               <span className="font-normal">{totalPages || 1}</span>
             </div>
@@ -504,7 +504,7 @@ export default function GestionUsuariosPage() {
 
           <div className="px-4 py-3 border-t">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 Mostrando {startIndex + 1} a{' '}
                 {Math.min(startIndex + itemsPerPage, filteredUsers.length)} de{' '}
                 {filteredUsers.length} usuarios

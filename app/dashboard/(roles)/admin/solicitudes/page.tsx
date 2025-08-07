@@ -199,7 +199,7 @@ export default function UnenrollRequestsPage() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="space-y-2">
-                        <h4 className="text-sm font-medium">Motivo de la solicitud:</h4>
+                        <h4 className="text-xs font-medium">Motivo de la solicitud:</h4>
                         <div className="p-2 bg-muted/50 rounded-md">
                           <p className="text-xs leading-relaxed">{request.reason}</p>
                         </div>
@@ -256,7 +256,7 @@ export default function UnenrollRequestsPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="reason" className="text-sm font-medium font-sans">
+              <Label htmlFor="reason" className="text-xs font-medium font-sans">
                 Motivo del rechazo
               </Label>
               <Textarea

@@ -319,7 +319,7 @@ export default function SubjectsPage() {
                       <div className="flex flex-col items-center gap-4">
                         <BookOpen className="h-16 w-16 text-muted-foreground/50" />
                         <h3 className="text-xl font-semibold">No hay asignaturas disponibles</h3>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           No se encontraron asignaturas para el período seleccionado
                         </div>
                       </div>
@@ -336,14 +336,10 @@ export default function SubjectsPage() {
                           {subject.name}
                         </Link>
                       </TableCell>
-                      <TableCell className="font-mono px-4 py-2">{subject.code}</TableCell>
+                      <TableCell className="px-4 py-2">{subject.code}</TableCell>
                       <TableCell className="px-4 py-2">{subject.program || 'N/A'}</TableCell>
-                      <TableCell className="font-mono px-4 py-2">
-                        {subject.semester || 'N/A'}
-                      </TableCell>
-                      <TableCell className="font-mono px-4 py-2">
-                        {subject.credits || 'N/A'}
-                      </TableCell>
+                      <TableCell className="px-4 py-2">{subject.semester || 'N/A'}</TableCell>
+                      <TableCell className="px-4 py-2">{subject.credits || 'N/A'}</TableCell>
                     </TableRow>
                   ))
                 )}

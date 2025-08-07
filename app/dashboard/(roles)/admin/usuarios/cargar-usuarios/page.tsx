@@ -195,7 +195,7 @@ export default function CargarUsuariosPage() {
               <CardTitle className="text-xl font-semibold tracking-heading">
                 Previsualización y Confirmación
               </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
+              <CardDescription className="text-xs text-muted-foreground">
                 Revisa los datos antes de confirmar la carga. Las filas con errores no serán
                 procesadas.
               </CardDescription>
@@ -264,7 +264,7 @@ export default function CargarUsuariosPage() {
                       <h3 className="mt-4 text-xl font-semibold tracking-heading">
                         Proceso Completado
                       </h3>
-                      <div className="mt-3 text-sm text-muted-foreground space-y-1">
+                      <div className="mt-3 text-xs text-muted-foreground space-y-1">
                         <p>
                           <span className="font-semibold text-primary">{createdCount}</span>{' '}
                           {createdCount === 1 ? 'usuario creado' : 'usuarios creados'} con éxito.

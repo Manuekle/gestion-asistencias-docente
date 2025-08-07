@@ -102,7 +102,7 @@ export default function Navbar() {
                 key={item.name}
                 asChild
                 variant="ghost"
-                className={`px-4 py-2 text-sm font-normal transition-colors ${
+                className={`px-4 py-2 text-xs font-normal transition-colors ${
                   item.sectionId === activeSection || (!activeSection && item.sectionId === 'home')
                     ? 'text-foreground bg-muted/50'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
@@ -159,7 +159,7 @@ export default function Navbar() {
                 key={item.name}
                 asChild
                 variant="ghost"
-                className="w-full justify-start px-4 py-3 text-sm"
+                className="w-full justify-start px-4 py-3 text-xs"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Link href={item.href}>

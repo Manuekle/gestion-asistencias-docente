@@ -50,7 +50,7 @@ export default function Footer() {
                 edu<span className="text-amber-500">Track</span>
               </span>
             </Link>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-xs">
               Transformando la gestión de asistencia en entornos educativos con tecnología moderna y
               accesible.
             </p>
@@ -73,13 +73,13 @@ export default function Footer() {
           {/* Links */}
           {links.map(section => (
             <div key={section.title}>
-              <h3 className="text-sm font-medium tracking-card mb-4">{section.title}</h3>
+              <h3 className="text-xs font-medium tracking-card mb-4">{section.title}</h3>
               <ul className="space-y-3">
                 {section.items.map(item => (
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="flex  items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="flex  items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {item.name}
@@ -92,8 +92,8 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-sm font-medium tracking-card mb-4">Contacto</h3>
-            <ul className="space-y-3 text-sm text-muted-foreground">
+            <h3 className="text-xs font-medium tracking-card mb-4">Contacto</h3>
+            <ul className="space-y-3 text-xs text-muted-foreground">
               <li className="flex items-start">
                 <Mail className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
                 <a
@@ -125,19 +125,19 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-border/40 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-muted-foreground text-center md:text-left">
+          <p className="text-xs text-muted-foreground text-center md:text-left">
             &copy; {currentYear} eduTrack. Todos los derechos reservados.
           </p>
           <div className="flex items-center space-x-6 mt-4 md:mt-0">
             <Link
               href="/terminos"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Términos de servicio
             </Link>
             <Link
               href="/privacidad"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Política de privacidad
             </Link>
@@ -145,7 +145,7 @@ export default function Footer() {
               href="https://github.com/Manuekle"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center"
             >
               <span>Hecho con ❤️ por Manuel Erazo</span>
             </Link>

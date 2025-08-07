@@ -131,7 +131,7 @@ export default function DocenteDashboard() {
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <CardTitle className="text-xl font-semibold tracking-card">Clase en Vivo</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {liveClass.subjectName} • {liveClass.topic}
                 </p>
               </div>
@@ -144,32 +144,32 @@ export default function DocenteDashboard() {
           <CardContent>
             <div className="flex flex-col md:flex-row justify-between gap-6">
               <div className="space-y-4">
-                <h3 className="text-sm font-medium">Asistencia en Tiempo Real</h3>
+                <h3 className="text-xs font-medium">Asistencia en Tiempo Real</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex items-center space-x-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-foreground/80"></div>
-                    <span className="text-sm">
+                    <span className="text-xs">
                       <span className="font-semibold">{liveClass.attendanceStats.present}</span>{' '}
                       Presentes
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-foreground/80"></div>
-                    <span className="text-sm">
+                    <span className="text-xs">
                       <span className="font-semibold">{liveClass.attendanceStats.absent}</span>{' '}
                       Ausentes
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-foreground/80"></div>
-                    <span className="text-sm">
+                    <span className="text-xs">
                       <span className="font-semibold">{liveClass.attendanceStats.late}</span>{' '}
                       Tardanzas
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-foreground/80"></div>
-                    <span className="text-sm">
+                    <span className="text-xs">
                       <span className="font-semibold">{liveClass.attendanceStats.justified}</span>{' '}
                       Justificados
                     </span>
@@ -188,7 +188,7 @@ export default function DocenteDashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Asignaturas Activas</CardTitle>
+            <CardTitle className="text-xs font-medium">Asignaturas Activas</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -199,7 +199,7 @@ export default function DocenteDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Clases Totales</CardTitle>
+            <CardTitle className="text-xs font-medium">Clases Totales</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -212,7 +212,7 @@ export default function DocenteDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Clases Impartidas</CardTitle>
+            <CardTitle className="text-xs font-medium">Clases Impartidas</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -225,14 +225,14 @@ export default function DocenteDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Próxima Clase</CardTitle>
+            <CardTitle className="text-xs font-medium">Próxima Clase</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {upcomingClasses.length > 0 ? (
               <>
                 {/* <div className="text-lg font-semibold">{upcomingClasses[0].subjectName}</div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {new Date(upcomingClasses[0].date).toLocaleDateString('es-ES', {
                     weekday: 'long',
                     year: 'numeric',
@@ -273,7 +273,7 @@ export default function DocenteDashboard() {
                 </div>
               </>
             ) : (
-              <p className="text-sm">No hay clases programadas</p>
+              <p className="text-xs">No hay clases programadas</p>
             )}
           </CardContent>
         </Card>
@@ -299,9 +299,9 @@ export default function DocenteDashboard() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-sm font-medium truncate">{cls.subjectName}</h4>
+                          <h4 className="text-xs font-medium truncate">{cls.subjectName}</h4>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
+                        <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
                           {cls.topic || 'Sin tema definido'}
                         </p>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -365,7 +365,7 @@ export default function DocenteDashboard() {
                       <div className="flex items-end justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h4 className="text-sm font-medium truncate">{subject.name}</h4>
+                            <h4 className="text-xs font-medium truncate">{subject.name}</h4>
                           </div>
                           <p className="text-xs text-muted-foreground font-mono">{subject.code}</p>
 
@@ -389,7 +389,7 @@ export default function DocenteDashboard() {
 
                         <div className="ml-4 flex flex-col items-end">
                           <div className="text-right">
-                            <div className="text-sm font-normal font-mono text-foreground">
+                            <div className="text-xs font-normal font-mono text-foreground">
                               {Math.round(progress)}%
                             </div>
                             <div className="text-xs text-muted-foreground">completado</div>

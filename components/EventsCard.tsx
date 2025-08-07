@@ -219,7 +219,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
               <CardTitle className="text-xl font-semibold tracking-heading font-sans">
                 Eventos Especiales
               </CardTitle>
-              <CardDescription className="text-sm font-sans">
+              <CardDescription className="text-xs font-sans">
                 Gestiona exámenes, entregas y anuncios importantes.
               </CardDescription>
             </div>
@@ -234,7 +234,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
                   <DialogTitle className="font-sans font-semibold text-xl tracking-tight">
                     Crear Nuevo Evento
                   </DialogTitle>
-                  <DialogDescription className="text-sm font-sans text-muted-foreground">
+                  <DialogDescription className="text-xs font-sans text-muted-foreground">
                     Gestiona exámenes, entregas y anuncios importantes.
                   </DialogDescription>
                 </DialogHeader>
@@ -425,7 +425,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
             </div>
           ) : (
             <div className="py-12 text-center">
-              <p className="text-sm text-muted-foreground">No hay eventos especiales creados.</p>
+              <p className="text-xs text-muted-foreground">No hay eventos especiales creados.</p>
             </div>
           )}
         </CardContent>

@@ -258,18 +258,18 @@ export default function ScanPage() {
           <CardContent className="space-y-4 text-center">
             <div className="flex justify-center">{renderIcon()}</div>
 
-            <p className="text-sm text-muted-foreground">{scanState.message}</p>
+            <p className="text-xs text-muted-foreground">{scanState.message}</p>
 
             {scanState.status === 'error' && scanState.error?.error === 'CLASS_NOT_STARTED' && (
               <div className="pt-4 border-t">
-                <p className="text-sm text-muted-foreground">Clase inicia a las:</p>
+                <p className="text-xs text-muted-foreground">Clase inicia a las:</p>
                 <p className="font-medium">{formatTime(scanState.error.classStartsAt)}</p>
               </div>
             )}
 
             {(scanState.status === 'success' || scanState.status === 'info') &&
               scanState.attendance && (
-                <div className="pt-4 border-t space-y-2 text-sm">
+                <div className="pt-4 border-t space-y-2 text-xs">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Asignatura:</span>
                     <span className="font-medium">{scanState.attendance.subjectName}</span>
@@ -285,7 +285,7 @@ export default function ScanPage() {
 
             {redirectIn !== undefined && redirectIn > 0 && (
               <div className="pt-4 border-t">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Redirigiendo en {redirectIn} segundos
                 </p>
               </div>

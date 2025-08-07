@@ -98,7 +98,7 @@ export function CreateUserModal({ isOpen, onClose, onUserCreated }: CreateUserMo
       <DialogContent className="sm:max-w-lg font-sans">
         <DialogHeader>
           <DialogTitle className="tracking-tight text-xl">Crear Nuevo Usuario</DialogTitle>
-          <DialogDescription className="text-sm">
+          <DialogDescription className="text-xs">
             Completa los datos para crear un nuevo usuario. Al menos un correo es requerido.
           </DialogDescription>
         </DialogHeader>

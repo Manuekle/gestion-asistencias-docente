@@ -99,7 +99,7 @@ export function QRViewer({
             {/* Timer */}
             {expiresIn !== null && (
               <div className="absolute -top-5 -right-5 bg-background border rounded-full px-3 py-1 shadow-sm">
-                <div className="flex items-center gap-1 text-sm">
+                <div className="flex items-center gap-1 text-xs">
                   <Clock className="w-3 h-3" />
                   <span className="font-mono">{formatTime(expiresIn)}</span>
                 </div>
@@ -110,7 +110,7 @@ export function QRViewer({
           {/* Manual Code */}
           <div className="w-full mb-6 space-y-3">
             <div className="relative">
-              <div className="font-mono text-center p-3 pr-10 bg-muted rounded-lg text-sm break-all select-all">
+              <div className="font-mono text-center p-3 pr-10 bg-muted rounded-lg text-xs break-all select-all">
                 {qrToken}
               </div>
               <div className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">

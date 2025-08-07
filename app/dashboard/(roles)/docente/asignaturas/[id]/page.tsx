@@ -746,7 +746,7 @@ export default function SubjectDetailPage() {
             <CardTitle className="text-xl font-semibold tracking-heading">
               Gestión de Estudiantes
             </CardTitle>
-            <CardDescription className="text-sm">
+            <CardDescription className="text-xs">
               Matricula y administra a los estudiantes de esta asignatura.
             </CardDescription>
           </div>
@@ -782,8 +782,8 @@ export default function SubjectDetailPage() {
                 <TableBody>
                   {paginatedStudents.map(student => (
                     <TableRow key={student.id}>
-                      <TableCell className="text-sm px-4 py-2">{student.name || 'N/A'}</TableCell>
-                      <TableCell className="text-sm px-4 py-2">
+                      <TableCell className="text-xs px-4 py-2">{student.name || 'N/A'}</TableCell>
+                      <TableCell className="text-xs px-4 py-2">
                         {student.document || 'N/A'}
                       </TableCell>
                       <TableCell className="text-xs px-4 py-2">
@@ -799,7 +799,7 @@ export default function SubjectDetailPage() {
                           'N/A'
                         )}
                       </TableCell>
-                      <TableCell className="text-sm px-4 py-2">
+                      <TableCell className="text-xs px-4 py-2">
                         {student.correoPersonal ? (
                           <a
                             href={`mailto:${student.correoPersonal}`}
@@ -812,7 +812,7 @@ export default function SubjectDetailPage() {
                           'N/A'
                         )}
                       </TableCell>
-                      <TableCell className="text-sm px-4 py-2">
+                      <TableCell className="text-xs px-4 py-2">
                         {student.telefono ? (
                           <a
                             href={`tel:${student.telefono}`}
@@ -825,7 +825,7 @@ export default function SubjectDetailPage() {
                           'N/A'
                         )}
                       </TableCell>
-                      <TableCell className="text-sm tracking-tight text-right px-4 py-2">
+                      <TableCell className="text-xs tracking-tight text-right px-4 py-2">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
@@ -958,7 +958,7 @@ export default function SubjectDetailPage() {
               )}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-12">
+            <p className="text-xs text-muted-foreground text-center py-12">
               Aún no hay estudiantes matriculados en esta asignatura.
             </p>
           )}
@@ -972,7 +972,7 @@ export default function SubjectDetailPage() {
             <CardTitle className="text-xl font-semibold tracking-heading">
               Gestión de Clases
             </CardTitle>
-            <CardDescription className="text-sm">
+            <CardDescription className="text-xs">
               Crea y administra las sesiones de clase para esta asignatura.
             </CardDescription>
           </div>
@@ -1044,7 +1044,7 @@ export default function SubjectDetailPage() {
                         }
                         data-state={cls.status === 'CANCELADA' ? 'cancelled' : undefined}
                       >
-                        <TableCell className="text-sm px-4 py-2">
+                        <TableCell className="text-xs px-4 py-2">
                           <div className="flex flex-col">
                             <span>{formatClassDate(cls)}</span>
                             {cls.status === 'CANCELADA' && cls.cancellationReason && (
@@ -1054,7 +1054,7 @@ export default function SubjectDetailPage() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm px-4 py-2">{cls.topic || 'N/A'}</TableCell>
+                        <TableCell className="text-xs px-4 py-2">{cls.topic || 'N/A'}</TableCell>
                         <TableCell className="px-4 py-2">
                           <Badge
                             variant="outline"
@@ -1210,7 +1210,7 @@ export default function SubjectDetailPage() {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Aún no has creado ninguna clase para esta asignatura.
             </p>
           )}
@@ -1583,7 +1583,7 @@ export default function SubjectDetailPage() {
                   return (
                     <span
                       className={cn(
-                        'px-3 py-1 rounded-full text-sm font-semibold',
+                        'px-3 py-1 rounded-full text-xs font-semibold',
                         statusInfo.color
                       )}
                     >

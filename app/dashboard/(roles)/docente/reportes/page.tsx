@@ -195,7 +195,7 @@ export default function ReportsPage() {
                 <TableCell colSpan={5} className="h-24 text-center">
                   <div className="flex flex-col items-center justify-center space-y-2 py-6">
                     <FileText className="h-8 w-8 text-muted-foreground" />
-                    <p className="text-sm font-medium text-muted-foreground">
+                    <p className="text-xs font-medium text-muted-foreground">
                       No hay reportes generados
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -216,7 +216,7 @@ export default function ReportsPage() {
                     </div>
                   </TableCell>
                   <TableCell className="py-2 text-xs">
-                    <div className="text-sm">
+                    <div className="text-xs">
                       {format(new Date(report.createdAt), 'PPP', { locale: es })}
                     </div>
                     <div className="text-xs text-muted-foreground">

@@ -55,7 +55,7 @@ const WelcomeUserEmail = ({
               <Heading className="text-xl font-semibold text-white m-0 leading-[28px]">
                 ¡Bienvenido/a!
               </Heading>
-              <Text className="text-zinc-300 text-sm m-0 mt-[4px] leading-[20px]">
+              <Text className="text-zinc-300 text-xs m-0 mt-[4px] leading-[20px]">
                 Tu cuenta ha sido creada exitosamente
               </Text>
             </Section>
@@ -112,7 +112,7 @@ const WelcomeUserEmail = ({
               <Section className="mb-[32px] text-center">
                 <Button
                   href={loginUrl}
-                  className="bg-black text-white text-sm font-medium px-[24px] py-[12px] rounded-[8px] box-border inline-block text-center no-underline leading-[20px]"
+                  className="bg-black text-white text-xs font-medium px-[24px] py-[12px] rounded-[8px] box-border inline-block text-center no-underline leading-[20px]"
                 >
                   Iniciar sesión ahora
                 </Button>
@@ -126,13 +126,13 @@ const WelcomeUserEmail = ({
                   Próximos pasos
                 </Text>
                 <div className="space-y-[8px]">
-                  <Text className="text-sm text-zinc-700 m-0 leading-[20px]">
+                  <Text className="text-xs text-zinc-700 m-0 leading-[20px]">
                     • Inicia sesión con las credenciales proporcionadas
                   </Text>
-                  <Text className="text-sm text-zinc-700 m-0 leading-[20px]">
+                  <Text className="text-xs text-zinc-700 m-0 leading-[20px]">
                     • Cambia tu contraseña por una más segura
                   </Text>
-                  <Text className="text-sm text-zinc-700 m-0 leading-[20px]">
+                  <Text className="text-xs text-zinc-700 m-0 leading-[20px]">
                     • Explora las funcionalidades de la plataforma
                   </Text>
                 </div>

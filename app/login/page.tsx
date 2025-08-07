@@ -111,7 +111,7 @@ export default function LoginPage() {
           </CardFooter>
           {/* olvidateste tu password */}
 
-          <div className="text-center text-sm pt-4">
+          <div className="text-center text-xs pt-4">
             <Link href="/forgot-password" className="text-primary hover:underline">
               Olvidaste tu contraseña?
             </Link>

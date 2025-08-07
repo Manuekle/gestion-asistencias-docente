@@ -108,7 +108,7 @@ function AppSidebar({ homePath }: { homePath: string }) {
                     quality={100}
                   />
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-left text-xs leading-tight">
                   <span className="truncate font-semibold">Gestion de Asistencias</span>
                   <span className="truncate text-xs">Facultad de Ingeniería</span>
                 </div>
@@ -169,7 +169,7 @@ function AppSidebar({ homePath }: { homePath: string }) {
                     </AvatarFallback>
                   </Avatar>
                   <div className="ml-3 text-left overflow-hidden">
-                    <p className="text-sm font-normal truncate font-sans">
+                    <p className="text-xs font-normal truncate font-sans">
                       {session?.user?.name?.split(' ')[0] || 'Usuario'}
                     </p>
                     <p className="text-xs text-muted-foreground truncate font-sans">
@@ -188,7 +188,7 @@ function AppSidebar({ homePath }: { homePath: string }) {
                 collisionPadding={16}
               >
                 <div className="px-4 py-1 my-1">
-                  <p className="text-sm font-medium truncate">{session?.user?.name || 'Usuario'}</p>
+                  <p className="text-xs font-medium truncate">{session?.user?.name || 'Usuario'}</p>
                   <p className="text-xs text-muted-foreground truncate">
                     {session?.user?.correoInstitucional || getRoleDisplayName(userRole as Role)}
                   </p>
@@ -196,14 +196,14 @@ function AppSidebar({ homePath }: { homePath: string }) {
                 <Separator />
                 <DropdownMenuItem
                   onClick={() => router.push('/dashboard/profile')}
-                  className="cursor-pointer py-1 mt-1 px-4 text-sm flex items-center"
+                  className="cursor-pointer py-1 mt-1 px-4 text-xs flex items-center"
                 >
                   <Settings className="mr-3 h-4 w-4 flex-shrink-0" />
                   <span>Perfil</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  className="cursor-pointer py-1 my-1  px-4 text-sm flex items-center"
+                  className="cursor-pointer py-1 my-1  px-4 text-xs flex items-center"
                 >
                   {theme === 'dark' ? (
                     <Sun className="mr-3 h-4 w-4 flex-shrink-0" />
@@ -217,7 +217,7 @@ function AppSidebar({ homePath }: { homePath: string }) {
                 <Separator />
                 <DropdownMenuItem
                   onClick={handleSignOut}
-                  className="text-destructive cursor-pointer py-1 mt-1 px-4 text-sm flex items-center"
+                  className="text-destructive cursor-pointer py-1 mt-1 px-4 text-xs flex items-center"
                 >
                   <LogOut className="mr-3 h-4 w-4 flex-shrink-0" />
                   <span className="font-sans">Cerrar sesión</span>

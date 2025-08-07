@@ -84,7 +84,7 @@ function StatCard({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="text-xs font-medium">{title}</CardTitle>
         <IconComponent className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
@@ -252,7 +252,7 @@ export default function EstudianteDashboard() {
     <div className="mx-auto">
       <div className="p-0 w-full mb-8">
         <h1 className="text-2xl font-semibold tracking-tight mb-1">Mi Panel</h1>
-        <p className="text-sm text-muted-foreground">Resumen de tu progreso académico</p>
+        <p className="text-xs text-muted-foreground">Resumen de tu progreso académico</p>
       </div>
 
       {/* Live Class Card */}
@@ -264,7 +264,7 @@ export default function EstudianteDashboard() {
                 <CardTitle className="text-xl font-semibold tracking-card">
                   Clase en curso
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {liveClass.subjectName} • {liveClass.topic}
                 </p>
               </div>
@@ -277,11 +277,11 @@ export default function EstudianteDashboard() {
           <CardContent className="mt-0">
             <div className="flex flex-col md:flex-row justify-between gap-6">
               <div className="space-y-1">
-                <h3 className="text-sm font-medium">Detalles de la Clase</h3>
+                <h3 className="text-xs font-medium">Detalles de la Clase</h3>
                 <div className="flex gap-3">
                   <div className="flex items-center space-x-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
+                    <span className="text-xs">
                       {liveClass.startTime
                         ? format(new Date(liveClass.startTime), 'h:mm a')
                         : 'Sin hora'}
@@ -291,20 +291,20 @@ export default function EstudianteDashboard() {
                   {liveClass.classroom && (
                     <div className="flex items-center space-x-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Aula {liveClass.classroom}</span>
+                      <span className="text-xs">Aula {liveClass.classroom}</span>
                     </div>
                   )}
                 </div>
                 {liveClass.myStatus === 'PRESENTE' ? (
                   <div className="flex items-center gap-2 mt-3">
-                    <span className="text-green-700 text-sm font-medium">
+                    <span className="text-green-700 text-xs font-medium">
                       ¡Estás presente en esta clase!
                     </span>
                   </div>
                 ) : (
                   <Link
                     href={`/dashboard/estudiante/escanear/${liveClass.qrToken}`}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 mt-2"
+                    className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 mt-2"
                     tabIndex={!liveClass.qrToken ? -1 : 0}
                     aria-disabled={!liveClass.qrToken}
                   >
@@ -357,10 +357,10 @@ export default function EstudianteDashboard() {
                     <div className="flex justify-between items-start gap-2">
                       <div className="space-y-1">
                         <h3 className="font-medium tracking-card">{subject.name}</h3>
-                        <p className="text-sm text-muted-foreground">{subject.teacher}</p>
+                        <p className="text-xs text-muted-foreground">{subject.teacher}</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-medium text-primary">
+                        <div className="text-xs font-medium text-primary">
                           {subject.attendancePercentage}%
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -373,14 +373,14 @@ export default function EstudianteDashboard() {
                       <div className="mt-3 pt-3 border-t">
                         <div className="flex items-start gap-2">
                           <div className="flex items-center gap-2 justify-center">
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-xs">
                               <Badge variant="outline" className="text-xs font-medium lowercase">
                                 {subject.nextClass.timeUntil}
                               </Badge>
                             </div>
                             {subject.nextClass.topic && (
                               <div>
-                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                <p className="text-xs text-muted-foreground line-clamp-2">
                                   {subject.nextClass.topic}
                                 </p>
                               </div>
@@ -448,7 +448,7 @@ export default function EstudianteDashboard() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-sm text-muted-foreground font-medium">
+              <p className="text-xs text-muted-foreground font-medium">
                 No hay eventos programados
               </p>
               <p className="text-xs text-muted-foreground/70 mt-1">

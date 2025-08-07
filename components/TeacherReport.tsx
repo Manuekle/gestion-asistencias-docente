@@ -94,7 +94,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
     return (
       <div className="rounded-lg border bg-background p-3 shadow-md">
-        <p className="font-normal text-sm mb-2">{displayDate}</p>
+        <p className="font-normal text-xs mb-2">{displayDate}</p>
         <div className="space-y-1">
           {payload.map((entry: TooltipEntry, index: number) => {
             const className = entry.payload[`${entry.dataKey}_className`] as string | undefined;
@@ -107,9 +107,9 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
               <div key={index} className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                  <span className="text-sm text-muted-foreground">{subjectName}</span>
+                  <span className="text-xs text-muted-foreground">{subjectName}</span>
                 </div>
-                <span className="font-mono text-sm font-normal">{entry.value}%</span>
+                <span className="font-mono text-xs font-normal">{entry.value}%</span>
               </div>
             );
           })}
@@ -193,7 +193,7 @@ function SubjectDetailsPanel({
           {/* Lista de clases */}
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-2">
-              <h4 className="text-sm font-medium text-foreground tracking-tight flex items-center gap-2">
+              <h4 className="text-xs font-medium text-foreground tracking-tight flex items-center gap-2">
                 Clases Impartidas
               </h4>
               <Badge variant="outline" className="font-normal bg-muted/50 font-sans text-xs">
@@ -228,7 +228,7 @@ function SubjectDetailsPanel({
                           <span className="text-xs text-muted-foreground uppercase">{month}</span>
                         </div>
                         <div>
-                          <h5 className="text-sm font-normal text-foreground">
+                          <h5 className="text-xs font-normal text-foreground">
                             {cls.name ?? `Clase ${index + 1}`}
                           </h5>
                           <div className="flex items-center gap-2 mt-1">
@@ -274,7 +274,7 @@ function SubjectDetailsPanel({
           {/* Gráfico de distribución */}
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-2">
-              <h4 className="text-sm font-medium text-foreground tracking-tight">
+              <h4 className="text-xs font-medium text-foreground tracking-tight">
                 Distribución de Asistencia
               </h4>
               <Badge variant="outline" className="font-normal bg-muted/50 font-sans text-xs">
@@ -327,7 +327,7 @@ function SubjectDetailsPanel({
                         className="w-3 h-3 rounded-full flex-shrink-0"
                         style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }}
                       />
-                      <span className="text-sm font-normal text-foreground">{item.name}</span>
+                      <span className="text-xs font-normal text-foreground">{item.name}</span>
                     </div>
                     <div className="flex flex-col items-baseline gap-1.5">
                       <span className="text-lg font-semibold">{item.percentage}%</span>
@@ -566,7 +566,7 @@ export function TeacherReport() {
                       {teacher.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 text-left">
-                      <div className="font-medium text-sm tracking-card truncate">
+                      <div className="font-medium text-xs tracking-card truncate">
                         {teacher.name}
                       </div>
                       {teacher.codigoDocente && (
@@ -639,7 +639,7 @@ export function TeacherReport() {
                         {selectedTeacher.name}
                       </CardTitle>
                       {selectedTeacher.codigoDocente && (
-                        <p className="text-sm text-muted-foreground font-mono">
+                        <p className="text-xs text-muted-foreground font-mono">
                           {selectedTeacher.codigoDocente}
                         </p>
                       )}
@@ -751,8 +751,8 @@ export function TeacherReport() {
                   ) : (
                     <div className="flex items-center justify-center h-full text-muted-foreground">
                       <div className="text-center">
-                        <h3 className="text-sm font-medium">Sin datos disponibles</h3>
-                        <p className="text-sm">No hay información de asistencia para mostrar</p>
+                        <h3 className="text-xs font-medium">Sin datos disponibles</h3>
+                        <p className="text-xs">No hay información de asistencia para mostrar</p>
                       </div>
                     </div>
                   )}
@@ -772,8 +772,8 @@ export function TeacherReport() {
           <Card className="flex items-center justify-center h-56 sm:h-[calc(100vh-10rem)] border p-0 m-0">
             <div className="p-8">
               <div className="text-center">
-                <h3 className="text-sm font-medium">Selecciona un docente</h3>
-                <p className="text-muted-foreground text-sm max-w-md">
+                <h3 className="text-xs font-medium">Selecciona un docente</h3>
+                <p className="text-muted-foreground text-xs max-w-md">
                   Elige un docente de la lista para ver su historial de asistencia y estadísticas
                   detalladas
                 </p>

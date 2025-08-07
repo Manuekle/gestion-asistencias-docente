@@ -32,7 +32,7 @@ export function UserMenu({ user, onSignOut, getRoleDisplayName }: UserMenuProps)
             </AvatarFallback>
           </Avatar>
           <div className="ml-3 text-left overflow-hidden flex-1">
-            <p className="text-sm font-normal truncate">{user.name}</p>
+            <p className="text-xs font-normal truncate">{user.name}</p>
             <p className="text-xs text-muted-foreground truncate">
               {getRoleDisplayName(user.role)}
             </p>
@@ -41,7 +41,7 @@ export function UserMenu({ user, onSignOut, getRoleDisplayName }: UserMenuProps)
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" side="right" align="end">
         <div className="px-2 py-1.5">
-          <p className="text-sm font-normal">{user.name}</p>
+          <p className="text-xs font-normal">{user.name}</p>
           <p className="text-xs text-muted-foreground">{user.correoInstitucional}</p>
         </div>
         <DropdownMenuSeparator />

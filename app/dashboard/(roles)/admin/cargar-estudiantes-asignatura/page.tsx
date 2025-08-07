@@ -179,7 +179,7 @@ export default function UploadStudentsToSubjectsPage() {
               <CardTitle className="text-xl font-semibold tracking-heading">
                 Plantilla de Carga
               </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
+              <CardDescription className="text-xs text-muted-foreground">
                 Descarga la plantilla para asegurar que tu archivo tiene el formato correcto.
               </CardDescription>
             </CardHeader>
@@ -228,7 +228,7 @@ export default function UploadStudentsToSubjectsPage() {
               <CardTitle className="text-xl font-semibold tracking-heading">
                 Previsualización y Confirmación
               </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
+              <CardDescription className="text-xs text-muted-foreground">
                 Revisa los datos antes de confirmar la carga. Las filas con errores no serán
                 procesadas.
               </CardDescription>
@@ -250,16 +250,16 @@ export default function UploadStudentsToSubjectsPage() {
                   <h3 className="mt-4 text-xl font-semibold tracking-heading">
                     {uploadResult.success ? 'Carga completada' : 'Error en la carga'}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Se procesaron {uploadResult.processedRows} de {uploadResult.totalRows}{' '}
                     asignaturas.
                   </p>
 
                   {uploadResult.errors.length > 0 && (
                     <div className="space-y-3 mt-4 text-left">
-                      <p className="text-sm font-medium">Detalles:</p>
+                      <p className="text-xs font-medium">Detalles:</p>
                       <div className="bg-muted/50 rounded-md p-3 max-h-40 overflow-y-auto">
-                        <div className="space-y-1 text-sm">
+                        <div className="space-y-1 text-xs">
                           {uploadResult.errors.map((error, index) => (
                             <div key={index} className="text-muted-foreground">
                               {error.codigoAsignatura && (
@@ -326,7 +326,7 @@ export default function UploadStudentsToSubjectsPage() {
                                   return (
                                     <Dialog>
                                       <DialogTrigger asChild>
-                                        <button className="text-left text-sm hover:underline">
+                                        <button className="text-left text-xs hover:underline">
                                           {successCount > 0 && `${successCount} listos`}
                                           {successCount > 0 &&
                                             (warningCount > 0 || errorCount > 0) &&
@@ -355,10 +355,10 @@ export default function UploadStudentsToSubjectsPage() {
 
                                               return (
                                                 <div key={status}>
-                                                  <h4 className="font-medium text-sm mb-2">
+                                                  <h4 className="font-medium text-xs mb-2">
                                                     {statusTitle} ({students.length})
                                                   </h4>
-                                                  <div className="space-y-1 text-sm">
+                                                  <div className="space-y-1 text-xs">
                                                     {students.map((student, sIndex) => (
                                                       <div key={sIndex} className="flex gap-3">
                                                         <span className="font-mono">

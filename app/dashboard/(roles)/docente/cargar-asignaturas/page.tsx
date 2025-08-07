@@ -386,7 +386,7 @@ export default function UploadSubjectsPage() {
               <CardTitle className="text-xl font-semibold tracking-heading">
                 Plantilla de Carga
               </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
+              <CardDescription className="text-xs text-muted-foreground">
                 Descarga la plantilla para asegurar que tu archivo tiene el formato correcto.
               </CardDescription>
             </CardHeader>
@@ -434,7 +434,7 @@ export default function UploadSubjectsPage() {
               <CardTitle className="text-xl font-semibold tracking-heading">
                 Previsualización y Confirmación
               </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
+              <CardDescription className="text-xs text-muted-foreground">
                 Revisa los datos antes de confirmar la carga. Las filas con errores no serán
                 procesadas.
               </CardDescription>
@@ -450,15 +450,15 @@ export default function UploadSubjectsPage() {
                     <CheckCircle className="h-16 w-16 text-green-500" />
                   </div>
                   <h3 className="font-medium text-xl tracking-heading">Carga completada</h3>
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Se procesaron {uploadResult.processed} asignaturas.
                   </p>
 
                   {uploadResult.errors && uploadResult.errors.length > 0 && (
                     <div className="space-y-3 mt-4 text-left">
-                      <p className="text-sm font-medium text-red-600">Detalles de errores:</p>
+                      <p className="text-xs font-medium text-red-600">Detalles de errores:</p>
                       <div className="bg-muted/50 rounded-md p-3 max-h-40 overflow-y-auto">
-                        <ul className="list-disc list-inside space-y-1 text-sm text-red-500">
+                        <ul className="list-disc list-inside space-y-1 text-xs text-red-500">
                           {uploadResult.errors.map((error, index) => (
                             <li key={index}>{error}</li>
                           ))}
@@ -490,7 +490,7 @@ export default function UploadSubjectsPage() {
                         {previewData.map(subject => (
                           <React.Fragment key={subject.codigoAsignatura}>
                             <TableRow className="hover:bg-muted/50 transition-colors">
-                              <TableCell className="text-xs font-normal px-4 py-2 font-mono">
+                              <TableCell className="text-xs font-normal px-4 py-2">
                                 {subject.codigoAsignatura}
                               </TableCell>
                               <TableCell className="text-xs font-normal px-4 py-2">
@@ -502,18 +502,21 @@ export default function UploadSubjectsPage() {
                               <TableCell>
                                 {subject.status === 'duplicate' ? (
                                   <Badge variant="destructive" className="text-xs">
-                                    Duplicado
+                                    Código duplicado
                                   </Badge>
                                 ) : subject.status === 'error' ? (
                                   <Badge
                                     variant="destructive"
                                     className="text-xs font-normal text-white"
                                   >
-                                    Error
+                                    Asignatura existente
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="text-xs font-normal">
-                                    Correcto
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs font-normal text-green-600 border-green-300"
+                                  >
+                                    Listo para cargar
                                   </Badge>
                                 )}
                               </TableCell>
@@ -543,7 +546,7 @@ export default function UploadSubjectsPage() {
                                   <div className="px-6 py-4">
                                     <div className="flex items-center justify-between mb-4">
                                       <div className="flex items-center gap-3">
-                                        <h4 className="font-normal text-sm">Clases Programadas</h4>
+                                        <h4 className="font-normal text-xs">Clases Programadas</h4>
                                       </div>
                                       <Badge variant="secondary" className="font-normal">
                                         {subject.classes.length}{' '}
@@ -614,7 +617,7 @@ export default function UploadSubjectsPage() {
                                       <div className="rounded-lg border-2 border-dashed border-muted-foreground/20 p-8 text-center hover:border-muted-foreground/30 transition-colors">
                                         <div className="flex flex-col items-center justify-center space-y-2">
                                           <CalendarX className="h-10 w-10 text-muted-foreground/50" />
-                                          <p className="text-sm font-medium text-muted-foreground">
+                                          <p className="text-xs font-medium text-muted-foreground">
                                             No hay clases programadas
                                           </p>
                                           <p className="text-xs text-muted-foreground/70 max-w-md">

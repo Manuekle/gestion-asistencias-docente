@@ -165,7 +165,7 @@ export default function HomePageClient() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.5 }}
-                  className="mx-auto max-w-2xl text-sm text-muted-foreground md:text-sm"
+                  className="mx-auto max-w-2xl text-xs text-muted-foreground md:text-xs"
                 >
                   Transforma la gestión de asistencia con nuestra plataforma intuitiva. Simplifica
                   el registro, ahorra tiempo y lleva el control total de la asistencia de tus
@@ -215,7 +215,7 @@ export default function HomePageClient() {
                             {feature.title}
                           </h3>
                         </div>
-                        <p className="text-muted-foreground text-balance leading-relaxed text-sm font-normal">
+                        <p className="text-muted-foreground text-balance leading-relaxed text-xs font-normal">
                           {feature.description}
                         </p>
                       </div>
@@ -248,7 +248,7 @@ export default function HomePageClient() {
               <h2 className="text-2xl font-semibold tracking-tight sm:text-4xl text-foreground">
                 Potencia tu gestión educativa
               </h2>
-              <p className="max-w-2xl mx-auto text-sm text-muted-foreground">
+              <p className="max-w-2xl mx-auto text-xs text-muted-foreground">
                 Descubre cómo nuestra plataforma puede transformar la forma en que gestionas las
                 asistencias
               </p>
@@ -275,7 +275,7 @@ export default function HomePageClient() {
                             {feature.title}
                           </h3>
                         </div>
-                        <p className="text-muted-foreground flex items-center text-center justify-center leading-relaxed text-sm font-normal">
+                        <p className="text-muted-foreground flex items-center text-center justify-center leading-relaxed text-xs font-normal">
                           {feature.description}
                         </p>
                       </div>
@@ -307,7 +307,7 @@ export default function HomePageClient() {
               <h2 className="text-2xl font-semibold tracking-tight sm:text-4xl text-foreground">
                 Así de fácil es comenzar
               </h2>
-              <p className="max-w-2xl mx-auto text-sm text-muted-foreground">
+              <p className="max-w-2xl mx-auto text-xs text-muted-foreground">
                 Un proceso intuitivo diseñado para ahorrarte tiempo y complicaciones
               </p>
             </motion.div>
@@ -366,18 +366,18 @@ export default function HomePageClient() {
                         <h3 className="text-lg font-medium tracking-card mb-2 text-foreground">
                           Confirmar Asistencia
                         </h3>
-                        <p className="text-muted-foreground mb-6 max-w-md text-sm">
+                        <p className="text-muted-foreground mb-6 max-w-md text-xs">
                           Escanea el código QR para confirmar tu asistencia a la clase de{' '}
                           <span className="font-normal text-foreground">
                             Inteligencia Artificial - G1
                           </span>
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          <button className="px-6 py-2 bg-black text-white rounded-lg font-normal  shadow-lg flex items-center justify-center gap-2 text-sm">
+                          <button className="px-6 py-2 bg-black text-white rounded-lg font-normal  shadow-lg flex items-center justify-center gap-2 text-xs">
                             <ScanLine className="h-4 w-4" />
                             Escanear código
                           </button>
-                          <button className="px-6 py-2 border-2 border-border bg-white text-black rounded-lg font-normal text-sm">
+                          <button className="px-6 py-2 border-2 border-border bg-white text-black rounded-lg font-normal text-xs">
                             Ingresar código
                           </button>
                         </div>
@@ -415,7 +415,7 @@ export default function HomePageClient() {
                     edu<span className="text-amber-500">Track</span>
                   </span>
                 </h2>
-                <p className="max-w-3xl mx-auto text-sm text-muted-foreground">
+                <p className="max-w-3xl mx-auto text-xs text-muted-foreground">
                   Una solución innovadora para la gestión de asistencia en entornos educativos
                 </p>
               </motion.div>
@@ -432,7 +432,7 @@ export default function HomePageClient() {
                     <h3 className="text-xl font-semibold tracking-card text-foreground">
                       Nuestra Misión
                     </h3>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-xs">
                       En <span className="font-semibold text-foreground">eduTrack</span>, nos
                       dedicamos a transformar la manera en que las instituciones educativas
                       gestionan la asistencia, ofreciendo una solución intuitiva, segura y eficiente
@@ -463,7 +463,7 @@ export default function HomePageClient() {
                               {feature.icon}
                             </div>
                             <div>
-                              <h4 className="font-medium tracking-card text-foreground text-sm">
+                              <h4 className="font-medium tracking-card text-foreground text-xs">
                                 {feature.title}
                               </h4>
                               <p className="text-xs text-muted-foreground">{feature.description}</p>

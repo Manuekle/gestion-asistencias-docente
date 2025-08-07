@@ -61,7 +61,7 @@ const UnenrollStatusEmail = ({
               <Heading className="text-[20px] font-semibold text-white m-0 leading-[28px]">
                 Solicitud {isApproved ? 'Aprobada' : 'Rechazada'}
               </Heading>
-              <Text className="text-green-100 text-sm m-0 mt-[4px] leading-[20px]">
+              <Text className="text-green-100 text-xs m-0 mt-[4px] leading-[20px]">
                 {isApproved
                   ? 'Tu desmatriculación ha sido procesada'
                   : 'Tu solicitud no pudo ser procesada'}
@@ -135,7 +135,7 @@ const UnenrollStatusEmail = ({
                     Motivo del rechazo
                   </Text>
                   <div className="bg-red-50 border-l-[4px] border-red-300 px-[16px] py-[12px]">
-                    <Text className="text-sm text-red-800 leading-[20px] m-0 italic">
+                    <Text className="text-xs text-red-800 leading-[20px] m-0 italic">
                       "{reason}"
                     </Text>
                   </div>
@@ -150,7 +150,7 @@ const UnenrollStatusEmail = ({
                   className={`border rounded-[8px] px-[16px] py-[12px] ${isApproved ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}
                 >
                   <Text
-                    className={`text-sm m-0 leading-[20px] ${isApproved ? 'text-green-800' : 'text-blue-800'}`}
+                    className={`text-xs m-0 leading-[20px] ${isApproved ? 'text-green-800' : 'text-blue-800'}`}
                   >
                     <strong>Estado actual:</strong>{' '}
                     {isApproved

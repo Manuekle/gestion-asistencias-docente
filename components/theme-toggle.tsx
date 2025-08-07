@@ -16,7 +16,7 @@ export function ThemeToggle() {
           <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-sidebar-accent">
             {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
           </div>
-          <span className="ml-3 text-sm">{theme === 'light' ? 'Modo oscuro' : 'Modo claro'}</span>
+          <span className="ml-3 text-xs">{theme === 'light' ? 'Modo oscuro' : 'Modo claro'}</span>
         </Label>
         <Switch
           id="theme-switcher"

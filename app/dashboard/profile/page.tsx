@@ -562,7 +562,7 @@ export default function ProfilePage() {
                       </div>
                     ) : (
                       <div className="text-center text-muted-foreground/60">
-                        <p className="text-sm">Sin firma</p>
+                        <p className="text-xs">Sin firma</p>
                       </div>
                     )}
                   </div>
@@ -570,7 +570,7 @@ export default function ProfilePage() {
 
                 {/* Estado del archivo */}
                 {signatureFile && (
-                  <div className="flex items-center gap-3 text-sm bg-muted/30 border border-muted-foreground/20 rounded-md px-3 py-2">
+                  <div className="flex items-center gap-3 text-xs bg-muted/30 border border-muted-foreground/20 rounded-md px-3 py-2">
                     <span className="font-medium">{signatureFile.name}</span>
                     <span className="text-muted-foreground text-xs ml-auto">Listo</span>
                   </div>

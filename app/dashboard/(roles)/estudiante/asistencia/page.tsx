@@ -107,7 +107,7 @@ export default function StudentAttendancePage() {
               ¡Registrado!
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0 space-y-2 text-sm">
+          <CardContent className="pt-0 space-y-2 text-xs">
             <div>
               <span className="font-normal">Clase: </span>
               {success.className || 'No especificada'}

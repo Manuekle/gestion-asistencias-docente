@@ -54,7 +54,7 @@ const ClassCancellationEmail = ({
               <Heading className="text-[20px] font-semibold text-white m-0 leading-[28px]">
                 Clase Cancelada
               </Heading>
-              <Text className="text-zinc-300 text-sm m-0 mt-[4px] leading-[20px]">
+              <Text className="text-zinc-300 text-xs m-0 mt-[4px] leading-[20px]">
                 Notificación importante sobre tu clase programada
               </Text>
             </Section>
