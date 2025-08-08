@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Subject } from '@prisma/client';
 import { BookOpen } from 'lucide-react';
 import Link from 'next/link';
@@ -329,12 +330,21 @@ export default function SubjectsPage() {
                   subjects.map(subject => (
                     <TableRow key={subject.id} className="border-b">
                       <TableCell className="font-normal whitespace-nowrap px-4 py-2">
-                        <Link
-                          href={`/dashboard/docente/asignaturas/${subject.id}`}
-                          className="hover:underline"
-                        >
-                          {subject.name}
-                        </Link>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link
+                                href={`/dashboard/docente/asignaturas/${subject.id}`}
+                                className="hover:underline"
+                              >
+                                {subject.name}
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Ir a mi clase</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </TableCell>
                       <TableCell className="px-4 py-2">{subject.code}</TableCell>
                       <TableCell className="px-4 py-2">{subject.program || 'N/A'}</TableCell>

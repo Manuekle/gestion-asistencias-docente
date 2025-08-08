@@ -18,6 +18,8 @@ import { useParams, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +52,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loading } from '@/components/ui/loading';
+import { Loading, LoadingPage } from '@/components/ui/loading';
 import {
   Pagination,
   PaginationContent,
@@ -356,12 +358,14 @@ export default function SubjectDetailPage() {
 
       try {
         setIsLoadingClasses(true);
+        setError(null);
         const response = await fetch(
           `/api/docente/clases?subjectId=${subjectId}&page=${page}&limit=${limit}&sortBy=date&sortOrder=desc`
         );
 
         if (!response.ok) {
-          throw new Error('Error al cargar las clases');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Error al cargar las clases');
         }
 
         const { data, pagination: paginationData } = await response.json();
@@ -380,11 +384,17 @@ export default function SubjectDetailPage() {
         }));
 
         // Check if a report already exists for the current period
-        const currentPeriod = getCurrentPeriod();
-        const reportExists = await checkReportExistsForPeriod(currentPeriod);
-        setReportExistsForCurrentPeriod(reportExists);
+        try {
+          const currentPeriod = getCurrentPeriod();
+          const reportExists = await checkReportExistsForPeriod(currentPeriod);
+          setReportExistsForCurrentPeriod(reportExists);
+        } catch (reportError) {
+          console.error('Error checking report status:', reportError);
+          // Don't block the UI for this error
+        }
       } catch (error) {
         console.error('Error fetching classes:', error);
+        setError(error instanceof Error ? error.message : 'Error al cargar las clases');
         toast.error('Error al cargar las clases');
       } finally {
         setIsLoadingClasses(false);
@@ -408,13 +418,16 @@ export default function SubjectDetailPage() {
 
   const fetchSubject = useCallback(async () => {
     if (!subjectId) {
-      console.error('No se proporcionó un ID de asignatura');
+      const errorMsg = 'No se proporcionó un ID de asignatura';
+      console.error(errorMsg);
+      setError(errorMsg);
       setIsLoadingSubject(false);
       return;
     }
 
     try {
       setIsLoadingSubject(true);
+      setError(null);
       const response = await fetch(`/api/docente/asignaturas/${subjectId}`);
 
       if (!response.ok) {
@@ -428,9 +441,6 @@ export default function SubjectDetailPage() {
         throw new Error('No se recibieron datos de la asignatura');
       }
 
-      // Debug log to check the received data
-      console.log('Subject data received:', data);
-
       // Set the subject with the correct property names from the API response
       setSubject({
         id: data.id,
@@ -439,6 +449,10 @@ export default function SubjectDetailPage() {
       });
     } catch (error) {
       console.error('Error al cargar la asignatura:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error desconocido al cargar la asignatura';
+      setError(errorMessage);
+
       // Set a default subject if there's an error
       setSubject({
         id: subjectId,
@@ -447,24 +461,30 @@ export default function SubjectDetailPage() {
       });
 
       // Show error toast to the user
-      toast.error(
-        error instanceof Error ? error.message : 'No se pudo cargar la información de la asignatura'
-      );
+      toast.error(errorMessage);
     } finally {
       setIsLoadingSubject(false);
     }
   }, [subjectId]);
 
   const fetchEnrolledStudents = useCallback(async () => {
-    if (!subjectId) return;
+    if (!subjectId) {
+      setError('No se proporcionó un ID de asignatura para cargar estudiantes');
+      return;
+    }
+
     setIsLoadingStudents(true);
     try {
+      setError(null);
       const response = await fetch(`/api/docente/matriculas?subjectId=${subjectId}`);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'No se pudieron cargar los estudiantes.');
       }
+
       const result = await response.json();
+
       if (result.data) {
         setEnrolledStudents(result.data);
       } else {
@@ -473,7 +493,10 @@ export default function SubjectDetailPage() {
       }
     } catch (err) {
       console.error('Error al cargar los estudiantes:', err);
-      toast.error(err instanceof Error ? err.message : 'Error al cargar los estudiantes');
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar los estudiantes';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setEnrolledStudents([]); // Reset students on error
     } finally {
       setIsLoadingStudents(false);
     }
@@ -703,6 +726,38 @@ export default function SubjectDetailPage() {
       );
     }
   };
+
+  // Loading state
+  const isLoading = isLoadingSubject || isLoadingClasses || isLoadingStudents;
+
+  // Error state
+  const [error, setError] = useState<string | null>(null);
+
+  // Show loading state
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+        <div className="p-6 rounded-lg max-w-md w-full flex flex-col justify-center items-center bg-destructive border border-destructive">
+          <h2 className="text-2xl text-white text-center font-semibold tracking-tight pb-2">
+            No disponible
+          </h2>
+          <p className="text-white text-center mb-4 text-xs">{error}</p>
+          <Button
+            onClick={() => router.push('/dashboard/docente/asignaturas')}
+            variant="default"
+            className="w-full sm:w-auto"
+          >
+            Volver a la lista de asignaturas
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -1054,7 +1109,31 @@ export default function SubjectDetailPage() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-xs px-4 py-2">{cls.topic || 'N/A'}</TableCell>
+                        <TableCell className="text-xs px-4 py-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                {canTakeAttendance ? (
+                                  <Link
+                                    href={`/dashboard/docente/asignaturas/${subjectId}/clase/${cls.id}/asistencia`}
+                                    className="hover:underline"
+                                  >
+                                    {cls.topic || 'Sin tema'}
+                                  </Link>
+                                ) : (
+                                  <span className="cursor-default">{cls.topic || 'N/A'}</span>
+                                )}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  {canTakeAttendance
+                                    ? 'Registrar asistencia'
+                                    : 'Clase aun no disponible'}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TableCell>
                         <TableCell className="px-4 py-2">
                           <Badge
                             variant="outline"

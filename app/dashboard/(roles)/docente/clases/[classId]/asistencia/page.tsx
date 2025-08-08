@@ -39,8 +39,10 @@ type StudentAttendance = {
 type ClassInfo = {
   id: string;
   date: string;
-  endTime?: string; // La hora de fin es opcional
+  startTime?: string;
+  endTime?: string;
   topic: string;
+  status: 'PROGRAMADA' | 'REALIZADA' | 'CANCELADA';
   subject: {
     name: string;
   };
@@ -57,6 +59,8 @@ export default function AttendancePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isClassPast, setIsClassPast] = useState(false);
+  const [isClassTooEarly, setIsClassTooEarly] = useState(false);
+  const [isClassCompleted, setIsClassCompleted] = useState(false);
 
   const [qrData, setQrData] = useState<{
     qrUrl: string;
@@ -78,15 +82,32 @@ export default function AttendancePage() {
 
       if (!classRes.ok) throw new Error('No se pudieron cargar los detalles de la clase.');
       const classResponse = await classRes.json();
-      const classData: ClassInfo = classResponse.data; // Corregido: usar response.data
+      const classData: ClassInfo = classResponse.data;
       setClassInfo(classData);
 
-      // Comprobar si la clase ya ha finalizado
       const now = new Date();
+      const classStartDate = classData.startTime
+        ? new Date(classData.startTime)
+        : new Date(classData.date);
       const classEndDate = classData.endTime
         ? new Date(classData.endTime)
-        : new Date(new Date(classData.date).getTime() + 2 * 60 * 60 * 1000); // Asumir 2h si no hay hora de fin
-      setIsClassPast(now > classEndDate);
+        : new Date(classStartDate.getTime() + 2 * 60 * 60 * 1000); // Asumir 2h si no hay hora de fin
+
+      // Verificar el estado de la clase
+      const isPast = now > classEndDate;
+      const isTooEarly = now < classStartDate;
+      const isCompleted = classData.status === 'REALIZADA' || classData.status === 'CANCELADA';
+
+      setIsClassPast(isPast);
+      setIsClassTooEarly(isTooEarly);
+      setIsClassCompleted(isCompleted);
+
+      // Redirigir si la clase no está en un estado válido para tomar asistencia
+      if (isTooEarly || isCompleted || isPast) {
+        toast.error('No se puede tomar asistencia en este momento.');
+        router.back();
+        return;
+      }
 
       if (!attendanceRes.ok) throw new Error('No se pudo cargar la lista de asistencia.');
       const attendanceResponse = await attendanceRes.json();
@@ -99,7 +120,7 @@ export default function AttendancePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [classId, qrData]);
+  }, [classId, qrData, router, setError, setIsLoading]);
 
   useEffect(() => {
     fetchData();
@@ -182,13 +203,24 @@ export default function AttendancePage() {
     return <LoadingPage />;
   }
 
-  if (error) {
+  if (error || isClassTooEarly || isClassCompleted || isClassPast) {
     return (
-      <div className="flex items-center justify-center h-screen text-red-500">
-        <p>{error}</p>
-        <Button onClick={() => router.back()} variant="outline" className="ml-4">
-          Volver
-        </Button>
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+        <div className="p-6 rounded-lg max-w-md w-full flex flex-col justify-center items-center bg-destructive border border-destructive">
+          <h2 className="text-2xl text-white text-center font-semibold tracking-tight pb-2">
+            No disponible
+          </h2>
+          <p className="text-white text-center mb-4 text-xs">
+            {isClassTooEarly
+              ? 'La clase aún no ha comenzado.'
+              : isClassCompleted
+                ? 'La asistencia ya fue registrada.'
+                : 'El tiempo para registrar asistencia ha finalizado.'}
+          </p>
+          <Button onClick={() => router.back()} variant="default" className="w-full sm:w-auto">
+            Volver a la clase
+          </Button>
+        </div>
       </div>
     );
   }
