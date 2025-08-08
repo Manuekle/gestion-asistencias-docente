@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingPage } from '@/components/ui/loading';
 import { AlertCircle, BookOpen, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -16,6 +16,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 import { ChartContainer, ChartTooltipContent } from './ui/chart';
 
 interface CardData {
@@ -57,21 +59,38 @@ interface DashboardData {
 const AdminDashboardComponent = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      const response = await fetch('/api/admin/dashboard');
+      const response = await fetch('/api/admin/dashboard', {
+        credentials: 'include', // Incluir credenciales para autenticación
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to fetch dashboard data');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
       }
+
       const result: DashboardData = await response.json();
       setData(result);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Ocurrió un error al cargar los datos del dashboard'
+      );
     } finally {
       setLoading(false);
     }
@@ -81,15 +100,22 @@ const AdminDashboardComponent = () => {
     return <LoadingPage />;
   }
 
-  if (!data) {
+  if (error || !data) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="text-center py-12">
-          <AlertCircle className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-xs font-medium text-gray-900">Error al cargar datos</h3>
-          <p className="mt-1 text-xs text-gray-500">
-            No se pudieron obtener los datos del dashboard
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+        <div className="p-6 rounded-lg max-w-md w-full flex flex-col justify-center items-center bg-destructive border border-destructive">
+          <AlertCircle className="h-12 w-12 text-white mb-4" />
+          <h2 className="text-2xl text-white text-center font-semibold tracking-tight pb-2">
+            Error al cargar datos
+          </h2>
+          <p className="text-white text-xs text-center mb-6">
+            {error || 'No se pudieron obtener los datos del dashboard'}
           </p>
+          <div className="flex gap-3">
+            <Button className="text-xs" onClick={() => window.location.reload()} variant="outline">
+              Recargar página
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -111,6 +137,22 @@ const AdminDashboardComponent = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+        <CardHeader className="p-0 w-full">
+          <CardTitle className="text-2xl font-semibold tracking-tight">Mi Panel</CardTitle>
+          <CardDescription className="text-xs">Resumen y gestión académica</CardDescription>
+        </CardHeader>
+        <div className="flex items-center gap-2 w-full justify-start sm:justify-end">
+          <Badge variant="outline" className="text-xs font-normal">
+            {new Date().toLocaleDateString('es-ES', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </Badge>
+        </div>
+      </div>
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {data.cards.map((card, index) => (

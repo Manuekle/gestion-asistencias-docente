@@ -4,21 +4,22 @@ import bcrypt from 'bcryptjs';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
-// Configuración de cookies para desarrollo y producción
+// 🔧 Configuración según entorno
 const isProduction = process.env.NODE_ENV === 'production';
 let baseUrl = process.env.NEXTAUTH_URL || 'https://edutrack-fup.vercel.app';
-// Ensure the URL has a protocol
+
 if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
   baseUrl = `https://${baseUrl}`;
 }
+
 const useSecureCookies = baseUrl.startsWith('https://') || isProduction;
 const cookiePrefix = useSecureCookies ? '__Secure-' : '';
 
-// URL base ya configurada arriba
-console.log('Configurando NextAuth con URL base:', baseUrl);
+console.log('⚙️ Configurando NextAuth con URL base:', baseUrl);
 
 export const authOptions: NextAuthOptions = {
-  debug: process.env.NODE_ENV === 'development',
+  debug: !isProduction,
+
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -27,9 +28,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Contraseña', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
         const user = await db.user.findFirst({
           where: {
@@ -37,71 +36,55 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        if (!user || !user.password) {
-          return null;
-        }
+        if (!user || !user.password) return null;
 
         const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
+        if (!isPasswordCorrect) return null;
 
-        if (isPasswordCorrect) {
-          return {
-            id: user.id,
-            role: user.role,
-            name: user.name,
-            correoPersonal: user.correoPersonal,
-            correoInstitucional: user.correoInstitucional,
-            signatureUrl: user.signatureUrl,
-            codigoDocente: user.codigoDocente,
-            codigoEstudiantil: user.codigoEstudiantil,
-            telefono: user.telefono,
-            document: user.document,
-            isActive: user.isActive,
-          };
-        }
-
-        return null;
+        return {
+          id: user.id,
+          role: user.role,
+          name: user.name,
+          correoPersonal: user.correoPersonal,
+          correoInstitucional: user.correoInstitucional,
+          signatureUrl: user.signatureUrl,
+          codigoDocente: user.codigoDocente,
+          codigoEstudiantil: user.codigoEstudiantil,
+          telefono: user.telefono,
+          document: user.document,
+          isActive: user.isActive,
+        };
       },
     }),
   ],
+
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 días
+  },
+
+  jwt: {
+    secret: process.env.NEXTAUTH_SECRET,
+  },
+
+  secret: process.env.NEXTAUTH_SECRET,
+
   callbacks: {
     async jwt({ token, user, trigger }) {
-      // Al iniciar sesión, se agrega la información del usuario al token
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.name = user.name;
-        token.correoPersonal = user.correoPersonal;
-        token.correoInstitucional = user.correoInstitucional;
-        token.signatureUrl = user.signatureUrl;
-        token.codigoDocente = user.codigoDocente;
-        token.codigoEstudiantil = user.codigoEstudiantil;
-        token.telefono = user.telefono;
-        token.document = user.document;
-        token.isActive = user.isActive;
+        Object.assign(token, user);
       }
 
-      // Cuando se actualiza la sesión (por ejemplo, al cambiar la firma)
       if (trigger === 'update') {
-        const dbUser = await db.user.findUnique({
-          where: { id: token.id as string },
-        });
-
+        const dbUser = await db.user.findUnique({ where: { id: token.id as string } });
         if (dbUser) {
-          // Actualizar el token con la nueva información de la base de datos
-          token.name = dbUser.name;
-          token.correoPersonal = dbUser.correoPersonal;
-          token.correoInstitucional = dbUser.correoInstitucional;
-          token.signatureUrl = dbUser.signatureUrl;
-          token.codigoDocente = dbUser.codigoDocente;
-          token.codigoEstudiantil = dbUser.codigoEstudiantil;
-          token.telefono = dbUser.telefono;
-          token.document = dbUser.document;
-          token.isActive = dbUser.isActive;
+          Object.assign(token, dbUser);
         }
       }
 
       return token;
     },
+
     async session({ session, token }) {
       if (token) {
         session.user = {
@@ -121,48 +104,23 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+
     async redirect({ url, baseUrl }) {
-      // Si la URL es un callback de autenticación, redirigir al dashboard
-      if (url.includes('/api/auth/signin')) {
-        return `${baseUrl}/dashboard`;
-      }
-      // Si es una ruta relativa, agregar la URL base
-      if (url.startsWith('/')) {
-        return `${baseUrl}${url}`;
-      }
-      // Si la URL ya es absoluta, usarla directamente
-      // Verificar si la URL es válida
-      if (url.startsWith('http')) {
-        try {
-          const urlObj = new URL(url);
-          if (urlObj.origin === baseUrl) return url;
-        } catch {
-          // En caso de error, continuar con la URL base
-        }
-      }
+      // Redirección segura dentro del dominio
+      if (url.startsWith(baseUrl)) return url;
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
       return baseUrl;
     },
   },
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 días
-  },
-  secret: process.env.NEXTAUTH_SECRET,
-  jwt: {
-    secret: process.env.NEXTAUTH_SECRET,
-  },
+
   pages: {
     signIn: '/login',
-    error: '/login',
+    error: '/auth/error', // ⚠️ Página separada para evitar bucles
     signOut: '/login',
     verifyRequest: '/login',
     newUser: '/login',
   },
 
-  theme: {
-    colorScheme: 'light',
-    logo: '/logo.png',
-  },
   cookies: {
     sessionToken: {
       name: `${cookiePrefix}next-auth.session-token`,
@@ -171,8 +129,13 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: useSecureCookies,
-        domain: process.env.NODE_ENV === 'production' ? '.edutrack-fup.vercel.app' : undefined,
+        domain: isProduction ? '.edutrack-fup.vercel.app' : undefined,
       },
     },
+  },
+
+  theme: {
+    colorScheme: 'light',
+    logo: '/logo.png',
   },
 };

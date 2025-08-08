@@ -4,6 +4,7 @@
   "description": "Software para la gestión automatizada de asistencias estudiantiles mediante códigos QR",
   "scripts": {
     "dev": "next dev --turbopack",
+    "check": "npm run format:check && npm run type-check",
     "build": "prisma generate && next build",
     "seed": "prisma db seed",
     "start": "next start",

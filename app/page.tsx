@@ -1,5 +1,5 @@
-import HomePageClient from '@/components/landing/HomePageClient';
+import HomePageWeb from '@/components/landing/HomePageWeb';
 
 export default function HomePage() {
-  return <HomePageClient />;
+  return <HomePageWeb />;
 }

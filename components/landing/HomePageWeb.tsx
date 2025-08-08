@@ -18,7 +18,7 @@ import {
   Zap,
 } from 'lucide-react';
 
-export default function HomePageClient() {
+export default function HomePageWeb() {
   const features = [
     {
       icon: <Zap className="w-6 h-6 text-foreground" />,
@@ -391,7 +391,7 @@ export default function HomePageClient() {
         </section>
 
         {/* About Section */}
-        <section id="about" className="w-full py-16 md:py-24 relative overflow-hidden">
+        <section id="about" className="w-full py-16 md:py-24 md:pb-56 relative overflow-hidden">
           {/* Background blur elements */}
           <div className="absolute top-20 right-20 w-56 h-56 bg-green-500/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 left-20 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
