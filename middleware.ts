@@ -1,12 +1,36 @@
 import { Role } from '@prisma/client';
+import { getToken } from 'next-auth/jwt';
 import { withAuth } from 'next-auth/middleware';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+
+// Rutas públicas que no requieren autenticación
+const publicPaths = ['/login', '/_next', '/favicon.ico', '/api/auth', '/icons'];
 
 export default withAuth(
-  function middleware(req) {
-    const { token } = req.nextauth;
+  async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
+
+    // Verificar si es una ruta pública
+    const isPublicPath = publicPaths.some(
+      path => pathname === path || pathname.startsWith(`${path}/`)
+    );
+
+    // Si es una ruta pública, permitir el acceso
+    if (isPublicPath) {
+      return NextResponse.next();
+    }
+
+    // Obtener el token solo si es necesario (para rutas protegidas)
+    const token = await getToken({ req });
     const userRole = token?.role as Role;
+
+    // Si no hay token, redirigir a login
+    if (!token) {
+      const loginUrl = new URL('/login', req.url);
+      // Eliminar cualquier callbackUrl existente para evitar bucles
+      loginUrl.searchParams.delete('callbackUrl');
+      return NextResponse.redirect(loginUrl);
+    }
 
     // Crear response con headers de seguridad
     const response = NextResponse.next();
@@ -94,12 +118,10 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    // Proteger rutas específicas
+    // Solo proteger rutas bajo /dashboard y /api
     '/dashboard/:path*',
-    '/api/admin/:path*',
-    '/api/users/:path*',
-    '/api/docente/:path*',
-    // Excluir rutas públicas explícitamente
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|public).*)',
+    '/api/:path*',
+    // Excluir explícitamente rutas públicas
+    '/((?!_next/static|_next/image|favicon.ico|login|api/auth|icons).*)',
   ],
 };

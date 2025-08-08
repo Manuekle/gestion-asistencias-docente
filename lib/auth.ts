@@ -1,4 +1,5 @@
 import { db } from '@/lib/prisma';
+import { Role } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -102,22 +103,44 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id;
-        session.user.role = token.role;
-        session.user.name = token.name;
-        session.user.correoPersonal = token.correoPersonal;
-        session.user.correoInstitucional = token.correoInstitucional;
-        session.user.signatureUrl = token.signatureUrl;
-        session.user.codigoDocente = token.codigoDocente;
-        session.user.codigoEstudiantil = token.codigoEstudiantil;
-        session.user.telefono = token.telefono;
-        session.user.document = token.document;
-        session.user.isActive = token.isActive;
-        // Incluir el token de acceso en la sesión
-        session.accessToken = token.accessToken;
+      if (token) {
+        session.user = {
+          ...session.user,
+          id: token.id as string,
+          role: token.role as Role,
+          name: token.name as string,
+          correoPersonal: token.correoPersonal as string,
+          correoInstitucional: token.correoInstitucional as string,
+          signatureUrl: token.signatureUrl as string | null,
+          codigoDocente: token.codigoDocente as string | null,
+          codigoEstudiantil: token.codigoEstudiantil as string | null,
+          telefono: token.telefono as string | null,
+          document: token.document as string | null,
+          isActive: token.isActive as boolean,
+        };
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // Si la URL es un callback de autenticación, redirigir al dashboard
+      if (url.includes('/api/auth/signin')) {
+        return `${baseUrl}/dashboard`;
+      }
+      // Si es una ruta relativa, agregar la URL base
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      // Si la URL ya es absoluta, usarla directamente
+      // Verificar si la URL es válida
+      if (url.startsWith('http')) {
+        try {
+          const urlObj = new URL(url);
+          if (urlObj.origin === baseUrl) return url;
+        } catch {
+          // En caso de error, continuar con la URL base
+        }
+      }
+      return baseUrl;
     },
   },
   session: {
@@ -131,7 +154,11 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/login',
     error: '/login',
+    signOut: '/login',
+    verifyRequest: '/login',
+    newUser: '/login',
   },
+
   theme: {
     colorScheme: 'light',
     logo: '/logo.png',
@@ -144,7 +171,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: useSecureCookies,
-        domain: process.env.NODE_ENV === 'production' ? 'edutrack-fup.vercel.app' : 'localhost',
+        domain: process.env.NODE_ENV === 'production' ? '.edutrack-fup.vercel.app' : undefined,
       },
     },
   },
