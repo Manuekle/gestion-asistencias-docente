@@ -1,5 +1,5 @@
-import HomePageWeb from '@/components/landing/HomePageWeb';
+import HomePageMobile from '@/components/landing/HomePageMobile';
 
 export default function HomePage() {
-  return <HomePageWeb />;
+  return <HomePageMobile />;
 }
