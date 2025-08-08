@@ -42,9 +42,9 @@ export const metadata: Metadata = {
     images: ['/og-image.webp'],
     site: '@fup_asistencias_docente',
   },
-  // verification: {
-  //   google: '0RPzGmepK5heQ-2axeEVsJ9o2FVPXcNp67TZSjmjF0E',
-  // },
+  verification: {
+    google: '0RPzGmepK5heQ-2axeEVsJ9o2FVPXcNp67TZSjmjF0E',
+  },
   icons: {
     icon: [
       { url: '/icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },

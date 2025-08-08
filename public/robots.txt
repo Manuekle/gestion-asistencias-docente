@@ -1,6 +1,11 @@
 # *
 User-agent: *
 Allow: /
+Disallow: /api/*
+Disallow: /dashboard/*
+Disallow: /_next/*
+Disallow: /404
+Disallow: /500
 
 # Host
 Host: https://edutrack-fup.vercel.app

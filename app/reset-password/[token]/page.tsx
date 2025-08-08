@@ -122,20 +122,17 @@ export default function ResetPasswordPage() {
 
   if (!isValidToken) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 font-sans">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">Enlace inválido</CardTitle>
-            <CardDescription className="text-center">
-              El enlace de restablecimiento no es válido o ha expirado.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <Link href="/forgot-password" className="text-primary hover:underline">
-              Solicitar un nuevo enlace
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] p-4 text-center">
+        <h1 className="text-6xl tracking-heading font-bold mb-4">Enlace inválido</h1>
+        <h2 className="text-2xl tracking-heading font-semibold mb-6">
+          El enlace de restablecimiento no es válido o ha expirado.
+        </h2>
+        <p className="text-xs mb-8 max-w-md">Solicitar un nuevo enlace</p>
+        <Button asChild className="text-xs">
+          <Link href="/forgot-password" className="px-6 py-2">
+            Solicitar un nuevo enlace
+          </Link>
+        </Button>
       </div>
     );
   }
