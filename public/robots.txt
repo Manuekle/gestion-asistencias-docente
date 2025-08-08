@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://fup-asistencias-docente.vercel.app
+Host: https://edutrack-fup.vercel.app
 
 # Sitemaps
-Sitemap: https://fup-asistencias-docente.vercel.app/sitemap.xml
+Sitemap: https://edutrack-fup.vercel.app/sitemap.xml
