@@ -149,12 +149,16 @@ export default function ProfilePage() {
       toast.error('Por favor, dibuja tu firma antes de guardar.');
       return;
     }
+
     const dataUrl = sigCanvas.current?.getTrimmedCanvas().toDataURL('image/png') || '';
     setSignaturePreview(dataUrl);
     const filename = `${crypto.randomUUID().replace(/-/g, '')}.png`;
     const newFile = dataURLtoFile(dataUrl, filename);
     setSignatureFile(newFile);
     toast.success('Firma capturada. Ahora puedes guardarla.');
+
+    // Limpiar cualquier event listener que pueda estar interfiriendo
+    document.removeEventListener('touchmove', preventScroll);
   };
 
   // Update profile
