@@ -99,17 +99,17 @@ export default function HomePageMobile() {
 
   const features = [
     {
-      icon: <QrCode className="w-5 h-5 text-foreground" />,
+      icon: <QrCode className="w-4 h-4 text-foreground" />,
       title: 'Registro con QR',
       description: 'Escanea y registra en segundos',
     },
     {
-      icon: <Clock className="w-5 h-5 text-foreground" />,
+      icon: <Clock className="w-4 h-4 text-foreground" />,
       title: 'Tiempo Real',
       description: 'Control instantáneo',
     },
     {
-      icon: <Users className="w-5 h-5 text-foreground" />,
+      icon: <Users className="w-4 h-4 text-foreground" />,
       title: 'Gestión Simple',
       description: 'Administra tus grupos fácilmente',
     },
@@ -157,23 +157,20 @@ export default function HomePageMobile() {
               className="space-y-4 mb-10"
             >
               {features.map((feature, index) => (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                <div
                   key={index}
                   className="group relative overflow-hidden rounded-2xl backdrop-blur-sm bg-card border border-border hover:bg-accent/50 transition-all duration-300 shadow-sm p-4"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                    <div className="w-5 h-5 bg-muted rounded-lg flex items-center justify-center">
                       {feature.icon}
                     </div>
                     <div className="flex flex-col justify-end items-start w-full">
-                      <h3 className="font-medium text-foreground text-xs">{feature.title}</h3>
+                      <h3 className="font-normal text-foreground text-xs">{feature.title}</h3>
                       <p className="text-muted-foreground text-xs">{feature.description}</p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </motion.div>
 
