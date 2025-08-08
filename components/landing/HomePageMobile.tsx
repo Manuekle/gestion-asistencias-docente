@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, Clock, Eye, EyeOff, Loader2, Mail, QrCode, Users, X } from 'lucide-react';
+import { AlertCircle, Clock, Eye, EyeOff, Mail, QrCode, Users, X } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -99,17 +99,17 @@ export default function HomePageMobile() {
 
   const features = [
     {
-      icon: <QrCode className="w-4 h-4 text-foreground" />,
+      icon: <QrCode className="w-6 h-6 text-foreground" />,
       title: 'Registro con QR',
       description: 'Escanea y registra en segundos',
     },
     {
-      icon: <Clock className="w-4 h-4 text-foreground" />,
+      icon: <Clock className="w-6 h-6 text-foreground" />,
       title: 'Tiempo Real',
       description: 'Control instantáneo',
     },
     {
-      icon: <Users className="w-4 h-4 text-foreground" />,
+      icon: <Users className="w-6 h-6 text-foreground" />,
       title: 'Gestión Simple',
       description: 'Administra tus grupos fácilmente',
     },
@@ -162,9 +162,7 @@ export default function HomePageMobile() {
                   className="group relative overflow-hidden rounded-2xl backdrop-blur-sm bg-card border border-border hover:bg-accent/50 transition-all duration-300 shadow-sm p-4"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-5 h-5 bg-muted rounded-lg flex items-center justify-center">
-                      {feature.icon}
-                    </div>
+                    <div className="w-5 h-5 flex items-center justify-center">{feature.icon}</div>
                     <div className="flex flex-col justify-end items-start w-full">
                       <h3 className="font-normal text-foreground text-xs">{feature.title}</h3>
                       <p className="text-muted-foreground text-xs">{feature.description}</p>
@@ -307,14 +305,7 @@ export default function HomePageMobile() {
                         </div>
 
                         <Button type="submit" disabled={isLoading} className="w-full text-xs">
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Ingresando...
-                            </>
-                          ) : (
-                            'Ingresar'
-                          )}
+                          {isLoading ? <>Ingresando...</> : 'Ingresar'}
                         </Button>
                         <div className="flex items-center justify-center text-xs w-full">
                           <Button
@@ -351,14 +342,7 @@ export default function HomePageMobile() {
                         </div>
 
                         <Button type="submit" disabled={isLoading} className="w-full">
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Enviando...
-                            </>
-                          ) : (
-                            'Enviar enlace de recuperación'
-                          )}
+                          {isLoading ? <>Enviando...</> : 'Enviar enlace de recuperación'}
                         </Button>
 
                         <Button
