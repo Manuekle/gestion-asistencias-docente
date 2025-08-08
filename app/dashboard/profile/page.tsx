@@ -78,16 +78,39 @@ export default function ProfilePage() {
 
     const handleResize = () => {
       const { width, height } = wrapper.getBoundingClientRect();
-      canvas.width = width;
-      canvas.height = height;
-      sigCanvas.current?.clear(); // Clearing is necessary after resize
+      // Adjust for device pixel ratio for better quality on mobile
+      const dpr = window.devicePixelRatio || 1;
+
+      // Set canvas size in display pixels
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      // Set actual canvas size in memory (scaled for device resolution)
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+
+      // Scale the canvas context to account for the DPR
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.scale(dpr, dpr);
+      }
+
+      // Clear and redraw if needed
+      sigCanvas.current?.clear();
     };
 
-    handleResize(); // Set initial size
+    // Initial setup
+    handleResize();
+
+    // Add event listeners
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(wrapper);
     window.addEventListener('resize', handleResize);
 
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('touchmove', preventScroll);
     };
   }, []);
 
@@ -131,10 +154,25 @@ export default function ProfilePage() {
 
   // Prevent page scroll when drawing on mobile
   const preventScroll = (e: TouchEvent) => {
-    if (e.target === sigCanvas.current?.getCanvas()) {
+    const target = e.target as HTMLElement;
+    if (
+      target === sigCanvas.current?.getCanvas() ||
+      target.closest('.signature-canvas-container')
+    ) {
       e.preventDefault();
+      e.stopPropagation();
     }
   };
+
+  // Add touch event listeners for better mobile support
+  useEffect(() => {
+    // Add passive: false to ensure preventDefault works on touch events
+    document.addEventListener('touchmove', preventScroll, { passive: false });
+
+    return () => {
+      document.removeEventListener('touchmove', preventScroll);
+    };
+  }, []);
 
   const clearCanvas = () => {
     sigCanvas.current?.clear();
@@ -553,7 +591,11 @@ export default function ProfilePage() {
                     <div className="flex-1 flex flex-col">
                       <div
                         ref={canvasWrapperRef}
-                        className="w-full flex-1 min-h-[180px] max-h-[200px] lg:max-h-none items-center justify-center border border-dashed rounded-lg p-4 sm:p-6 touch-none"
+                        className="w-full flex-1 min-h-[180px] max-h-[200px] lg:max-h-none items-center justify-center border border-dashed rounded-lg p-4 sm:p-6 touch-none signature-canvas-container"
+                        style={{
+                          touchAction: 'none',
+                          WebkitOverflowScrolling: 'touch',
+                        }}
                       >
                         <SignatureCanvas
                           ref={sigCanvas}
@@ -565,8 +607,14 @@ export default function ProfilePage() {
                               WebkitUserSelect: 'none',
                               WebkitTouchCallout: 'none',
                               WebkitTapHighlightColor: 'transparent',
+                              msTouchAction: 'none',
                             },
                           }}
+                          velocityFilterWeight={0.7}
+                          minWidth={1.5}
+                          maxWidth={2.5}
+                          throttle={16}
+                          clearOnResize={false}
                           onBegin={() => {
                             document.addEventListener('touchmove', preventScroll, {
                               passive: false,
