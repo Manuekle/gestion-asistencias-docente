@@ -42,7 +42,6 @@ export async function GET() {
 
     return NextResponse.json(reports);
   } catch (error) {
-    console.error('[REPORTS_GET_ALL]', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -132,12 +131,8 @@ export async function POST(request: Request) {
 
     // Start the PDF generation process in the background
     generateAttendanceReportPDF(subjectId, newReport.id)
-      .then(() => {
-        console.log(`PDF generation completed for report ${newReport.id}`);
-      })
-      .catch(error => {
-        console.error(`Error generating PDF for report ${newReport.id}:`, error);
-      });
+      .then(() => {})
+      .catch(error => {});
 
     // Return the initial report with PENDING status
     // The client should poll or use WebSockets to check for status updates
@@ -155,8 +150,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(updatedReport, { status: 201 });
   } catch (error) {
-    console.error('[REPORTS_POST]', error);
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Datos inválidos', details: error.errors },

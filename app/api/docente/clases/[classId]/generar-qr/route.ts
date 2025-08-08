@@ -68,7 +68,6 @@ export async function POST(request: Request, context: { params: { classId: strin
       },
     });
   } catch (error) {
-    console.error('Error al actualizar la clase con el token QR:', error);
     return NextResponse.json(
       { message: 'Error al guardar el token QR en la base de datos' },
       { status: 500 }
@@ -84,7 +83,6 @@ export async function POST(request: Request, context: { params: { classId: strin
 
   // Validar que el token cumple con los requisitos
   if (token.length !== 32) {
-    console.error(`Token generado no cumple con la longitud requerida: ${token.length} caracteres`);
     return NextResponse.json(
       {
         message: 'Error al generar el token QR: token inválido',
@@ -107,7 +105,6 @@ export async function POST(request: Request, context: { params: { classId: strin
   const validation = GenerarQRResponseSchema.safeParse(responseData);
 
   if (!validation.success) {
-    console.error('Error de validación en la respuesta:', validation.error);
     return NextResponse.json(
       {
         message: 'Error en el formato de la respuesta',

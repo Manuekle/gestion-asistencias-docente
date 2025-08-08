@@ -58,7 +58,6 @@ export default function UnenrollRequestsPage() {
         throw new Error(data.message || 'Error al cargar las solicitudes');
       }
     } catch (error) {
-      console.error('Error fetching requests:', error);
       toast.error('No se pudieron cargar las solicitudes');
     } finally {
       setLoading(false);
@@ -93,7 +92,6 @@ export default function UnenrollRequestsPage() {
       await fetchRequests();
       setShowRejectDialog(null);
     } catch (error) {
-      console.error(`Error ${action}ing request:`, error);
       toast.error(`No se pudo ${action === 'approve' ? 'aprobar' : 'rechazar'} la solicitud`);
     } finally {
       setProcessing(prev => ({ ...prev, [requestId]: false }));

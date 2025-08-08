@@ -96,7 +96,6 @@ export default function GestionUsuariosPage() {
         `Usuario ${updatedUser.name} ${updatedUser.isActive ? 'activado' : 'desactivado'} correctamente.`
       );
     } catch (error) {
-      console.error(error);
       toast.error('Ha ocurrido un error inesperado.');
     }
   };
@@ -111,7 +110,6 @@ export default function GestionUsuariosPage() {
         const data = await response.json();
         setUsers(data);
       } catch (error) {
-        console.error(error);
       } finally {
         setLoading(false);
       }

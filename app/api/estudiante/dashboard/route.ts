@@ -85,8 +85,6 @@ export async function GET() {
     // Process subjects
     const processedSubjects: SubjectResponse[] = [];
     for (const subject of subjects) {
-      console.log(`\n[DEBUG] Processing Subject: ${subject.name} (${subject.id})`);
-
       // Get ALL classes for this subject (not just past ones)
       const allSubjectClasses = await db.class.findMany({
         where: {
@@ -96,15 +94,6 @@ export async function GET() {
         orderBy: {
           date: 'asc',
         },
-      });
-
-      console.log(
-        `[DEBUG] Total classes in subject (all, not cancelled): ${allSubjectClasses.length}`
-      );
-      allSubjectClasses.forEach((cls, idx) => {
-        console.log(
-          `[DEBUG] Class ${idx + 1}: ${cls.id} | Date: ${cls.date} | Status: ${cls.status} | Past? ${cls.date <= now}`
-        );
       });
 
       // Get ALL attendances for this student in this subject
@@ -127,13 +116,6 @@ export async function GET() {
         },
       });
 
-      console.log(`[DEBUG] All attendances for student in this subject: ${allAttendances.length}`);
-      allAttendances.forEach((att, idx) => {
-        console.log(
-          `[DEBUG] Attendance ${idx + 1}: ClassId: ${att.classId} | Status: ${att.status} | Class Date: ${att.class.date} | Class Status: ${att.class.status}`
-        );
-      });
-
       // Count total classes for this subject
       const totalClasses = allSubjectClasses.length;
 
@@ -148,10 +130,6 @@ export async function GET() {
         attendancePercentage = Math.round((attendedClasses / totalClasses) * 100);
       }
 
-      console.log(
-        `[DEBUG] FINAL COUNTS - Total classes: ${totalClasses}, Attended: ${attendedClasses}`
-      );
-
       // Add to global counters
       globalTotalClasses += totalClasses;
       globalAttendedClasses += attendedClasses;
@@ -159,7 +137,6 @@ export async function GET() {
       // Check if subject is at risk (less than 70% attendance)
       if (attendancePercentage < 70 && totalClasses > 0) {
         subjectsAtRisk++;
-        console.log(`[DEBUG] Subject at risk: ${subject.name} (${attendancePercentage}%)`);
       }
 
       // Calculate weekly attendance for this subject (last 4 weeks)
@@ -194,10 +171,6 @@ export async function GET() {
 
       weeklyTotalClasses += weeklyClasses.length;
       weeklyAttendedClasses += weeklySubjectAttended;
-
-      console.log(
-        `[DEBUG] Weekly stats for ${subject.name}: ${weeklySubjectAttended}/${weeklyClasses.length} classes`
-      );
 
       // Find next class
       const nextClass = await db.class.findFirst({
@@ -316,21 +289,12 @@ export async function GET() {
       weeklyAttendanceAverage: weeklyAttendanceAverage,
     };
 
-    console.log(
-      `[DEBUG] GLOBAL STATS - Total: ${globalTotalClasses}, Attended: ${globalAttendedClasses}, Percentage: ${globalAttendancePercentage}%`
-    );
-    console.log(`[DEBUG] RISK STATS - Subjects at risk: ${subjectsAtRisk}`);
-    console.log(
-      `[DEBUG] WEEKLY STATS - Weekly average: ${weeklyAttendanceAverage}% (${weeklyAttendedClasses}/${weeklyTotalClasses})`
-    );
-
     return NextResponse.json({
       cards,
       subjects: processedSubjects,
       upcomingItems: upcomingEvents,
     });
   } catch (error: unknown) {
-    console.error('Error fetching dashboard data:', error);
     return NextResponse.json({ error: 'Error al cargar los datos del dashboard' }, { status: 500 });
   }
 }

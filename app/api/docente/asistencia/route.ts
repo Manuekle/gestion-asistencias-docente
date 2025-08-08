@@ -65,7 +65,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json(studentsWithAttendance);
   } catch (error) {
-    console.error('Error al obtener la lista de asistencia:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -110,7 +109,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: 'Asistencia guardada con éxito' }, { status: 200 });
   } catch (error) {
-    console.error('Error al guardar la asistencia:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -157,7 +155,6 @@ export async function PUT(request: Request) {
 
     return NextResponse.json(updatedAttendance, { status: 200 });
   } catch (error) {
-    console.error('Error al actualizar la asistencia:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }

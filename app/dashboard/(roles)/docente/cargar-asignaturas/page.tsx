@@ -38,7 +38,6 @@ function formatTimeWithAmPm(timeString: string): string {
     const displayHours = hours % 12 || 12; // Convert 0 to 12 for 12AM
     return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
   } catch (error) {
-    console.error('Error formatting time:', error);
     return timeString;
   }
 }
@@ -63,7 +62,6 @@ function calculateDuration(startTime: string, endTime: string): string {
     }
     return `${minutes}m`;
   } catch (error) {
-    console.error('Error calculating duration:', error);
     return '--';
   }
 }

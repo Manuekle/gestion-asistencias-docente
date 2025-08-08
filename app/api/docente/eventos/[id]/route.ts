@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { NextResponse } from 'next/server';
 
 import { DocenteEventoDetailSchema, DocenteEventoUpdateSchema } from './schema';
 
@@ -37,7 +37,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
     }
     return NextResponse.json({ data: validated.data });
   } catch (error) {
-    console.error(`Error fetching event ${eventId}:`, error);
     return NextResponse.json({ message: 'Error al obtener el evento' }, { status: 500 });
   }
 }
@@ -92,7 +91,6 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       message: 'Evento actualizado correctamente',
     });
   } catch (error) {
-    console.error(`Error updating event ${eventId}:`, error);
     return NextResponse.json({ message: 'Error al actualizar el evento' }, { status: 500 });
   }
 }
@@ -134,7 +132,6 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       { status: 200 }
     );
   } catch (error) {
-    console.error(`Error deleting event ${eventId}:`, error);
     return NextResponse.json({ message: 'Error al eliminar el evento' }, { status: 500 });
   }
 }

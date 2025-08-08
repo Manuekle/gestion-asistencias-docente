@@ -102,9 +102,6 @@ export async function POST(request: Request) {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows: ExcelRow[] = XLSX.utils.sheet_to_json(sheet);
 
-    console.log('--- Filas crudas del Excel ---');
-    console.log(rows);
-
     if (!rows || rows.length === 0) {
       return NextResponse.json(
         {
@@ -136,8 +133,6 @@ export async function POST(request: Request) {
         .filter(Boolean);
       return { codigoAsignatura: String(row.codigoAsignatura || ''), estudiantes };
     });
-    console.log('--- Datos procesados (excelData) ---');
-    console.log(JSON.stringify(excelData, null, 2));
 
     if (isPreview) {
       const previewResults: PreviewRow[] = [];
@@ -180,8 +175,6 @@ export async function POST(request: Request) {
 
         previewResults.push({ codigoAsignatura, estudiantes: previewDetails });
       }
-      console.log('--- Vista previa final (previewResults) ---');
-      console.log(JSON.stringify(previewResults, null, 2));
       return NextResponse.json({ success: true, previewData: previewResults });
     } else {
       // --- Lógica de Carga Final ---
@@ -250,7 +243,6 @@ export async function POST(request: Request) {
       });
     }
   } catch (error) {
-    console.error('Error en la carga de estudiantes:', error);
     return NextResponse.json(
       {
         success: false,
@@ -264,9 +256,7 @@ export async function POST(request: Request) {
     if (filePath) {
       try {
         await fs.unlink(filePath);
-      } catch (e) {
-        console.error('Error al eliminar archivo temporal', e);
-      }
+      } catch (e) {}
     }
   }
 }

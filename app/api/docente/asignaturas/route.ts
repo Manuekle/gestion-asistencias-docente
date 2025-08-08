@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { Role } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import {
-  DocenteSubjectSchema,
-  DocenteSubjectQuerySchema,
   DocenteSubjectCreateSchema,
+  DocenteSubjectQuerySchema,
+  DocenteSubjectSchema,
   DocenteSubjectUpdateSchema,
 } from './schema';
 
@@ -63,7 +63,6 @@ export async function GET(request: Request) {
         { status: 400 }
       );
     }
-    console.error('Error al obtener las asignaturas:', error);
     return NextResponse.json({ message: 'Ocurrió un error en el servidor' }, { status: 500 });
   }
 }
@@ -116,7 +115,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    console.error('Error al crear la asignatura:', error);
     return NextResponse.json({ message: 'Ocurrió un error en el servidor' }, { status: 500 });
   }
 }
@@ -172,7 +170,6 @@ export async function PUT(request: Request) {
         { status: 400 }
       );
     }
-    console.error('Error al actualizar la asignatura:', error);
     return NextResponse.json({ message: 'Ocurrió un error en el servidor' }, { status: 500 });
   }
 }
@@ -205,7 +202,6 @@ export async function DELETE(request: Request) {
         { status: 400 }
       );
     }
-    console.error('Error al eliminar la asignatura:', error);
     return NextResponse.json({ message: 'Ocurrió un error en el servidor' }, { status: 500 });
   }
 }

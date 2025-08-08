@@ -119,7 +119,6 @@ export async function GET(request: Request) {
             });
             status = 'REALIZADA';
           } catch (error) {
-            console.error('Error updating class status:', error);
             // If update fails, use PROGRAMADA as fallback
             status = 'PROGRAMADA';
           }
@@ -174,7 +173,6 @@ export async function GET(request: Request) {
         { status: 400 }
       );
     }
-    console.error('Error al obtener datos de la asignatura:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -277,7 +275,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    console.error('Error en POST /api/docente/clases:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }

@@ -204,12 +204,6 @@ export default function ProfilePage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      console.log('Sending update with:', {
-        telefono,
-        codigoEstudiantil: session?.user?.role === 'ESTUDIANTE' ? codigoEstudiantil : undefined,
-        codigoDocente: session?.user?.role !== 'ESTUDIANTE' ? codigoDocente : undefined,
-      });
-
       const updateData: {
         name: string;
         correoPersonal: string | null;
@@ -243,15 +237,13 @@ export default function ProfilePage() {
       }
 
       // Get the updated user data from the response
-      const result = await response.json();
-      console.log('API Response:', result); // Log the full response
+      const result = await response.json(); // Log the full response
 
       if (!result.data) {
         throw new Error('No se recibieron datos actualizados del servidor');
       }
 
-      const updatedUser = result.data;
-      console.log('Updating session with:', updatedUser); // Log the data being used to update the session
+      const updatedUser = result.data; // Log the data being used to update the session
 
       // Update the session with all the updated fields
       await update({
@@ -316,8 +308,6 @@ export default function ProfilePage() {
   const handleUploadSignature = async () => {
     if (!signatureFile || !session?.user?.id) return;
 
-    console.log('Vista previa ANTES de subir:', signaturePreview);
-
     setIsSignatureLoading(true);
     const formData = new FormData();
     formData.append('file', signatureFile);
@@ -334,7 +324,6 @@ export default function ProfilePage() {
         toast.error(result.message || 'Error al guardar la firma.');
       }
     } catch (error) {
-      console.error('Error uploading signature:', error);
       toast.error('Ocurrió un error inesperado al subir la firma.');
     } finally {
       setIsSignatureLoading(false);

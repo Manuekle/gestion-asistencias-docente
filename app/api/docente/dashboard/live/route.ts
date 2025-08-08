@@ -94,7 +94,6 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Error fetching live class data:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }

@@ -28,7 +28,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
     // Validar los datos de la asignatura
     const validado = DocenteSubjectSchema.safeParse(subject);
     if (!validado.success) {
-      console.error('Error de validación:', validado.error);
       return NextResponse.json(
         {
           message: 'Error de validación en la respuesta',
@@ -42,7 +41,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
       data: validado.data,
     });
   } catch (error) {
-    console.error('Error al obtener la asignatura:', error);
     return NextResponse.json({ message: 'Ocurrió un error en el servidor' }, { status: 500 });
   }
 }

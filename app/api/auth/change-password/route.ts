@@ -47,7 +47,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: 'Contraseña actualizada exitosamente' });
   } catch (error) {
-    console.error('Error al cambiar la contraseña:', error);
     return NextResponse.json({ error: 'Error al cambiar la contraseña' }, { status: 500 });
   }
 }

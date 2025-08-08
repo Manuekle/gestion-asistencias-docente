@@ -107,7 +107,6 @@ export async function GET() {
       upcomingClasses: allUpcomingClasses,
     });
   } catch (error) {
-    console.error('Error en la API del dashboard del docente:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

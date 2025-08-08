@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
-import { Role, Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 // PATCH: Actualizar un usuario existente
 export async function PATCH(req: NextRequest, { params }: { params: { userId: string } }) {
@@ -73,7 +73,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
     const { password: _, ...userWithoutPassword } = updatedUser;
     return NextResponse.json(userWithoutPassword);
   } catch (error) {
-    console.error('[ADMIN_UPDATE_USER_ERROR]', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -98,7 +97,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { userId: s
 
     return NextResponse.json({ message: 'Usuario eliminado con éxito' }, { status: 200 });
   } catch (error) {
-    console.error('[ADMIN_DELETE_USER_ERROR]', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2003') {
         return NextResponse.json(

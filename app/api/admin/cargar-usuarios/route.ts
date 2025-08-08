@@ -89,8 +89,6 @@ export async function POST(request: Request) {
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows: ExcelRow[] = XLSX.utils.sheet_to_json(sheet);
 
-      console.log('Filas leídas del Excel:', JSON.stringify(rows, null, 2));
-
       const previewResults: PreviewResult[] = [];
 
       const allUsers = await db.user.findMany({
@@ -157,15 +155,12 @@ export async function POST(request: Request) {
 
       return NextResponse.json(previewResults);
     } catch (error) {
-      console.error('Error en la previsualización de carga de usuarios:', error);
       return NextResponse.json({ error: 'Error procesando el archivo.' }, { status: 500 });
     } finally {
       if (filePath) {
         try {
           await fs.unlink(filePath);
-        } catch (e) {
-          console.error('Error al eliminar archivo temporal', e);
-        }
+        } catch (e) {}
       }
     }
   }
@@ -247,7 +242,7 @@ export async function POST(request: Request) {
           message: 'Usuario creado y notificado exitosamente.',
         });
       } catch (dbError) {
-        console.error(`Error creando al usuario ${name} (${document}):`, dbError);
+        console.error(`Error al crear el usuario ${document}:`, dbError);
         finalResults.push({
           document,
           name,
@@ -259,7 +254,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ results: finalResults });
   } catch (error) {
-    console.error('Error en la creación masiva de usuarios:', error);
     return NextResponse.json(
       { error: 'Error procesando la solicitud de creación.' },
       { status: 500 }

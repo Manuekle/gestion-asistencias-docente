@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { Role } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 
 import { DocenteMatriculaEstudianteArraySchema } from './schema';
 
@@ -129,7 +129,6 @@ export async function POST(request: Request) {
     ]);
     return NextResponse.json({ message: 'Estudiante matriculado con éxito' }, { status: 201 });
   } catch (error: unknown) {
-    console.error('Error al matricular estudiante:', error);
     return NextResponse.json({ message: 'Error al matricular al estudiante' }, { status: 500 });
   }
 }
@@ -201,7 +200,6 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ message: 'Estudiante desmatriculado con éxito' }, { status: 200 });
   } catch (error) {
-    console.error('Error al desmatricular estudiante:', error);
     return NextResponse.json({ message: 'Error al desmatricular al estudiante' }, { status: 500 });
   }
 }

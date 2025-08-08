@@ -115,7 +115,6 @@ export default function EstudianteDashboard() {
   const fetchLiveClass = useCallback(async () => {
     try {
       setIsLoadingLiveClass(true);
-      console.log('Fetching live class data...');
       const response = await fetch('/api/estudiante/current-class');
 
       if (!response.ok) {
@@ -123,7 +122,6 @@ export default function EstudianteDashboard() {
       }
 
       const data = await response.json();
-      console.log('Live class API response:', data);
 
       if (data.liveClass) {
         const liveClassData = {
@@ -145,15 +143,11 @@ export default function EstudianteDashboard() {
           myStatus: data.liveClass.myStatus || 'AUSENTE',
           classroom: data.liveClass.classroom,
         };
-
-        console.log('Processed live class data:', liveClassData);
         setLiveClass(liveClassData);
       } else {
-        console.log('No live class data available');
         setLiveClass(null);
       }
     } catch (error) {
-      console.error('Error fetching live class:', error);
       setLiveClass(null);
     } finally {
       setIsLoadingLiveClass(false);
@@ -209,7 +203,6 @@ export default function EstudianteDashboard() {
         }));
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
       setSubjects([]);
       setUpcomingClasses([]);
     } finally {

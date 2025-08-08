@@ -70,7 +70,6 @@ export async function GET(request: Request, { params }: { params: { classId: str
     }
     return NextResponse.json({ data: validated.data });
   } catch (error) {
-    console.error('Error al obtener la lista de asistencia:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -112,7 +111,6 @@ export async function POST(request: Request, { params }: { params: { classId: st
     await db.$transaction(upsertOperations);
     return NextResponse.json({ message: 'Asistencia guardada con éxito' }, { status: 200 });
   } catch (error) {
-    console.error('Error al guardar la asistencia:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }

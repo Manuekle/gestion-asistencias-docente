@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { Role } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 
 import { EstudianteHistorialArraySchema } from './schema';
 
@@ -46,7 +46,6 @@ export async function GET() {
       message: 'Historial obtenido correctamente',
     });
   } catch (error) {
-    console.error('[ESTUDIANTE_HISTORIAL_GET]', error);
     return NextResponse.json({ message: 'Error interno del servidor', data: [] }, { status: 500 });
   }
 }

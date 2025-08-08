@@ -120,7 +120,6 @@ export async function GET(req: NextRequest) {
         { status: 400 }
       );
     }
-    console.error('ERROR_SEARCH_USERS:', error);
     return NextResponse.json(
       {
         message: 'Error interno del servidor al buscar usuarios',
@@ -192,7 +191,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    console.error('ERROR_CREATE_USER:', error);
     return NextResponse.json(
       { message: 'Error interno del servidor al crear el usuario' },
       { status: 500 }
@@ -303,7 +301,6 @@ export async function PUT(req: NextRequest) {
         { status: 409 }
       );
     }
-    console.error('ERROR_UPDATE_USER:', error);
     return NextResponse.json(
       { message: 'Error interno del servidor al actualizar el usuario' },
       { status: 500 }
@@ -341,7 +338,6 @@ export async function DELETE(req: NextRequest) {
         { status: 404 }
       );
     }
-    console.error('ERROR_DELETE_USER:', error);
     return NextResponse.json(
       { message: 'Error interno del servidor al eliminar el usuario' },
       { status: 500 }

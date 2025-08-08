@@ -1,11 +1,11 @@
 import UnenrollStatusEmail from '@/app/emails/UnenrollStatusEmail';
 import { authOptions } from '@/lib/auth';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/prisma';
 import { UnenrollRequest, UnenrollRequestStatus } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
 import * as React from 'react';
-import { sendEmail } from '@/lib/email';
 
 // Define the shape of the included relations
 interface StudentInfo {
@@ -105,7 +105,6 @@ export async function GET() {
 
     return NextResponse.json(validRequests);
   } catch (error) {
-    console.error('Error al obtener solicitudes:', error);
     return NextResponse.json({ message: 'Error al obtener las solicitudes' }, { status: 500 });
   }
 }
@@ -214,7 +213,6 @@ export async function POST(request: Request) {
       data: unenrollRequest,
     });
   } catch (error) {
-    console.error('Error al procesar la solicitud:', error);
     return NextResponse.json({ message: 'Error al procesar la solicitud' }, { status: 500 });
   }
 }
@@ -224,7 +222,6 @@ async function sendStatusEmail(request: UnenrollRequestWithRelations, isApproved
 
   // Ensure we have all required data before proceeding
   if (!request.requestedBy?.correoInstitucional || !request.student || !request.subject) {
-    console.warn('No se pudo enviar el correo: datos incompletos en la solicitud');
     return;
   }
 
@@ -235,11 +232,8 @@ async function sendStatusEmail(request: UnenrollRequestWithRelations, isApproved
       : 'elustondo129@gmail.com';
 
   if (!recipient) {
-    console.warn('No se pudo enviar el correo: destinatario no especificado');
     return;
   }
-
-  console.log('Enviando correo a:', recipient);
 
   // At this point, we've already verified that request.student and request.subject are not null
   const student = request.student!;
@@ -256,8 +250,6 @@ async function sendStatusEmail(request: UnenrollRequestWithRelations, isApproved
     supportEmail,
   };
 
-  console.log('Props del correo:', JSON.stringify(emailProps, null, 2));
-
   try {
     // Send the email using our email utility
     const response = await sendEmail({
@@ -265,13 +257,9 @@ async function sendStatusEmail(request: UnenrollRequestWithRelations, isApproved
       subject: `Solicitud de Desmatriculación ${isApproved ? 'Aprobada' : 'Rechazada'}`,
       react: React.createElement(UnenrollStatusEmail, emailProps),
     });
-
-    console.log('Correo enviado exitosamente:', response);
     return response;
   } catch (error) {
-    console.error('Error al enviar el correo de notificación:', error);
     if (error instanceof Error) {
-      console.error('Mensaje de error:', error.message);
     }
     throw error; // Propagate the error to be handled by the caller
   }

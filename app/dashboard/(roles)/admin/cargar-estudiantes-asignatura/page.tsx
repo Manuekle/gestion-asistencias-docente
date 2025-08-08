@@ -87,12 +87,7 @@ export default function UploadStudentsToSubjectsPage() {
 
       const result = await res.json();
 
-      console.log('--- Respuesta del Backend ---');
-      console.log(JSON.stringify(result, null, 2));
-
       if (res.ok && result.success) {
-        console.log('--- Datos de Vista Previa a renderizar ---');
-        console.log(JSON.stringify(result.previewData, null, 2));
         setPreviewData(result.previewData || []);
         setIsPreview(true);
         toast.success('Vista previa generada con éxito');

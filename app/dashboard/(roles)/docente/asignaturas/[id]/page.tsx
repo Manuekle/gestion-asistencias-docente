@@ -222,7 +222,6 @@ export default function SubjectDetailPage() {
     }
 
     if (reportExistsForCurrentPeriod) {
-      console.log('Reporte ya generado para el período actual');
       toast.error('Este reporte ya ha sido generado para el período actual');
       setIsReportModalOpen(false);
       return;
@@ -252,7 +251,6 @@ export default function SubjectDetailPage() {
       setReportExistsForCurrentPeriod(true);
       router.push('/dashboard/docente/reportes');
     } catch (error) {
-      console.error('Error generating report:', error);
       toast.error(error instanceof Error ? error.message : 'Error al generar el reporte');
     } finally {
       setIsSubmitting(false);
@@ -316,7 +314,6 @@ export default function SubjectDetailPage() {
       // Refresh the current page to ensure data is in sync
       fetchClasses(pagination.page, pagination.limit);
     } catch (error) {
-      console.error(error);
       // Revert on error
       setClasses(originalClasses);
       toast.error(error instanceof Error ? error.message : 'Ocurrió un error inesperado.');
@@ -339,7 +336,6 @@ export default function SubjectDetailPage() {
         const { exists } = await response.json();
         return exists;
       } catch (error) {
-        console.error('Error checking existing reports:', error);
         return false;
       }
     },
@@ -354,21 +350,35 @@ export default function SubjectDetailPage() {
 
   const fetchClasses = useCallback(
     async (page: number, limit: number) => {
-      if (!subjectId) return;
+      if (!subjectId) {
+        setError('ID de asignatura no válido');
+        return;
+      }
 
       try {
         setIsLoadingClasses(true);
         setError(null);
+
         const response = await fetch(
-          `/api/docente/clases?subjectId=${subjectId}&page=${page}&limit=${limit}&sortBy=date&sortOrder=desc`
+          `/api/docente/clases?subjectId=${subjectId}&page=${page}&limit=${limit}&sortBy=date&sortOrder=desc`,
+          {
+            credentials: 'include', // Incluir credenciales para autenticación
+          }
         );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Error al cargar las clases');
+          const errorMessage = errorData.message || 'Error al cargar las clases';
+          throw new Error(errorMessage);
         }
 
-        const { data, pagination: paginationData } = await response.json();
+        const result = await response.json();
+
+        if (!result || !Array.isArray(result.data)) {
+          throw new Error('Formato de respuesta inválido al cargar las clases');
+        }
+
+        const { data, pagination: paginationData } = result;
 
         // Check if any class is in PROGRAMADA status
         const hasScheduled = data.some((cls: ClassWithStatus) => cls.status === 'PROGRAMADA');
@@ -377,10 +387,10 @@ export default function SubjectDetailPage() {
         setClasses(data);
         setPagination(prev => ({
           ...prev,
-          page: paginationData.page,
-          limit: paginationData.limit,
-          total: paginationData.total,
-          totalPages: paginationData.totalPages,
+          page: paginationData?.page || 1,
+          limit: paginationData?.limit || limit,
+          total: paginationData?.total || 0,
+          totalPages: paginationData?.totalPages || 1,
         }));
 
         // Check if a report already exists for the current period
@@ -389,13 +399,12 @@ export default function SubjectDetailPage() {
           const reportExists = await checkReportExistsForPeriod(currentPeriod);
           setReportExistsForCurrentPeriod(reportExists);
         } catch (reportError) {
-          console.error('Error checking report status:', reportError);
           // Don't block the UI for this error
         }
       } catch (error) {
-        console.error('Error fetching classes:', error);
-        setError(error instanceof Error ? error.message : 'Error al cargar las clases');
-        toast.error('Error al cargar las clases');
+        const errorMessage = error instanceof Error ? error.message : 'Error al cargar las clases';
+        setError(errorMessage);
+        // Don't show toast here, it will be handled by the main error state
       } finally {
         setIsLoadingClasses(false);
       }
@@ -419,7 +428,6 @@ export default function SubjectDetailPage() {
   const fetchSubject = useCallback(async () => {
     if (!subjectId) {
       const errorMsg = 'No se proporcionó un ID de asignatura';
-      console.error(errorMsg);
       setError(errorMsg);
       setIsLoadingSubject(false);
       return;
@@ -428,18 +436,24 @@ export default function SubjectDetailPage() {
     try {
       setIsLoadingSubject(true);
       setError(null);
-      const response = await fetch(`/api/docente/asignaturas/${subjectId}`);
+
+      const response = await fetch(`/api/docente/asignaturas/${subjectId}`, {
+        credentials: 'include', // Incluir credenciales para autenticación
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Error al cargar los detalles de la asignatura');
+        const errorMessage = errorData.message || 'Error al cargar los detalles de la asignatura';
+        throw new Error(errorMessage);
       }
 
-      const { data } = await response.json();
+      const result = await response.json();
 
-      if (!data) {
-        throw new Error('No se recibieron datos de la asignatura');
+      if (!result || !result.data) {
+        throw new Error('Formato de respuesta inválido al cargar la asignatura');
       }
+
+      const { data } = result;
 
       // Set the subject with the correct property names from the API response
       setSubject({
@@ -448,20 +462,16 @@ export default function SubjectDetailPage() {
         code: data.code || 'N/A',
       });
     } catch (error) {
-      console.error('Error al cargar la asignatura:', error);
       const errorMessage =
         error instanceof Error ? error.message : 'Error desconocido al cargar la asignatura';
       setError(errorMessage);
-
       // Set a default subject if there's an error
       setSubject({
         id: subjectId,
         name: 'Asignatura',
         code: 'N/A',
       });
-
-      // Show error toast to the user
-      toast.error(errorMessage);
+      toast.error(errorMessage); // Show toast here
     } finally {
       setIsLoadingSubject(false);
     }
@@ -476,26 +486,28 @@ export default function SubjectDetailPage() {
     setIsLoadingStudents(true);
     try {
       setError(null);
-      const response = await fetch(`/api/docente/matriculas?subjectId=${subjectId}`);
+
+      const response = await fetch(`/api/docente/matriculas?subjectId=${subjectId}`, {
+        credentials: 'include', // Incluir credenciales para autenticación
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'No se pudieron cargar los estudiantes.');
+        const errorMessage = errorData.message || 'No se pudieron cargar los estudiantes';
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
 
-      if (result.data) {
-        setEnrolledStudents(result.data);
+      if (result && result.data) {
+        setEnrolledStudents(Array.isArray(result.data) ? result.data : []);
       } else {
-        // If the response doesn't have a data property, use the entire response
+        // Si el formato no es el esperado, intentamos con el resultado directo
         setEnrolledStudents(Array.isArray(result) ? result : []);
       }
     } catch (err) {
-      console.error('Error al cargar los estudiantes:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error al cargar los estudiantes';
       setError(errorMessage);
-      toast.error(errorMessage);
       setEnrolledStudents([]); // Reset students on error
     } finally {
       setIsLoadingStudents(false);
@@ -503,11 +515,30 @@ export default function SubjectDetailPage() {
   }, [subjectId]);
 
   useEffect(() => {
-    if (subjectId) {
-      fetchSubject();
-      fetchClasses(pagination.page, pagination.limit);
-      fetchEnrolledStudents();
-    }
+    if (!subjectId) return;
+
+    // Show a single loading state
+    const loadingToast = toast.loading('Cargando datos de la asignatura...');
+
+    const loadData = async () => {
+      try {
+        await Promise.all([
+          fetchSubject(),
+          fetchClasses(pagination.page, pagination.limit),
+          fetchEnrolledStudents(),
+        ]);
+        toast.dismiss(loadingToast);
+      } catch (error) {
+        toast.dismiss(loadingToast);
+        // Only show error in the UI, not as toast since it's already handled in fetch functions
+      }
+    };
+
+    loadData();
+
+    return () => {
+      toast.dismiss(loadingToast);
+    };
   }, [
     subjectId,
     fetchSubject,
@@ -583,7 +614,6 @@ export default function SubjectDetailPage() {
           prevAttendances.map(att => (att.id === studentId ? { ...att, status } : att))
         );
       } catch (error) {
-        console.error('Error updating attendance:', error);
         toast.error('Error al actualizar la asistencia');
       } finally {
         setIsUpdatingAttendance(null);
@@ -720,7 +750,6 @@ export default function SubjectDetailPage() {
       setUnenrollReason('');
       setCurrentStudentForUnenroll(null);
     } catch (error) {
-      console.error('Error al enviar solicitud de desmatriculación:', error);
       toast.error(
         error instanceof Error ? error.message : 'Error al enviar la solicitud de desmatriculación'
       );

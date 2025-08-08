@@ -73,12 +73,6 @@ export async function POST(request: Request) {
     }
 
     // Crear la solicitud de desmatriculación
-    console.log('Creando solicitud de desmatriculación con datos:', {
-      studentId,
-      subjectId,
-      reason,
-      requestedBy: session.user.id,
-    });
 
     try {
       // Crear la solicitud de desmatriculación usando el modelo extendido
@@ -124,20 +118,13 @@ export async function POST(request: Request) {
             supportEmail: supportEmail,
           }),
         });
-
-        console.log('Correo de notificación enviado con éxito al administrador');
-      } catch (emailError) {
-        console.error('Error en el proceso de envío de correo:', emailError);
-      }
-
-      console.log('Solicitud de desmatriculación creada:', unenrollRequest);
+      } catch (emailError) {}
 
       return NextResponse.json({
         success: true,
         data: unenrollRequest,
       });
     } catch (error) {
-      console.error('Error al crear la solicitud de desmatriculación:', error);
       return NextResponse.json(
         {
           success: false,
@@ -148,7 +135,6 @@ export async function POST(request: Request) {
       );
     }
   } catch (error) {
-    console.error('Error al procesar la solicitud de desmatriculación:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }

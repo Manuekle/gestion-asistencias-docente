@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { AttendanceStatus, Role } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Convierte un identificador de periodo académico (ej: "2025-1" o "2025-2")
@@ -197,7 +197,6 @@ export async function GET(
       subjects: Array.from(subjectsMap.values()),
     });
   } catch (error) {
-    console.error('[ADMIN_DOCENTE_HISTORICO_ERROR]', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }

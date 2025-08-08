@@ -44,43 +44,27 @@ export default function SubjectsPage() {
   const [availablePeriods, setAvailablePeriods] = useState<string[]>([]);
 
   const fetchSubjects = useCallback(async () => {
-    console.log('Iniciando fetchSubjects...');
     setIsLoading(true);
     try {
-      console.log('Haciendo petición a la API...');
       const response = await fetch(
         `/api/docente/asignaturas?page=1&limit=100&sortBy=createdAt&sortOrder=desc`
       );
 
-      console.log('Respuesta recibida, status:', response.status);
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Error en la respuesta:', response.status, errorData);
         throw new Error(errorData.message || 'No se pudieron cargar las asignaturas.');
       }
 
       const responseData = await response.json();
-      console.log('Datos recibidos:', responseData);
 
       const allSubjects = responseData.data || [];
-      console.log('Total de asignaturas recibidas:', allSubjects.length);
 
       if (allSubjects.length > 0) {
-        console.log('Primera asignatura de ejemplo:', {
-          id: allSubjects[0].id,
-          nombre: allSubjects[0].name,
-          fechaCreacion: allSubjects[0].createdAt,
-          tipoFecha: typeof allSubjects[0].createdAt,
-        });
       }
 
       // Filtrar por año y período seleccionado
-      console.log('Período seleccionado:', selectedPeriod);
       const [selectedYearStr, selectedPeriodNum] = selectedPeriod.split('-');
       const selectedYear = parseInt(selectedYearStr, 10);
-
-      console.log('Año seleccionado:', selectedYear, 'Período:', selectedPeriodNum);
 
       // Definir un tipo extendido que incluya los campos que necesitamos
       type SubjectWithDate = Subject & {
@@ -89,21 +73,12 @@ export default function SubjectsPage() {
 
       const filteredSubjects = allSubjects.filter((subject: SubjectWithDate) => {
         try {
-          console.log('\n--- Procesando asignatura ---');
-          console.log('ID:', subject.id);
-          console.log('Nombre:', subject.name);
-          console.log('Fecha original:', subject.createdAt);
-          console.log('Tipo de fecha:', typeof subject.createdAt);
-
           // Si no hay fecha, usar la fecha actual
           if (!subject.createdAt) {
-            console.log('Usando fecha actual para asignatura sin fecha');
             const now = new Date();
             const year = now.getFullYear();
             const period = now.getMonth() < 6 ? '1' : '2';
             const currentPeriod = `${year}-${period}`;
-
-            console.log('Período calculado para asignatura sin fecha:', currentPeriod);
             return currentPeriod === selectedPeriod;
           }
 
@@ -137,7 +112,6 @@ export default function SubjectsPage() {
 
           // Verificar si la fecha es válida
           if (isNaN(subjectDate.getTime())) {
-            console.error('Fecha inválida después del procesamiento, usando fecha actual');
             const now = new Date();
             const year = now.getFullYear();
             const period = now.getMonth() < 6 ? '1' : '2';
@@ -145,31 +119,16 @@ export default function SubjectsPage() {
             return currentPeriod === selectedPeriod;
           }
 
-          console.log('Fecha procesada:', subjectDate.toISOString());
-
           const subjectYear = subjectDate.getFullYear();
           const subjectMonth = subjectDate.getMonth() + 1;
           const subjectPeriod = subjectMonth <= 6 ? '1' : '2';
           const subjectPeriodStr = `${subjectYear}-${subjectPeriod}`;
 
-          console.log('Asignatura:', {
-            id: subject.id,
-            fecha: subject.createdAt,
-            año: subjectYear,
-            periodo: subjectPeriod,
-            periodoCompleto: subjectPeriodStr,
-            coincide: subjectPeriodStr === selectedPeriod,
-          });
-
           return subjectPeriodStr === selectedPeriod;
         } catch (error) {
-          console.error('Error procesando asignatura:', subject.id, error);
           return false;
         }
       });
-
-      console.log('Total de asignaturas:', allSubjects.length);
-      console.log('Asignaturas filtradas:', filteredSubjects.length);
 
       // Obtener años y períodos únicos de las asignaturas
       const periods = new Set<string>();
@@ -181,7 +140,6 @@ export default function SubjectsPage() {
       allSubjects.forEach((subject: Subject) => {
         try {
           if (!subject.createdAt) {
-            console.log('Asignatura sin fecha, usando fecha actual');
             const now = new Date();
             const year = now.getFullYear();
             const period = now.getMonth() < 6 ? '1' : '2';
@@ -213,7 +171,6 @@ export default function SubjectsPage() {
           }
 
           if (isNaN(subjectDate.getTime())) {
-            console.error('No se pudo procesar la fecha, usando fecha actual');
             const now = new Date();
             const year = now.getFullYear();
             const period = now.getMonth() < 6 ? '1' : '2';
@@ -226,7 +183,6 @@ export default function SubjectsPage() {
           const period = month <= 6 ? '1' : '2';
           periods.add(`${year}-${period}`);
         } catch (error) {
-          console.error('Error procesando fecha de asignatura, usando fecha actual:', error);
           const now = new Date();
           const year = now.getFullYear();
           const period = now.getMonth() < 6 ? '1' : '2';

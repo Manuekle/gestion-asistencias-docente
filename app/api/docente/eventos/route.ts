@@ -74,7 +74,6 @@ export async function GET(request: Request) {
       message: 'Eventos obtenidos correctamente',
     });
   } catch (error) {
-    console.error('Error al obtener los eventos:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -132,7 +131,6 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error creating event:', error);
     return NextResponse.json({ error: 'Error al crear el evento' }, { status: 500 });
   }
 }

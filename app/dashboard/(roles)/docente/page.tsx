@@ -51,7 +51,6 @@ export default function DocenteDashboard() {
           const { data, error } = await getTeacherDashboardData();
 
           if (error) {
-            console.error('Error al cargar los datos:', error);
             // Mostrar mensaje de error al usuario
             return;
           }
@@ -75,7 +74,6 @@ export default function DocenteDashboard() {
             setUpcomingClasses(transformedUpcomingClasses);
           }
         } catch (error) {
-          console.error('Error en la carga de datos:', error);
         } finally {
           setLoading(false);
         }
@@ -86,7 +84,6 @@ export default function DocenteDashboard() {
           const { data } = await getLiveClassData();
           setLiveClass(data?.liveClass || null);
         } catch (error) {
-          console.error('Error fetching live class data:', error);
           setLiveClass(null);
         }
       };

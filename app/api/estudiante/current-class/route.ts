@@ -71,7 +71,6 @@ export async function GET() {
     });
 
     if (!currentClass) {
-      console.log('No class found in the time range');
       return NextResponse.json({ liveClass: null });
     }
 
@@ -129,7 +128,6 @@ export async function GET() {
 
     return NextResponse.json({ liveClass: response });
   } catch (error) {
-    console.error('Error fetching current class:', error);
     return NextResponse.json({ error: 'Internal Error' }, { status: 500 });
   }
 }

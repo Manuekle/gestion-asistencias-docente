@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
 import { Role } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 // GET: Obtener lista de usuarios
 export async function GET(req: NextRequest) {
@@ -43,7 +43,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(users);
   } catch (error) {
-    console.error('[ADMIN_GET_USERS_ERROR]', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -127,7 +126,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(userWithoutPassword, { status: 201 });
   } catch (error) {
-    console.error('[ADMIN_CREATE_USER_ERROR]', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }

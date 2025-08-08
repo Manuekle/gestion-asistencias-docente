@@ -1,10 +1,10 @@
 import ClassCancellationEmail from '@/app/emails/ClassCancellationEmail';
 import { authOptions } from '@/lib/auth';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import React from 'react';
-import { sendEmail } from '@/lib/email';
 import { DocenteClaseDetailSchema, DocenteClaseUpdateSchema } from './schema';
 
 async function verifyTeacherOwnership(classId: string, teacherId: string) {
@@ -58,7 +58,6 @@ export async function GET(request: Request, { params }: { params: { classId: str
     }
     return NextResponse.json({ data: validated.data });
   } catch (error) {
-    console.error('Error al obtener los detalles de la clase:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -133,7 +132,6 @@ export async function PUT(request: Request, { params }: { params: { classId: str
                 subject: `Clase Cancelada: ${classToCancel.subject.name}`,
                 react: emailComponent,
               }).catch(error => {
-                console.error(`Error sending email to ${studentEmail}:`, error);
                 return { success: false, email: studentEmail, error };
               })
             );
@@ -143,13 +141,9 @@ export async function PUT(request: Request, { params }: { params: { classId: str
             const failedEmails = results.filter(r => !r.success);
 
             if (failedEmails.length > 0) {
-              console.error(`Failed to send ${failedEmails.length} cancellation emails`);
             } else {
-              console.log(`Successfully sent ${results.length} cancellation emails`);
             }
-          } catch (emailError) {
-            console.error('A general error occurred during the email sending process:', emailError);
-          }
+          } catch (emailError) {}
         }
       }
     }
@@ -182,7 +176,6 @@ export async function PUT(request: Request, { params }: { params: { classId: str
 
     return NextResponse.json({ data: validated.data });
   } catch (error) {
-    console.error('Error al actualizar la clase:', error);
     return NextResponse.json({ message: 'Ocurrió un error interno del servidor' }, { status: 500 });
   }
 }
@@ -222,7 +215,6 @@ export async function DELETE(request: Request, { params }: { params: { classId: 
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error al eliminar la clase:', error);
     return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
   }
 }
