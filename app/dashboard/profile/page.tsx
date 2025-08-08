@@ -20,7 +20,7 @@ import { uploadSignature } from '@/lib/actions/user.actions';
 import { AlertCircle, Loader2, Lock, PenLine, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { toast } from 'sonner';
 
@@ -69,7 +69,31 @@ export default function ProfilePage() {
   const sigCanvas = useRef<SignatureCanvas>(null);
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
 
-  // This effect handles the resizing of the signature canvas to prevent pixelation.
+  // Function to prevent scroll on touch devices when signing
+  const preventScroll = useCallback((e: TouchEvent) => {
+    const canvas = sigCanvas.current?.getCanvas();
+    if (e.target === canvas || canvas?.contains(e.target as Node)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, []);
+
+  // Cleanup function for all event listeners
+  const forceCleanupEventListeners = useCallback(() => {
+    // Remove all possible event listeners
+    document.removeEventListener('touchmove', preventScroll, { capture: true });
+    document.removeEventListener('touchstart', preventScroll, { capture: true });
+    document.removeEventListener('touchend', preventScroll, { capture: true });
+
+    // Make canvas lose focus
+    const canvas = sigCanvas.current?.getCanvas();
+    if (canvas) {
+      canvas.style.pointerEvents = 'auto';
+      canvas.blur();
+    }
+  }, [preventScroll]);
+
+  // 5. Enhanced resize effect with cleanup
   useEffect(() => {
     const canvas = sigCanvas.current?.getCanvas();
     const wrapper = canvasWrapperRef.current;
@@ -77,19 +101,30 @@ export default function ProfilePage() {
     if (!canvas || !wrapper) return;
 
     const handleResize = () => {
+      // Clean up before resize
+      forceCleanupEventListeners();
+
       const { width, height } = wrapper.getBoundingClientRect();
       canvas.width = width;
       canvas.height = height;
-      sigCanvas.current?.clear(); // Clearing is necessary after resize
+      sigCanvas.current?.clear();
+
+      // Ensure clean state after resize
+      setTimeout(() => {
+        forceCleanupEventListeners();
+      }, 100);
     };
 
-    handleResize(); // Set initial size
+    // Initial setup
+    handleResize();
     window.addEventListener('resize', handleResize);
 
+    // Cleanup on unmount
     return () => {
       window.removeEventListener('resize', handleResize);
+      forceCleanupEventListeners();
     };
-  }, []);
+  }, [forceCleanupEventListeners]);
 
   // Initialize form with session data
   useEffect(() => {
@@ -129,37 +164,50 @@ export default function ProfilePage() {
     sigCanvas.current?.clear();
   };
 
-  // Prevent page scroll when drawing on mobile
-  const preventScroll = (e: TouchEvent) => {
-    if (e.target === sigCanvas.current?.getCanvas()) {
-      e.preventDefault();
-    }
-  };
+  // 1. Improved preventScroll function (moved up to avoid circular dependency)
+  // 3. Enhanced clearCanvas with cleanup
+  const clearCanvas = useCallback(() => {
+    // Clean up first
+    forceCleanupEventListeners();
 
-  const clearCanvas = () => {
+    // Clear canvas and reset state
     sigCanvas.current?.clear();
     setSignatureFile(null);
     setSignaturePreview(session?.user?.signatureUrl || null);
-    // Remove any existing event listeners to prevent memory leaks
-    document.removeEventListener('touchmove', preventScroll);
-  };
 
-  const saveCanvas = () => {
+    // Clean up again after a short delay
+    setTimeout(() => {
+      forceCleanupEventListeners();
+    }, 100);
+  }, [forceCleanupEventListeners, session?.user?.signatureUrl]);
+
+  // 4. Enhanced saveCanvas with better error handling and cleanup
+  const saveCanvas = useCallback(() => {
     if (sigCanvas.current?.isEmpty()) {
       toast.error('Por favor, dibuja tu firma antes de guardar.');
       return;
     }
 
-    const dataUrl = sigCanvas.current?.getTrimmedCanvas().toDataURL('image/png') || '';
-    setSignaturePreview(dataUrl);
-    const filename = `${crypto.randomUUID().replace(/-/g, '')}.png`;
-    const newFile = dataURLtoFile(dataUrl, filename);
-    setSignatureFile(newFile);
-    toast.success('Firma capturada. Ahora puedes guardarla.');
+    // Clean up before processing
+    forceCleanupEventListeners();
 
-    // Limpiar cualquier event listener que pueda estar interfiriendo
-    document.removeEventListener('touchmove', preventScroll);
-  };
+    try {
+      const dataUrl = sigCanvas.current?.getTrimmedCanvas().toDataURL('image/png') || '';
+      setSignaturePreview(dataUrl);
+      const filename = `${crypto.randomUUID().replace(/-/g, '')}.png`;
+      const newFile = dataURLtoFile(dataUrl, filename);
+      setSignatureFile(newFile);
+      toast.success('Firma capturada. Ahora puedes guardarla.');
+    } catch (error) {
+      console.error('Error capturing signature:', error);
+      toast.error('Error al capturar la firma');
+    }
+
+    // Clean up after processing
+    setTimeout(() => {
+      forceCleanupEventListeners();
+    }, 100);
+  }, [forceCleanupEventListeners]);
 
   // Update profile
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -568,12 +616,23 @@ export default function ProfilePage() {
                             },
                           }}
                           onBegin={() => {
+                            // Clean up any existing listeners first
+                            forceCleanupEventListeners();
+                            // Add listeners for drawing
                             document.addEventListener('touchmove', preventScroll, {
                               passive: false,
+                              capture: true,
+                            });
+                            document.addEventListener('touchstart', preventScroll, {
+                              passive: false,
+                              capture: true,
                             });
                           }}
                           onEnd={() => {
-                            document.removeEventListener('touchmove', preventScroll);
+                            // Use setTimeout to ensure cleanup happens after all events
+                            setTimeout(() => {
+                              forceCleanupEventListeners();
+                            }, 50);
                           }}
                         />
                       </div>
@@ -586,7 +645,24 @@ export default function ProfilePage() {
                         >
                           Limpiar
                         </Button>
-                        <Button variant="default" size="sm" onClick={saveCanvas} className="flex-1">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={e => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            saveCanvas();
+                          }}
+                          onTouchStart={e => {
+                            e.stopPropagation();
+                            forceCleanupEventListeners();
+                          }}
+                          onMouseDown={e => {
+                            e.stopPropagation();
+                            forceCleanupEventListeners();
+                          }}
+                          className="flex-1"
+                        >
                           Capturar
                         </Button>
                       </div>
