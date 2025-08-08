@@ -32,7 +32,7 @@ export function SignatureFileUpload({ onFileSelect }: SignatureFileUploadProps) 
     <div
       {...getRootProps()}
       className={`flex flex-col h-full min-h-[150px] w-full items-center justify-center border border-dashed rounded-lg p-4 sm:p-6 space-y-2 cursor-pointer transition-colors ${
-        isDragActive ? 'bg-muted/50 border-primary' : 'hover:bg-muted/30'
+        isDragActive ? 'bg-muted/50 border' : 'hover:bg-muted/30'
       }`}
     >
       <input {...getInputProps()} />
