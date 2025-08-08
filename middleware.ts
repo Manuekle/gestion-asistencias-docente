@@ -15,6 +15,50 @@ export default withAuth(
       path => pathname === path || pathname.startsWith(`${path}/`)
     );
 
+    // Redirigir usuarios autenticados que intentan acceder al login
+    if (pathname === '/login') {
+      const token = await getToken({ req });
+
+      // Si hay un callbackUrl y el usuario no está autenticado, mantenerlo
+      const callbackUrl = req.nextUrl.searchParams.get('callbackUrl');
+
+      if (token) {
+        // Si el usuario está autenticado, redirigir según su rol
+        const userRole = token.role as Role;
+        let targetPath = '/';
+
+        // Si hay un callbackUrl válido y no es el login, usarlo
+        if (callbackUrl && !callbackUrl.includes('/login')) {
+          targetPath = callbackUrl;
+        } else {
+          // Si no hay callbackUrl o es inválido, redirigir según el rol
+          switch (userRole) {
+            case Role.ADMIN:
+              targetPath = '/dashboard/admin';
+              break;
+            case Role.DOCENTE:
+              targetPath = '/dashboard/docente';
+              break;
+            case Role.ESTUDIANTE:
+              targetPath = '/dashboard/estudiante';
+              break;
+          }
+        }
+
+        return NextResponse.redirect(new URL(targetPath, req.url));
+      }
+
+      // Si hay un callbackUrl y el usuario no está autenticado, mantenerlo
+      if (callbackUrl) {
+        return NextResponse.next();
+      }
+
+      // Limpiar cualquier callbackUrl existente para evitar bucles
+      const loginUrl = new URL('/login', req.url);
+      loginUrl.searchParams.delete('callbackUrl');
+      return NextResponse.rewrite(loginUrl);
+    }
+
     // Si es una ruta pública, permitir el acceso
     if (isPublicPath) {
       return NextResponse.next();
