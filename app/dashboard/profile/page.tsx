@@ -535,52 +535,61 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               {/* firma */}
-              <CardContent className="px-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="px-4 sm:px-6 space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Subir Archivo */}
-                  <div className="space-y-3 h-full">
-                    <Label className="text-xs font-medium">Subir Firma</Label>
-                    <SignatureFileUpload onFileSelect={handleFileSelect} file={signatureFile} />
-                    <p className="text-xs text-muted-foreground">
-                      PNG con fondo transparente (máx. 2MB)
-                    </p>
+                  <div className="space-y-3 h-full flex flex-col">
+                    <div>
+                      <Label className="text-xs font-medium">Subir Firma</Label>
+                    </div>
+                    <div className="flex-1 min-h-[180px]">
+                      <SignatureFileUpload onFileSelect={handleFileSelect} file={signatureFile} />
+                    </div>
                   </div>
 
                   {/* Dibujar Firma */}
-                  <div className="space-y-3 h-full">
+                  <div className="space-y-3 h-full flex flex-col">
                     <Label className="text-xs font-medium">Dibujar Firma</Label>
-                    <div
-                      ref={canvasWrapperRef}
-                      className="w-full aspect-[2.5/1] items-center justify-center border border-dashed rounded-lg p-6 space-y-2 touch-none"
-                    >
-                      <SignatureCanvas
-                        ref={sigCanvas}
-                        penColor="hsl(0 0% 0%)"
-                        canvasProps={{
-                          className: 'w-full h-full rounded-md dark:invert touch-none',
-                          style: {
-                            touchAction: 'none',
-                            WebkitUserSelect: 'none',
-                            WebkitTouchCallout: 'none',
-                            WebkitTapHighlightColor: 'transparent',
-                          },
-                        }}
-                        onBegin={() => {
-                          // Prevent default touch behavior
-                          document.addEventListener('touchmove', preventScroll, { passive: false });
-                        }}
-                        onEnd={() => {
-                          document.removeEventListener('touchmove', preventScroll);
-                        }}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={clearCanvas} className="flex-1 ">
-                        Limpiar
-                      </Button>
-                      <Button variant="default" size="sm" onClick={saveCanvas} className="flex-1">
-                        Capturar
-                      </Button>
+                    <div className="flex-1 flex flex-col">
+                      <div
+                        ref={canvasWrapperRef}
+                        className="w-full flex-1 min-h-[180px] max-h-[200px] lg:max-h-none items-center justify-center border border-dashed rounded-lg p-4 sm:p-6 touch-none"
+                      >
+                        <SignatureCanvas
+                          ref={sigCanvas}
+                          penColor="hsl(0 0% 0%)"
+                          canvasProps={{
+                            className: 'w-full h-full rounded-md dark:invert touch-none',
+                            style: {
+                              touchAction: 'none',
+                              WebkitUserSelect: 'none',
+                              WebkitTouchCallout: 'none',
+                              WebkitTapHighlightColor: 'transparent',
+                            },
+                          }}
+                          onBegin={() => {
+                            document.addEventListener('touchmove', preventScroll, {
+                              passive: false,
+                            });
+                          }}
+                          onEnd={() => {
+                            document.removeEventListener('touchmove', preventScroll);
+                          }}
+                        />
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={clearCanvas}
+                          className="flex-1"
+                        >
+                          Limpiar
+                        </Button>
+                        <Button variant="default" size="sm" onClick={saveCanvas} className="flex-1">
+                          Capturar
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -588,7 +597,7 @@ export default function ProfilePage() {
                 {/* Vista Previa */}
                 <div className="space-y-3">
                   <Label className="text-xs font-medium">Vista Previa</Label>
-                  <div className="border border-muted-foreground/20 rounded-md p-4 flex items-center justify-center h-56 bg-card">
+                  <div className="border border-muted-foreground/20 rounded-md p-4 flex items-center justify-center h-48 sm:h-56 bg-card">
                     {signaturePreview ? (
                       <div className="relative w-full h-full">
                         <Image
@@ -596,8 +605,9 @@ export default function ProfilePage() {
                           alt="Vista previa de la firma"
                           fill
                           style={{ objectFit: 'contain' }}
-                          sizes="(max-width: 768px) 100vw, 50vw"
+                          sizes="(max-width: 1024px) 100vw, 50vw"
                           className="rounded-sm dark:invert"
+                          priority
                         />
                       </div>
                     ) : (

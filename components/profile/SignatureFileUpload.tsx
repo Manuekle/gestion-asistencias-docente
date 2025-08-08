@@ -31,7 +31,7 @@ export function SignatureFileUpload({ onFileSelect }: SignatureFileUploadProps) 
   return (
     <div
       {...getRootProps()}
-      className={`flex flex-col xl:h-[310px] h-[200px] items-center justify-center border border-dashed rounded-lg p-6 space-y-2 cursor-pointer transition-colors ${
+      className={`flex flex-col h-full min-h-[150px] w-full items-center justify-center border border-dashed rounded-lg p-4 sm:p-6 space-y-2 cursor-pointer transition-colors ${
         isDragActive ? 'bg-muted/50 border-primary' : 'hover:bg-muted/30'
       }`}
     >
@@ -44,6 +44,9 @@ export function SignatureFileUpload({ onFileSelect }: SignatureFileUploadProps) 
       </p>
       <p className="text-xs text-muted-foreground text-center">
         Arrastra y suelta la imagen, o haz clic para seleccionar
+      </p>
+      <p className="text-xs text-muted-foreground text-center">
+        PNG con fondo transparente (máx. 2MB)
       </p>
     </div>
   );
