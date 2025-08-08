@@ -8,13 +8,22 @@ export default withAuth(
     const { pathname } = req.nextUrl;
     const userRole = token?.role as Role;
 
+    // Crear response con headers de seguridad
+    const response = NextResponse.next();
+
+    // Headers de seguridad
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-XSS-Protection', '1; mode=block');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
     // --- Redirection from root dashboard ---
     if (pathname === '/dashboard') {
       let targetPath: string;
       switch (userRole) {
         case Role.ADMIN:
-          // El admin puede ver la página principal del dashboard,
-          return NextResponse.redirect(new URL('/dashboard/admin', req.url));
+          targetPath = '/dashboard/admin';
+          break;
         case Role.DOCENTE:
           targetPath = '/dashboard/docente';
           break;
@@ -22,7 +31,6 @@ export default withAuth(
           targetPath = '/dashboard/estudiante';
           break;
         default:
-          // Si no tiene un rol definido, lo enviamos a la página de inicio.
           targetPath = '/';
           break;
       }
@@ -31,24 +39,32 @@ export default withAuth(
 
     // --- API Route Protection ---
     if (pathname.startsWith('/api/')) {
+      // Headers adicionales para APIs
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+
       const unauthorizedResponse = NextResponse.json(
-        { message: 'No autorizado para este recurso.' },
+        { message: 'Acceso denegado.' }, // Mensaje genérico
         { status: 403 }
       );
 
+      // Validaciones más específicas
       if (pathname.startsWith('/api/admin') && userRole !== Role.ADMIN) {
         return unauthorizedResponse;
       }
+
       if (
-        pathname.startsWith('/api/users') &&
-        userRole !== Role.ADMIN &&
+        pathname.startsWith('/api/docente') &&
         userRole !== Role.DOCENTE &&
-        userRole !== Role.ESTUDIANTE
+        userRole !== Role.ADMIN
       ) {
         return unauthorizedResponse;
       }
-      if (pathname.startsWith('/api/docente') && userRole !== Role.DOCENTE) {
-        return unauthorizedResponse;
+
+      if (pathname.startsWith('/api/users')) {
+        const allowedRoles = [Role.ADMIN, Role.DOCENTE, Role.ESTUDIANTE, Role.COORDINADOR];
+        if (!allowedRoles.includes(userRole)) {
+          return unauthorizedResponse;
+        }
       }
     }
 
@@ -67,7 +83,7 @@ export default withAuth(
       }
     }
 
-    return NextResponse.next();
+    return response;
   },
   {
     callbacks: {
@@ -78,12 +94,12 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    // Proteger todas las rutas del dashboard
-    '/dashboard',
+    // Proteger rutas específicas
     '/dashboard/:path*',
-    // Proteger las APIs específicas de roles
     '/api/admin/:path*',
     '/api/users/:path*',
     '/api/docente/:path*',
+    // Excluir rutas públicas explícitamente
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|public).*)',
   ],
 };
