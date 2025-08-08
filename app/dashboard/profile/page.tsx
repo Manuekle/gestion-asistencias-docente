@@ -601,7 +601,8 @@ export default function ProfilePage() {
                           ref={sigCanvas}
                           penColor="hsl(0 0% 0%)"
                           canvasProps={{
-                            className: 'w-full h-full rounded-md dark:invert touch-none',
+                            className:
+                              'w-full h-full rounded-md dark:invert touch-none cursor-crosshair',
                             style: {
                               touchAction: 'none',
                               WebkitUserSelect: 'none',
