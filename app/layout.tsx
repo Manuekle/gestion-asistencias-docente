@@ -80,7 +80,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${GeistSans.variable} ${GeistMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background font-sans text-foreground">
+      <body
+        className="min-h-screen bg-background font-sans text-foreground"
+        suppressHydrationWarning
+      >
         <Providers>
           {children}
           <Toaster position="top-center" duration={5000} />
