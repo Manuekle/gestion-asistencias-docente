@@ -52,7 +52,10 @@ function AppSidebar({ homePath }: { homePath: string }) {
 
   const handleSignOut = async () => {
     try {
-      await signOut({ callbackUrl: '/' });
+      // Primero redirigir a la raíz para evitar el callbackUrl
+      window.location.href = '/';
+      // Luego cerrar sesión
+      await signOut({ redirect: false });
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }

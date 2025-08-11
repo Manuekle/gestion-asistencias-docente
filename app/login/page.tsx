@@ -34,15 +34,13 @@ export default function LoginPage() {
         redirect: false,
         email,
         password,
-        callbackUrl: '/dashboard',
       });
 
       if (result?.error) {
         setError('Credenciales inválidas. Por favor, inténtalo de nuevo.');
       } else {
-        // Usar la URL de retorno si existe, de lo contrario ir a dashboard
-        const returnUrl = new URL(window.location.href).searchParams.get('callbackUrl');
-        window.location.href = returnUrl || '/dashboard';
+        // Redirigir al dashboard
+        window.location.href = '/dashboard';
       }
     } catch {
       setError('Ha ocurrido un error inesperado.');

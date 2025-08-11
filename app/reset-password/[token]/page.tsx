@@ -15,13 +15,14 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const params = useParams();
   const token = params?.token as string;
-  const [correo, setCorreo] = useState('');
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
+  const [userEmail, setUserEmail] = useState('');
   const [message, setMessage] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -44,6 +45,7 @@ export default function ResetPasswordPage() {
         }
 
         setIsValidToken(true);
+        setUserEmail(data.correoInstitucional || data.correoPersonal || '');
       } catch (error: unknown) {
         setIsValidToken(false);
         setMessage({
@@ -85,7 +87,7 @@ export default function ResetPasswordPage() {
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ correo, password }),
+        body: JSON.stringify({ token, password }),
       });
 
       const data = await response.json();
@@ -167,8 +169,8 @@ export default function ResetPasswordPage() {
                 id="correo"
                 type="email"
                 placeholder="Ingresa tu correo electrónico"
-                value={correo}
-                onChange={e => setCorreo(e.target.value)}
+                value={userEmail}
+                disabled
                 className="text-xs"
               />
             </div>
