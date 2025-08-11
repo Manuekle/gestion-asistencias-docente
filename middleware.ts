@@ -46,6 +46,28 @@ export default withAuth(
 
     // Si es una ruta pública, permitir el acceso
     if (isPublicPath) {
+      // Si el usuario está autenticado y está intentando acceder a una ruta pública que no sea el login
+      const token = await getToken({ req });
+      if (token && pathname !== '/login') {
+        // Redirigir al dashboard correspondiente según el rol
+        let targetPath = '/dashboard';
+        const userRole = token.role as Role;
+
+        switch (userRole) {
+          case Role.ADMIN:
+            targetPath = '/dashboard/admin';
+            break;
+          case Role.DOCENTE:
+            targetPath = '/dashboard/docente';
+            break;
+          case Role.ESTUDIANTE:
+            targetPath = '/dashboard/estudiante';
+            break;
+        }
+
+        return NextResponse.redirect(new URL(targetPath, req.url));
+      }
+
       return NextResponse.next();
     }
 

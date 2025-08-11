@@ -208,11 +208,11 @@ export default function HomePageMobile() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="w-full max-w-md rounded-xl border bg-card p-6 shadow-lg"
+              className="w-full max-w-md rounded-xl border bg-card p-6 shadow-sm "
             >
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-2">
                 <h2 className="text-2xl font-semibold tracking-tight">
-                  {forgotPasswordMode ? 'Recuperar Contraseña' : 'Iniciar Sesión'}
+                  {forgotPasswordMode ? '¿Olvidaste tu contraseña?' : 'Iniciar Sesión'}
                 </h2>
                 <Button
                   onClick={() => setShowLogin(false)}
@@ -236,7 +236,9 @@ export default function HomePageMobile() {
                         variant={forgotPasswordMessage.type === 'error' ? 'destructive' : 'default'}
                       >
                         <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{forgotPasswordMessage.text}</AlertDescription>
+                        <AlertDescription className="text-xs">
+                          {forgotPasswordMessage.text}
+                        </AlertDescription>
                       </Alert>
                     </motion.div>
                   )}
@@ -252,6 +254,9 @@ export default function HomePageMobile() {
                   >
                     {!forgotPasswordMode ? (
                       <form onSubmit={handleLogin} className="space-y-4">
+                        <p className="text-muted-foreground text-xs">
+                          Ingresa tus credenciales para acceder al sistema.
+                        </p>
                         <div className="space-y-2">
                           <Label htmlFor="email" className="text-xs">
                             Correo electrónico
@@ -348,7 +353,7 @@ export default function HomePageMobile() {
                         <Button
                           variant="link"
                           size="sm"
-                          className="w-full text-muted-foreground hover:text-foreground"
+                          className="w-full font-normal"
                           onClick={() => {
                             setForgotPasswordMode(false);
                             setForgotPasswordMessage(null);
