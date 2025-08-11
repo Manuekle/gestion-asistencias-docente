@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Login - FUP',
+  title: 'Inicio de Sesión - FUP',
   description: 'Inicia sesión para continuar con FUP',
   keywords: 'login, inicio de sesión, FUP',
 };

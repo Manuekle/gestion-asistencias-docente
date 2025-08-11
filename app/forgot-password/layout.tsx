@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Olvidaste tu contraseña - FUP',
+  title: '¿Olvidaste tu contraseña? - FUP',
   description:
     'Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.',
   keywords: 'olvidaste tu contraseña, contraseña, FUP',

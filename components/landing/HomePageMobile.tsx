@@ -14,7 +14,7 @@ export default function HomePageMobile() {
   const [showLogin, setShowLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [, setError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -38,7 +38,7 @@ export default function HomePageMobile() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+    setLoginError(null);
 
     try {
       const result = await signIn('credentials', {
@@ -49,14 +49,14 @@ export default function HomePageMobile() {
       });
 
       if (result?.error) {
-        throw new Error('Credenciales inválidas. Por favor, inténtalo de nuevo.');
-      } else {
-        // Use the return URL if it exists, otherwise go to dashboard
-        const returnUrl = new URL(window.location.href).searchParams.get('callbackUrl');
-        router.push(returnUrl || '/dashboard');
+        setLoginError('Credenciales inválidas. Por favor, inténtalo de nuevo.');
+        return;
       }
+      // Use the return URL if it exists, otherwise go to dashboard
+      const returnUrl = new URL(window.location.href).searchParams.get('callbackUrl');
+      router.push(returnUrl || '/dashboard');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error al iniciar sesión');
+      setLoginError('Error al iniciar sesión. Por favor, inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +66,7 @@ export default function HomePageMobile() {
     e.preventDefault();
     setIsLoading(true);
     setForgotPasswordMessage(null);
+    setLoginError(null);
 
     try {
       const response = await fetch('/api/auth/forgot-password', {
@@ -223,11 +224,34 @@ export default function HomePageMobile() {
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-
+              {forgotPasswordMode ? (
+                <p className="text-muted-foreground text-xs mb-4">
+                  Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu
+                  contraseña.
+                </p>
+              ) : (
+                <p className="text-muted-foreground text-xs mb-4">
+                  Ingresa tus credenciales para acceder al sistema.
+                </p>
+              )}
               <div className="space-y-4">
                 <AnimatePresence mode="wait">
-                  {forgotPasswordMessage && (
+                  {loginError && (
                     <motion.div
+                      key="login-error"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                    >
+                      <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription className="text-xs">{loginError}</AlertDescription>
+                      </Alert>
+                    </motion.div>
+                  )}
+                  {forgotPasswordMessage && !loginError && (
+                    <motion.div
+                      key="forgot-password-message"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -254,9 +278,6 @@ export default function HomePageMobile() {
                   >
                     {!forgotPasswordMode ? (
                       <form onSubmit={handleLogin} className="space-y-4">
-                        <p className="text-muted-foreground text-xs">
-                          Ingresa tus credenciales para acceder al sistema.
-                        </p>
                         <div className="space-y-2">
                           <Label htmlFor="email" className="text-xs">
                             Correo electrónico
@@ -318,7 +339,10 @@ export default function HomePageMobile() {
                             variant="link"
                             size="sm"
                             className="h-auto p-0 text-xs font-normal"
-                            onClick={() => setForgotPasswordMode(true)}
+                            onClick={() => {
+                              setForgotPasswordMode(true);
+                              setLoginError(null);
+                            }}
                           >
                             ¿Olvidaste tu contraseña?
                           </Button>
@@ -326,11 +350,6 @@ export default function HomePageMobile() {
                       </form>
                     ) : (
                       <form onSubmit={handleForgotPassword} className="space-y-4">
-                        <p className="text-muted-foreground text-xs">
-                          Ingresa tu correo electrónico y te enviaremos un enlace para restablecer
-                          tu contraseña.
-                        </p>
-
                         <div className="space-y-2">
                           <Label className="text-xs">Correo electrónico</Label>
                           <div className="relative">
@@ -357,6 +376,7 @@ export default function HomePageMobile() {
                           onClick={() => {
                             setForgotPasswordMode(false);
                             setForgotPasswordMessage(null);
+                            setLoginError(null);
                           }}
                         >
                           Volver al inicio de sesión

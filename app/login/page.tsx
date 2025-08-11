@@ -53,8 +53,12 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-[100dvh] p-4 font-sans">
       <Card className="w-full max-w-sm mx-auto my-auto">
         <CardHeader>
-          <CardTitle className="text-2xl font-semibold tracking-tight">Iniciar Sesión</CardTitle>
-          <CardDescription>Ingresa tus credenciales para acceder al sistema.</CardDescription>
+          <CardTitle className="text-2xl font-semibold tracking-tight text-center">
+            Iniciar Sesión
+          </CardTitle>
+          <CardDescription className="text-center">
+            Ingresa tus credenciales para acceder al sistema.
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="grid gap-4">
