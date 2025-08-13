@@ -819,9 +819,9 @@ export default function SubjectDetailPage() {
           }
         >
           {reportExistsForCurrentPeriod ? 'Reporte Generado' : 'Generar Reporte'}
-          {hasScheduledClasses && (
+          {/* {hasScheduledClasses && (
             <span className="ml-2 text-xs text-yellow-500">(Clases pendientes)</span>
-          )}
+          )} */}
         </Button>
       </div>
 
@@ -1141,7 +1141,7 @@ export default function SubjectDetailPage() {
                               <TooltipTrigger asChild>
                                 {canTakeAttendance ? (
                                   <Link
-                                    href={`/dashboard/docente/asignaturas/${subjectId}/clase/${cls.id}/asistencia`}
+                                    href={`/dashboard/docente/clases/${cls.id}/asistencia`}
                                     className="hover:underline"
                                   >
                                     {cls.topic || 'Sin tema'}
