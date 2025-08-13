@@ -176,7 +176,7 @@ const JustifyClassEmail = ({
                       Justificación enviada exitosamente
                     </Text>
                   </div>
-                  <Text className="text-xs text-green-700 m-0 leading-[16px] ml-[20px]">
+                  <Text className="text-xs text-green-700 m-0 leading-[16px]">
                     Fecha de envío: {formattedSubmissionDate}
                   </Text>
                 </div>
