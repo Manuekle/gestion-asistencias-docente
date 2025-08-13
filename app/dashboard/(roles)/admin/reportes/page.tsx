@@ -1,6 +1,6 @@
 'use client';
 
-import { TeacherReport } from '@/components/TeacherReport';
+import { TeacherReport } from '@/components/teacher-report';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AdminReportesPage() {

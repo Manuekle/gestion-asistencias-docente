@@ -1,7 +1,7 @@
 // app/dashboard/profile/page.tsx
 'use client';
 
-import { SignatureFileUpload } from '@/components/profile/SignatureFileUpload';
+import { SignatureFileUpload } from '@/components/profile/signature-file-upload';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
