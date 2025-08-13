@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Subject } from '@prisma/client';
-import { BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -272,10 +271,9 @@ export default function SubjectsPage() {
                   </TableRow>
                 ) : subjects.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center">
-                      <div className="flex flex-col items-center gap-4">
-                        <BookOpen className="h-16 w-16 text-muted-foreground/50" />
-                        <h3 className="text-xl font-semibold">No hay asignaturas disponibles</h3>
+                    <TableCell colSpan={6} className="py-24 text-center">
+                      <div className="flex flex-col items-center">
+                        <h3 className="text-xs font-normal">No hay asignaturas disponibles</h3>
                         <div className="text-xs text-muted-foreground">
                           No se encontraron asignaturas para el período seleccionado
                         </div>

@@ -127,7 +127,9 @@ export default function DocenteDashboard() {
           <CardHeader>
             <div className="flex justify-between items-start">
               <div className="space-y-1">
-                <CardTitle className="text-xl font-semibold tracking-card">Clase en Vivo</CardTitle>
+                <CardTitle className="text-xl font-semibold tracking-card">
+                  Clase en curso
+                </CardTitle>
                 <p className="text-xs text-muted-foreground">
                   {liveClass.subjectName} • {liveClass.topic}
                 </p>

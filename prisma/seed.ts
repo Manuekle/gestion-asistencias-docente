@@ -4,35 +4,37 @@ import { addDays } from 'date-fns';
 
 const prisma = new PrismaClient();
 
-// Helper function to generate class dates (twice a week for 8 weeks)
+// Helper function to generate class dates (Monday to Friday, excluding weekends)
 const generateClassDates = (startDate: Date, numberOfClasses: number): Date[] => {
   const dates: Date[] = [];
-  let currentDate = new Date(startDate);
+  let currentDate = new Date(); // Start from current date
 
-  // Set start date to next Monday
-  const dayOfWeek = currentDate.getDay();
-  if (dayOfWeek !== 1) {
-    // 1 is Monday
-    const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-    currentDate = addDays(currentDate, daysUntilMonday);
+  // Set to today's date but at 10:00 AM
+  currentDate.setHours(10, 0, 0, 0);
+
+  // If today is weekend, move to next Monday
+  let dayOfWeek = currentDate.getDay();
+  if (dayOfWeek === 0) {
+    // Sunday
+    currentDate = addDays(currentDate, 1); // Next day (Monday)
+  } else if (dayOfWeek === 6) {
+    // Saturday
+    currentDate = addDays(currentDate, 2); // Next Monday
   }
 
-  // Generate classes on Monday and Thursday
-  for (let i = 0; i < numberOfClasses; i++) {
-    const classDate = new Date(currentDate);
+  // Generate classes from today, skipping weekends
+  while (dates.length < numberOfClasses) {
+    dayOfWeek = currentDate.getDay();
 
-    if (i % 2 === 0) {
-      // Monday at 10:00 AM
-      classDate.setHours(10, 0, 0, 0);
+    // Skip weekends (0 = Sunday, 6 = Saturday)
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      const classDate = new Date(currentDate);
+      classDate.setHours(10, 0, 0, 0); // Set class time to 10:00 AM
       dates.push(classDate);
-    } else {
-      // Thursday (3 days after Monday) at 10:00 AM
-      const thursdayDate = addDays(classDate, 3);
-      thursdayDate.setHours(10, 0, 0, 0);
-      dates.push(thursdayDate);
-      // Move to next week
-      currentDate = addDays(currentDate, 7);
     }
+
+    // Move to next day
+    currentDate = addDays(currentDate, 1);
   }
 
   return dates.slice(0, numberOfClasses);

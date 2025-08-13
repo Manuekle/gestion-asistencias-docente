@@ -519,7 +519,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="secondary">
+                <Button type="button" variant="outline">
                   Cancelar
                 </Button>
               </DialogClose>

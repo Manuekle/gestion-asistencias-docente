@@ -116,6 +116,7 @@ model Class {
   attendances        Attendance[]
   qrToken            String? // Token QR para la clase
   qrTokenExpiresAt   DateTime? // Fecha de expiración del token QR
+  notificationSentAt DateTime?    // Fecha en que se envió la notificación de inicio de clase
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 

@@ -143,8 +143,10 @@ const UnenrollRequestEmail = ({
                 </div>
               </Section>
 
+              <Hr className="border-zinc-200 my-[24px]" />
+
               <Text className="text-xs text-zinc-500 m-0">
-                Para cualquier consulta, puede escribir a{' '}
+                Si no reconoces esta actividad o necesitas ayuda, contáctanos en{' '}
                 <Link href={`mailto:${supportEmail}`} className="text-zinc-700 underline">
                   {supportEmail}
                 </Link>

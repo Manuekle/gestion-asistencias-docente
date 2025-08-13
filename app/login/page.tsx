@@ -15,7 +15,8 @@ import { Label } from '@/components/ui/label';
 import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -23,6 +24,18 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState('/dashboard');
+
+  // Usar el hook useSearchParams del lado del cliente
+  const searchParams = useSearchParams();
+
+  // Obtener la URL de retorno de los parámetros de búsqueda
+  useEffect(() => {
+    const urlCallbackUrl = searchParams?.get('callbackUrl');
+    if (urlCallbackUrl) {
+      setCallbackUrl(Array.isArray(urlCallbackUrl) ? urlCallbackUrl[0] : urlCallbackUrl);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,8 +52,9 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Credenciales inválidas. Por favor, inténtalo de nuevo.');
       } else {
-        // Redirigir al dashboard
-        window.location.href = '/dashboard';
+        // Redirigir a la URL de retorno o al dashboard por defecto
+        const redirectUrl = typeof callbackUrl === 'string' ? callbackUrl : '/dashboard';
+        window.location.href = redirectUrl;
       }
     } catch {
       setError('Ha ocurrido un error inesperado.');

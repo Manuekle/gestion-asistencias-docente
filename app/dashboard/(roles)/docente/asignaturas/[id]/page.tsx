@@ -6,6 +6,8 @@ import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import {
   Ban,
   CheckCircle,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Edit,
   Loader2,
@@ -999,42 +1001,37 @@ export default function SubjectDetailPage() {
                   <Pagination className="col-span-1 justify-end items-center">
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious
-                          href="#"
-                          onClick={e => {
-                            e.preventDefault();
-                            setStudentPage(p => Math.max(1, p - 1));
-                          }}
-                          aria-disabled={studentPage === 1}
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setStudentPage(p => Math.max(1, p - 1))}
+                          disabled={studentPage === 1}
                         >
-                          Anterior
-                        </PaginationPrevious>
+                          <span className="sr-only">Anterior</span>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
                       </PaginationItem>
                       {Array.from({ length: totalStudentPages }).map((_, i) => (
                         <PaginationItem key={i}>
-                          <PaginationLink
-                            href="#"
-                            isActive={studentPage === i + 1}
-                            onClick={e => {
-                              e.preventDefault();
-                              setStudentPage(i + 1);
-                            }}
+                          <Button
+                            variant={studentPage === i + 1 ? 'outline' : 'ghost'}
+                            className="h-8 w-8 p-0"
+                            onClick={() => setStudentPage(i + 1)}
                           >
                             {i + 1}
-                          </PaginationLink>
+                          </Button>
                         </PaginationItem>
                       ))}
                       <PaginationItem>
-                        <PaginationNext
-                          href="#"
-                          onClick={e => {
-                            e.preventDefault();
-                            setStudentPage(p => Math.min(totalStudentPages, p + 1));
-                          }}
-                          aria-disabled={studentPage === totalStudentPages}
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setStudentPage(p => Math.min(totalStudentPages, p + 1))}
+                          disabled={studentPage === totalStudentPages}
                         >
-                          Siguiente
-                        </PaginationNext>
+                          <span className="sr-only">Siguiente</span>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>

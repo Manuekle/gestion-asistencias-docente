@@ -270,7 +270,7 @@ export default function AttendancePage() {
           <>
             <div className="flex justify-center mb-6">
               <Button
-                variant="outline"
+                variant="default"
                 onClick={handleGenerateQr}
                 disabled={isGenerating || isClassPast}
                 size="lg"

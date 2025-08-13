@@ -110,14 +110,8 @@ const ClassCancellationEmail = ({
 
               <Hr className="border-zinc-200 my-[24px]" />
 
-              {/* Footer Message */}
-              <Text className="text-zinc-600 text-xs leading-[20px] m-0 mb-[16px]">
-                Lamentamos cualquier inconveniente. Si tienes preguntas, contacta a tu docente o
-                soporte académico.
-              </Text>
-
               <Text className="text-xs text-zinc-500 m-0">
-                Soporte:{' '}
+                Si no reconoces esta actividad o necesitas ayuda, contáctanos en{' '}
                 <Link href={`mailto:${supportEmail}`} className="text-zinc-700 underline">
                   {supportEmail}
                 </Link>

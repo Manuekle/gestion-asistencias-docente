@@ -1,12 +1,14 @@
+import ClassNotifyEmail from '@/app/emails/ClassNotifyEmail';
 import { authOptions } from '@/lib/auth';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { GenerarQRResponseSchema } from './schema';
 
 // Endpoint para generar un token QR para una clase específica
-export async function POST(request: Request, context: { params: { classId: string } }) {
-  const { classId } = await Promise.resolve(context.params);
+export async function POST(request: Request, { params }: { params: { classId: string } }) {
+  const { classId } = params;
   const session = await getServerSession(authOptions);
 
   if (!session || session.user?.role !== 'DOCENTE') {
@@ -31,6 +33,7 @@ export async function POST(request: Request, context: { params: { classId: strin
           id: true,
           code: true,
           name: true,
+          studentIds: true, // Incluir studentIds en la consulta
         },
       },
     },
@@ -43,7 +46,9 @@ export async function POST(request: Request, context: { params: { classId: strin
     );
   }
 
-  // 2. Siempre generar un nuevo token, independientemente de si existe uno previo
+  // 2. Verificar si ya se envió una notificación para esta clase
+  const shouldSendNotification = !classToUpdate.notificationSentAt;
+
   // 3. Generar un token seguro de 32 caracteres
   const generateSecureToken = (): string => {
     // Generar 16 bytes (32 caracteres hexadecimales)
@@ -58,16 +63,78 @@ export async function POST(request: Request, context: { params: { classId: strin
   const expiresAt = new Date();
   expiresAt.setMinutes(expiresAt.getMinutes() + 5);
 
-  // 4. Actualizar la clase con el nuevo token
+  // 4. Actualizar la clase con el nuevo token y marca de notificación
   try {
     await db.class.update({
       where: { id: classId },
       data: {
         qrToken: token,
         qrTokenExpiresAt: expiresAt,
+        // Solo actualizar notificationSentAt si es la primera vez
+        ...(shouldSendNotification && { notificationSentAt: new Date() }),
       },
     });
+
+    // 5. Enviar notificación por correo si es la primera vez
+    if (shouldSendNotification) {
+      try {
+        // Obtener todos los estudiantes matriculados en la materia
+        const students = await db.user.findMany({
+          where: {
+            id: { in: classToUpdate.subject.studentIds },
+            role: 'ESTUDIANTE',
+            isActive: true,
+          },
+          select: {
+            id: true,
+            correoInstitucional: true,
+            name: true,
+          },
+        });
+
+        // Enviar correo a cada estudiante
+        const sendEmailPromises = students
+          .filter(
+            (
+              student
+            ): student is { id: string; correoInstitucional: string; name: string | null } =>
+              !!student.correoInstitucional
+          )
+          .map(async student => {
+            const justificationLink = `${process.env.NEXTAUTH_URL}/justificar-ausencia?classId=${classId}&studentId=${student.id}`;
+
+            await sendEmail({
+              to: student.correoInstitucional!,
+              subject: `Inicio de clase: ${classToUpdate.subject.name} - ${classToUpdate.topic || 'Sin tema específico'}`,
+              react: ClassNotifyEmail({
+                className: classToUpdate.topic || 'Sin tema específico',
+                subjectName: classToUpdate.subject.name,
+                startTime:
+                  classToUpdate.startTime?.toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }) || '--:--',
+                endTime:
+                  classToUpdate.endTime?.toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }) || '--:--',
+                date: classToUpdate.date.toISOString(),
+                justificationLink,
+                supportEmail: process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co',
+              }),
+            });
+          });
+
+        // Ejecutar todos los envíos en paralelo
+        await Promise.all(sendEmailPromises);
+      } catch (emailError) {
+        console.error('Error al enviar notificaciones por correo:', emailError);
+        // No fallar la operación si hay error en el envío de correos
+      }
+    }
   } catch (error) {
+    console.error('Error al actualizar la clase:', error);
     return NextResponse.json(
       { message: 'Error al guardar el token QR en la base de datos' },
       { status: 500 }

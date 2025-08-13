@@ -91,7 +91,7 @@ const UnenrollStatusEmail = ({
               {/* Request Details */}
               <Section className="mb-[24px]">
                 <Text className="text-xs font-medium text-zinc-500 tracking-normal m-0 mb-[12px]">
-                  DETALLES DE LA SOLICITUD
+                  Detalles de la solicitud
                 </Text>
                 <div className="space-y-[12px]">
                   <div>
@@ -160,8 +160,10 @@ const UnenrollStatusEmail = ({
                 </div>
               </Section>
 
+              <Hr className="border-zinc-200 my-[24px]" />
+
               <Text className="text-xs text-zinc-500 m-0">
-                Para cualquier consulta, puede escribir a{' '}
+                Si no reconoces esta actividad o necesitas ayuda, contáctanos en{' '}
                 <Link href={`mailto:${supportEmail}`} className="text-zinc-700 underline">
                   {supportEmail}
                 </Link>

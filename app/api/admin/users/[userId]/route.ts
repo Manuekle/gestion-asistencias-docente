@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 // PATCH: Actualizar un usuario existente
-export async function PATCH(req: NextRequest, { params }: { params: { userId: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: { userId: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user?.role !== Role.ADMIN) {
@@ -13,7 +13,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
     }
 
     const { userId } = params;
-    const body = await req.json();
+    const body = await request.json();
     const {
       name,
       role,
@@ -78,7 +78,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
 }
 
 // DELETE: Eliminar un usuario
-export async function DELETE(req: NextRequest, { params }: { params: { userId: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: { userId: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user?.role !== Role.ADMIN) {
