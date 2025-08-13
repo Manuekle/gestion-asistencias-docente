@@ -202,6 +202,31 @@ export default function ProfilePage() {
   // Update profile
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!name.trim()) {
+      toast.error('El nombre completo es requerido');
+      return;
+    }
+
+    if (!correoInstitucional.trim()) {
+      toast.error('El correo institucional es requerido');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(correoInstitucional)) {
+      toast.error('Por favor ingresa un correo institucional válido');
+      return;
+    }
+
+    // Validate personal email if provided
+    if (correoPersonal && !emailRegex.test(correoPersonal)) {
+      toast.error('Por favor ingresa un correo personal válido');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const updateData: {
@@ -269,10 +294,30 @@ export default function ProfilePage() {
   // Update password
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate current password
+    if (!currentPassword.trim()) {
+      toast.error('La contraseña actual es requerida');
+      return;
+    }
+
+    // Validate new password
+    if (!newPassword.trim()) {
+      toast.error('La nueva contraseña es requerida');
+      return;
+    }
+
+    // Validate password confirmation
+    if (!confirmPassword.trim()) {
+      toast.error('Por favor confirma la nueva contraseña');
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast.error('Las contraseñas no coinciden');
       return;
     }
+
     if (newPassword.length < 6) {
       toast.error('La contraseña debe tener al menos 6 caracteres');
       return;
@@ -385,7 +430,7 @@ export default function ProfilePage() {
               <CardContent className="space-y-6">
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                   <div className="relative">
-                    <Avatar className="h-24 w-24 bg-primary/10">
+                    <Avatar className="h-24 w-24 bg-primary/10 border border-zinc-200 dark:border-zinc-700">
                       <AvatarFallback className="text-2xl">
                         {session?.user?.name?.charAt(0) || 'U'}
                       </AvatarFallback>
@@ -536,7 +581,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="border-t px-6 py-4">
+              <CardFooter className="border-t px-6">
                 <Button type="submit" disabled={isPasswordLoading}>
                   {isPasswordLoading ? (
                     <>
