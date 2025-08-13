@@ -32,6 +32,13 @@
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
+
+  <url>
+    <loc>https://edutrack-fup.vercel.app/justificar-ausencia</loc>
+    <lastmod>2025-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
   
   <!-- Páginas de dashboard - Prioridad media-baja (ya que están bloqueadas en robots.txt) -->
   <url>

@@ -3,13 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { LoadingPage } from '@/components/ui/loading';
 import { Textarea } from '@/components/ui/textarea';
 import { Link, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-export default function JustificarAusenciaPage() {
+// Main page component with Suspense boundary
+function JustificarAusenciaContent() {
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isJustificationSubmitted, setIsJustificationSubmitted] = useState(false);
@@ -138,11 +140,7 @@ export default function JustificarAusenciaPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[100dvh] p-4">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   if (isJustificationSubmitted) {
@@ -236,5 +234,14 @@ export default function JustificarAusenciaPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Export the main page component wrapped in Suspense
+export default function JustificarAusenciaPage() {
+  return (
+    <Suspense fallback={<LoadingPage />}>
+      <JustificarAusenciaContent />
+    </Suspense>
   );
 }
