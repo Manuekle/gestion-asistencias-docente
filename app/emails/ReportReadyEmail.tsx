@@ -64,9 +64,6 @@ const ReportReadyEmail = ({
             <Section className="px-[32px] py-[32px]">
               {/* Welcome Message */}
               <Section className="mb-[32px] text-center">
-                <div className="inline-flex items-center justify-center w-[64px] h-[64px] rounded-full bg-zinc-100 mb-[16px]">
-                  <Text className="text-2xl text-zinc-600 m-0">📊</Text>
-                </div>
                 <Heading className="text-xl font-semibold text-black m-0 mb-[8px] leading-[32px]">
                   Hola, {userName}
                 </Heading>

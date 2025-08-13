@@ -217,7 +217,7 @@ export default function ReportsPage() {
                       {format(new Date(report.createdAt), 'PPP', { locale: es })}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {format(new Date(report.createdAt), 'pp', { locale: es })}
+                      {format(new Date(report.createdAt), 'h:mm a', { locale: es }).toUpperCase()}
                     </div>
                   </TableCell>
 

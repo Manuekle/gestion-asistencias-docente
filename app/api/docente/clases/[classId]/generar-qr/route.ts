@@ -122,6 +122,7 @@ export async function POST(request: Request, { params }: { params: { classId: st
                 date: classToUpdate.date.toISOString(),
                 justificationLink,
                 supportEmail: process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co',
+                studentName: student.name || undefined,
               }),
             });
           });

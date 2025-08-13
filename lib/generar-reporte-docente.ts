@@ -353,6 +353,11 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-dev-shm-usage'],
+      executablePath:
+        process.env.NODE_ENV === 'production'
+          ? process.env.PUPPETEER_EXECUTABLE_PATH
+          : '/home/manudev/.cache/puppeteer/chrome/linux-137.0.7151.119/chrome-linux64/chrome',
+      headless: true,
     });
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
