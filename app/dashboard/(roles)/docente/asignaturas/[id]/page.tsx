@@ -1,6 +1,6 @@
 'use client';
 
-import { EventsCard } from '@/components/EventsCard';
+import { EventsCard } from '@/components/events-card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import {

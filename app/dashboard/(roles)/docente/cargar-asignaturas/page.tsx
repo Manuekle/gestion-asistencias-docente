@@ -1,6 +1,6 @@
 'use client';
 
-import { SubjectFileUpload } from '@/components/SubjectFileUpload';
+import { SubjectFileUpload } from '@/components/subject-file-upload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

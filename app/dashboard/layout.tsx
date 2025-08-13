@@ -1,4 +1,4 @@
-import SidebarLayout from '@/components/SidebarLayout';
+import SidebarLayout from '@/components/sidebar-layout';
 import { ReactNode } from 'react';
 
 export const metadata = {

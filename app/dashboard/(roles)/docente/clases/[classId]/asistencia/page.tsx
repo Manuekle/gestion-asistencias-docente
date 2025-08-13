@@ -1,6 +1,6 @@
 'use client';
 
-import { QRViewer } from '@/components/QRViewer';
+import { QRViewer } from '@/components/qr-viewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CardDescription, CardTitle } from '@/components/ui/card';

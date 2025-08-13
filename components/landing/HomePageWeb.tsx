@@ -1,7 +1,7 @@
 'use client';
 
-import Footer from '@/components/Footer';
-import Navbar from '@/components/Navbar';
+import Footer from '@/components/footer';
+import Navbar from '@/components/navbar';
 import { motion } from 'framer-motion';
 import {
   BarChart2,
