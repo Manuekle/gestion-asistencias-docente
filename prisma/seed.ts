@@ -4,46 +4,42 @@ import { addDays } from 'date-fns';
 
 const prisma = new PrismaClient();
 
-// Helper function to generate class dates (Monday to Friday, excluding weekends)
+// Helper function to generate class dates (24/7, every day)
 const generateClassDates = (startDate: Date, numberOfClasses: number): Date[] => {
   const dates: Date[] = [];
   let currentDate = new Date(); // Start from current date
+  let currentHour = 0; // Start at midnight (12 AM)
 
-  // Set to today's date but at 10:00 AM
-  currentDate.setHours(10, 0, 0, 0);
+  // Set to today's date at 12:00 AM (midnight)
+  currentDate.setHours(0, 0, 0, 0);
 
-  // If today is weekend, move to next Monday
-  let dayOfWeek = currentDate.getDay();
-  if (dayOfWeek === 0) {
-    // Sunday
-    currentDate = addDays(currentDate, 1); // Next day (Monday)
-  } else if (dayOfWeek === 6) {
-    // Saturday
-    currentDate = addDays(currentDate, 2); // Next Monday
-  }
-
-  // Generate classes from today, skipping weekends
   while (dates.length < numberOfClasses) {
-    dayOfWeek = currentDate.getDay();
+    const classDate = new Date(currentDate);
+    // Set the hour (0 for 12 AM, 12 for 12 PM)
+    classDate.setHours(currentHour, 0, 0, 0);
 
-    // Skip weekends (0 = Sunday, 6 = Saturday)
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      const classDate = new Date(currentDate);
-      classDate.setHours(10, 0, 0, 0); // Set class time to 10:00 AM
-      dates.push(classDate);
+    // Add the class time
+    dates.push(new Date(classDate));
+
+    // Move to next 12-hour block
+    if (currentHour === 0) {
+      // If current is 12 AM, next is 12 PM
+      currentHour = 12;
+    } else {
+      // If current is 12 PM, move to next day at 12 AM
+      currentHour = 0;
+      currentDate = addDays(currentDate, 1);
     }
-
-    // Move to next day
-    currentDate = addDays(currentDate, 1);
   }
 
   return dates.slice(0, numberOfClasses);
 };
 
-// Helper function to create end time (10 PM)
+// Helper function to create end time (12 hours after start time)
 const createEndTime = (startTime: Date): Date => {
   const endTime = new Date(startTime);
-  endTime.setHours(22, 0, 0, 0); // 10 PM
+  // Add 12 hours to the start time
+  endTime.setHours(endTime.getHours() + 12);
   return endTime;
 };
 

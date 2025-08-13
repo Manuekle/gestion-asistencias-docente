@@ -107,7 +107,7 @@ function AppSidebar({ homePath }: { homePath: string }) {
                     width={32}
                     height={32}
                     priority
-                    className="h-full w-auto"
+                    className="h-full w-auto dark:invert"
                     quality={100}
                   />
                 </div>
