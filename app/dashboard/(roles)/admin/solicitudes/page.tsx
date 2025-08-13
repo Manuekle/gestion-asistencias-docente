@@ -251,14 +251,14 @@ export default function UnenrollRequestsPage() {
       <Dialog open={!!showRejectDialog} onOpenChange={open => !open && setShowRejectDialog(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-sans">Rechazar solicitud</DialogTitle>
-            <DialogDescription className="font-sans">
+            <DialogTitle className="tracking-tight text-xl">Rechazar solicitud</DialogTitle>
+            <DialogDescription className="text-xs">
               Por favor, proporciona un motivo detallado para el rechazo de esta solicitud.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="reason" className="text-xs font-medium font-sans">
+              <Label htmlFor="reason" className="text-xs font-medium">
                 Motivo del rechazo
               </Label>
               <Textarea
@@ -272,8 +272,8 @@ export default function UnenrollRequestsPage() {
                     [showRejectDialog]: e.target.value,
                   }))
                 }
-                rows={4}
-                className="font-sans"
+                rows={6}
+                className="text-xs resize-none h-24"
               />
             </div>
           </div>
