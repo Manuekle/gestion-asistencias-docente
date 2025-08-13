@@ -250,7 +250,7 @@ export default function UnenrollRequestsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="reason" className="text-xs font-medium">
+              <Label htmlFor="reason" className="text-xs font-normal">
                 Motivo del rechazo
               </Label>
               <Textarea

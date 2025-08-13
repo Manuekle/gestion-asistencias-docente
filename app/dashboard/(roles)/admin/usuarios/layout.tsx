@@ -1,7 +1,7 @@
 export const metadata = {
-  title: 'Admin - FUP',
+  title: 'Admin - Gestionar Usuarios - FUP',
   description: 'Panel de control para gestionar usuarios',
-  keywords: 'admin, panel de control, FUP',
+  keywords: 'admin, panel de control, gestionar usuarios, FUP',
 };
 
 export default function AdminUsuariosLayout({ children }: { children: React.ReactNode }) {
