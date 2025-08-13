@@ -1,71 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-  <!-- Página de inicio - Máxima prioridad -->
-  <url>
-    <loc>https://edutrack-fup.vercel.app/</loc>
-    <lastmod>2025-08-08</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  
-  <!-- Páginas de autenticación - Prioridad media -->
-  <url>
-    <loc>https://edutrack-fup.vercel.app/login</loc>
-    <lastmod>2025-08-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>https://edutrack-fup.vercel.app/forgot-password</loc>
-    <lastmod>2025-08-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  
-  <url>
-    <loc>https://edutrack-fup.vercel.app/reset-password</loc>
-    <lastmod>2025-08-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-
-  <url>
-    <loc>https://edutrack-fup.vercel.app/justificar-ausencia</loc>
-    <lastmod>2025-08-08</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <!-- Páginas de dashboard - Prioridad media-baja (ya que están bloqueadas en robots.txt) -->
-  <url>
-    <loc>https://edutrack-fup.vercel.app/dashboard</loc>
-    <lastmod>2025-08-08</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>https://edutrack-fup.vercel.app/dashboard/estudiante</loc>
-    <lastmod>2025-08-08</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>https://edutrack-fup.vercel.app/dashboard/docente</loc>
-    <lastmod>2025-08-08</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>https://edutrack-fup.vercel.app/dashboard/admin</loc>
-    <lastmod>2025-08-08</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+<url><loc>https://edutrack-fup.vercel.app</loc><lastmod>2025-08-13T03:21:50.548Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://edutrack-fup.vercel.app/login</loc><lastmod>2025-08-13T03:21:50.548Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://edutrack-fup.vercel.app/forgot-password</loc><lastmod>2025-08-13T03:21:50.548Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://edutrack-fup.vercel.app/reset-password</loc><lastmod>2025-08-13T03:21:50.548Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://edutrack-fup.vercel.app/dashboard</loc><lastmod>2025-08-13T03:21:50.548Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://edutrack-fup.vercel.app/dashboard/estudiante</loc><lastmod>2025-08-13T03:21:50.548Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://edutrack-fup.vercel.app/dashboard/docente</loc><lastmod>2025-08-13T03:21:50.548Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://edutrack-fup.vercel.app/dashboard/admin</loc><lastmod>2025-08-13T03:21:50.548Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 </urlset>
