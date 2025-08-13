@@ -69,6 +69,21 @@ export default function AttendancePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [expiresIn, setExpiresIn] = useState<number | null>(null);
 
+  // Helper function to create a date in the local timezone
+  const createLocalDate = (dateString: string) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    // Create a new date with the same local date/time values
+    return new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes(),
+      date.getSeconds()
+    );
+  };
+
   const fetchData = useCallback(async () => {
     if (!classId) return;
 
@@ -87,15 +102,25 @@ export default function AttendancePage() {
 
       const now = new Date();
       const classStartDate = classData.startTime
-        ? new Date(classData.startTime)
-        : new Date(classData.date);
-      const classEndDate = classData.endTime
-        ? new Date(classData.endTime)
-        : new Date(classStartDate.getTime() + 2 * 60 * 60 * 1000); // Asumir 2h si no hay hora de fin
+        ? createLocalDate(classData.startTime)
+        : createLocalDate(classData.date);
 
-      // Verificar el estado de la clase
-      const isPast = now > classEndDate;
-      const isTooEarly = now < classStartDate;
+      let classEndDate: Date | null = null;
+      if (classData.endTime) {
+        classEndDate = createLocalDate(classData.endTime);
+      } else if (classStartDate) {
+        // Add 2 hours to the start time if no end time is provided
+        classEndDate = new Date(classStartDate.getTime() + 2 * 60 * 60 * 1000);
+      }
+
+      // Add a 15-minute buffer before and after class
+      const bufferMinutes = 15;
+      const bufferMs = bufferMinutes * 60 * 1000;
+
+      const isTooEarly = classStartDate
+        ? now < new Date(classStartDate.getTime() - bufferMs)
+        : false;
+      const isPast = classEndDate ? now > new Date(classEndDate.getTime() + bufferMs) : false;
       const isCompleted = classData.status === 'REALIZADA' || classData.status === 'CANCELADA';
 
       setIsClassPast(isPast);
@@ -104,7 +129,31 @@ export default function AttendancePage() {
 
       // Redirigir si la clase no está en un estado válido para tomar asistencia
       if (isTooEarly || isCompleted || isPast) {
-        toast.error('No se puede tomar asistencia en este momento.');
+        let errorMessage = 'No se puede tomar asistencia en este momento.';
+
+        if (isTooEarly && classStartDate) {
+          const startTime = classStartDate
+            .toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+            })
+            .replace(/^0/, ''); // Elimina el cero inicial si existe
+          errorMessage = `La clase comenzará a las ${startTime}. Por favor, intente más tarde.`;
+        } else if (isPast && classEndDate) {
+          const endTime = classEndDate
+            .toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+            })
+            .replace(/^0/, ''); // Elimina el cero inicial si existe
+          errorMessage = `La clase finalizó a las ${endTime}.`;
+        } else if (isCompleted) {
+          errorMessage = 'Esta clase ya ha sido marcada como completada o cancelada.';
+        }
+
+        toast.error(errorMessage);
         router.back();
         return;
       }

@@ -4,42 +4,54 @@ import { addDays } from 'date-fns';
 
 const prisma = new PrismaClient();
 
-// Helper function to generate class dates (24/7, every day)
+// Helper function to generate class dates (every day, multiple times per day)
 const generateClassDates = (startDate: Date, numberOfClasses: number): Date[] => {
   const dates: Date[] = [];
   let currentDate = new Date(); // Start from current date
-  let currentHour = 0; // Start at midnight (12 AM)
 
-  // Set to today's date at 12:00 AM (midnight)
-  currentDate.setHours(0, 0, 0, 0);
+  // Set to today's date at 7:00 AM
+  currentDate.setHours(7, 0, 0, 0);
+
+  // If current time is after 7 AM, start from today, otherwise start from today's 7 AM
+  const now = new Date();
+  if (now.getHours() >= 7) {
+    currentDate = new Date(now);
+    currentDate.setHours(7, 0, 0, 0);
+  }
 
   while (dates.length < numberOfClasses) {
-    const classDate = new Date(currentDate);
-    // Set the hour (0 for 12 AM, 12 for 12 PM)
-    classDate.setHours(currentHour, 0, 0, 0);
+    // Add class at current time
+    dates.push(new Date(currentDate));
 
-    // Add the class time
-    dates.push(new Date(classDate));
-
-    // Move to next 12-hour block
-    if (currentHour === 0) {
-      // If current is 12 AM, next is 12 PM
-      currentHour = 12;
-    } else {
-      // If current is 12 PM, move to next day at 12 AM
-      currentHour = 0;
+    // Move to next class time (same day or next day)
+    if (currentDate.getHours() === 23 && currentDate.getMinutes() >= 45) {
+      // If current time is 11:45 PM or later, move to next day at 7:00 AM
       currentDate = addDays(currentDate, 1);
+      currentDate.setHours(7, 0, 0, 0);
+    } else if (currentDate.getHours() >= 22) {
+      // If it's 10 PM or later, next class is at 7 AM next day
+      currentDate = addDays(currentDate, 1);
+      currentDate.setHours(7, 0, 0, 0);
+    } else if (currentDate.getHours() >= 15) {
+      // If it's 3 PM or later, next class is at 7 PM
+      currentDate.setHours(19, 0, 0, 0);
+    } else if (currentDate.getHours() >= 11) {
+      // If it's 11 AM or later, next class is at 3 PM
+      currentDate.setHours(15, 0, 0, 0);
+    } else {
+      // Otherwise, next class is at 11 AM
+      currentDate.setHours(11, 0, 0, 0);
     }
   }
 
   return dates.slice(0, numberOfClasses);
 };
 
-// Helper function to create end time (12 hours after start time)
+// Helper function to create end time (45 minutes after start time)
 const createEndTime = (startTime: Date): Date => {
   const endTime = new Date(startTime);
-  // Add 12 hours to the start time
-  endTime.setHours(endTime.getHours() + 12);
+  // Add 45 minutes to the start time
+  endTime.setMinutes(endTime.getMinutes() + 45);
   return endTime;
 };
 
@@ -195,7 +207,7 @@ async function main() {
         },
       });
     }
-    console.log(`   ✅ Created 16 classes for ${subject.name} (10:00 AM - 10:00 PM)`);
+    console.log(`   ✅ Created 16 classes for ${subject.name} (7:00 AM - 11:45 PM)`);
   }
 
   console.log('\n🎉 Seeding completed successfully!');
