@@ -1,7 +1,10 @@
+import JustifyClassEmail from '@/app/emails/JustifyClassEmail';
 import { authOptions } from '@/lib/auth';
+import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
+import React from 'react';
 import { z } from 'zod';
 
 // Esquema para validar los datos de entrada
@@ -66,6 +69,45 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'La clase aún no ha comenzado' }, { status: 400 });
     }
 
+    // Obtener información detallada del estudiante y la clase con la materia
+    const [student, classWithSubject] = await Promise.all([
+      db.user.findUnique({
+        where: { id: studentId },
+        select: {
+          name: true,
+          correoInstitucional: true,
+          correoPersonal: true,
+        },
+      }),
+      db.class.findUnique({
+        where: { id: classId },
+        select: {
+          id: true,
+          date: true,
+          startTime: true,
+          endTime: true,
+          subject: {
+            select: {
+              name: true,
+              teacher: {
+                select: {
+                  correoInstitucional: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    if (!student || !classWithSubject || !classWithSubject.subject) {
+      return NextResponse.json(
+        { message: 'No se pudo encontrar la información necesaria' },
+        { status: 404 }
+      );
+    }
+
     // Actualizar la asistencia con la justificación
     await db.attendance.upsert({
       where: {
@@ -85,6 +127,38 @@ export async function POST(request: Request) {
         justification: reason,
       },
     });
+
+    // Enviar correo al profesor
+    if (classWithSubject.subject.teacher?.correoInstitucional) {
+      try {
+        await sendEmail({
+          to: classWithSubject.subject.teacher.correoInstitucional,
+          subject: `Justificación de ausencia - ${classWithSubject.subject.name}`,
+          react: React.createElement(JustifyClassEmail, {
+            studentName: student.name || 'Estudiante',
+            className: classWithSubject.subject.name || 'Clase',
+            subjectName: classWithSubject.subject.name || 'Materia',
+            classDate: classWithSubject.date.toLocaleDateString('es-ES', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }),
+            classTime: classWithSubject.startTime
+              ? classWithSubject.startTime.toLocaleTimeString('es-ES', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : 'Hora no especificada',
+            justification: reason,
+            supportEmail: process.env.SUPPORT_EMAIL || 'soporte@fup.edu.co',
+            submissionDate: new Date().toISOString(),
+          }),
+        });
+      } catch (error) {
+        console.error('Error al enviar el correo:', error);
+        // No fallar la petición si hay error en el envío de correo
+      }
+    }
 
     return NextResponse.json({
       success: true,
