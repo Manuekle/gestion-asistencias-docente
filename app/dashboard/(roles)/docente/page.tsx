@@ -300,31 +300,34 @@ export default function DocenteDashboard() {
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="text-xs font-medium truncate">{cls.subjectName}</h4>
                         </div>
-                        <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
-                          {cls.topic || 'Sin tema definido'}
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {new Date(cls.date).toLocaleDateString('es-ES', {
-                              weekday: 'short',
-                              day: 'numeric',
-                              month: 'short',
-                            })}
-                          </span>
-                          <span>
-                            {cls.date
-                              ? new Date(cls.date)
-                                  .toLocaleTimeString('es-ES', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    hour12: true,
-                                  })
-                                  .replace(/a\.\s*m\./i, 'AM')
-                                  .replace(/p\.\s*m\./i, 'PM')
-                              : 'Sin hora definida'}
-                          </span>
-                        </div>
+                        <span className="flex flex-col">
+                          <p className="text-xs text-muted-foreground line-clamp-1">
+                            {cls.topic || 'Sin tema definido'}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(cls.date).toLocaleDateString('es-ES', {
+                                weekday: 'short',
+                                day: 'numeric',
+                                month: 'short',
+                              })}
+                            </span>
+                            {'-'}
+                            <span>
+                              {cls.date
+                                ? new Date(cls.date)
+                                    .toLocaleTimeString('es-ES', {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                      hour12: true,
+                                    })
+                                    .replace(/a\.\s*m\./i, 'AM')
+                                    .replace(/p\.\s*m\./i, 'PM')
+                                : 'Sin hora definida'}
+                            </span>
+                          </div>
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -353,7 +356,7 @@ export default function DocenteDashboard() {
           <CardContent>
             {subjects.length > 0 ? (
               <div className="space-y-3">
-                {subjects.map(subject => {
+                {subjects.slice(0, 3).map(subject => {
                   const progress = (subject.completedClasses / subject.totalClasses) * 100;
                   return (
                     <div

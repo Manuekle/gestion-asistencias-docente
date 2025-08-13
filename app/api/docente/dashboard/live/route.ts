@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== 'DOCENTE') {
+  if (!session || !['DOCENTE', 'ADMIN'].includes(session.user.role)) {
     return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
   }
 
@@ -39,10 +39,43 @@ export async function GET() {
       return NextResponse.json({ liveClass: null });
     }
 
-    // Get total number of students enrolled in the subject
-    const totalStudents = await db.user.count({
-      where: { role: 'ESTUDIANTE' },
-    });
+    // Get total number of students
+    let totalStudents;
+
+    if (session.user.role === 'ADMIN') {
+      // For admin, count all students
+      totalStudents = await db.user.count({
+        where: {
+          role: 'ESTUDIANTE',
+          isActive: true,
+        },
+      });
+    } else {
+      // For teacher, count students in their subjects
+      const subjects = await db.subject.findMany({
+        where: { teacherId },
+        select: { id: true },
+      });
+
+      const subjectIds = subjects.map(s => s.id);
+
+      // Count unique students across all teacher's subjects
+      const uniqueStudentIds = new Set();
+
+      // Get all students from each subject
+      for (const subjectId of subjectIds) {
+        const subject = await db.subject.findUnique({
+          where: { id: subjectId },
+          select: { studentIds: true },
+        });
+
+        if (subject) {
+          subject.studentIds.forEach(id => uniqueStudentIds.add(id));
+        }
+      }
+
+      totalStudents = uniqueStudentIds.size;
+    }
 
     // Get attendance stats for the live class
     const attendanceCounts = await db.attendance.groupBy({

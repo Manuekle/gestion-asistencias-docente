@@ -1,5 +1,5 @@
-import { getSession } from 'next-auth/react';
 import { Session } from 'next-auth';
+import { getSession } from 'next-auth/react';
 
 type SubjectStats = {
   id: string;
