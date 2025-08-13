@@ -135,93 +135,110 @@ export async function POST(request: Request) {
     }
 
     // Procesar la carga real
+
     let processed = 0;
     const errors: string[] = [];
 
-    try {
-      await db.$transaction(async tx => {
-        for (const row of rows) {
-          try {
-            const codigoAsignatura = row['codigoAsignatura']?.toString().trim();
-            const nombreAsignatura = row['nombreAsignatura']?.toString().trim();
-            const fechaClase = new Date(row['fechaClase (YYYY-MM-DD)']);
-            const horaInicio = row['horaInicio (HH:MM)'];
-            const horaFin = row['horaFin (HH:MM)'];
+    // Process in batches of 20 rows to avoid transaction timeouts
+    const BATCH_SIZE = 20;
+    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+      const batch = rows.slice(i, i + BATCH_SIZE);
+      try {
+        await db.$transaction(async tx => {
+          for (const row of batch) {
+            try {
+              const codigoAsignatura = row['codigoAsignatura']?.toString().trim();
+              const nombreAsignatura = row['nombreAsignatura']?.toString().trim();
+              const fechaClase = new Date(row['fechaClase (YYYY-MM-DD)']);
+              const horaInicio = row['horaInicio (HH:MM)'];
+              const horaFin = row['horaFin (HH:MM)'];
 
-            if (
-              !codigoAsignatura ||
-              !nombreAsignatura ||
-              isNaN(fechaClase.getTime()) ||
-              !horaInicio ||
-              !horaFin
-            ) {
-              continue; // Skip rows with missing essential data
+              if (
+                !codigoAsignatura ||
+                !nombreAsignatura ||
+                isNaN(fechaClase.getTime()) ||
+                !horaInicio ||
+                !horaFin
+              ) {
+                continue; // Skip rows with missing essential data
+              }
+
+              // Check for existing subject in the database
+              let subject = await tx.subject.findUnique({
+                where: { code: codigoAsignatura },
+              });
+
+              // If subject doesn't exist, create it
+              let isNewSubject = false;
+              if (!subject) {
+                subject = await tx.subject.create({
+                  data: {
+                    code: codigoAsignatura,
+                    name: nombreAsignatura,
+                    credits: row['creditosClase'] ? Number(row['creditosClase']) : 0,
+                    teacherId: session.user.id,
+                    program: row['programa']?.toString(),
+                    semester: row['semestreAsignatura'] ? Number(row['semestreAsignatura']) : 0,
+                  },
+                });
+                isNewSubject = true;
+              }
+
+              // Combine date with time strings for proper DateTime
+              const startDateTime = new Date(fechaClase);
+              const [startH, startM] = horaInicio.split(':');
+              startDateTime.setHours(parseInt(startH), parseInt(startM));
+
+              const endDateTime = new Date(fechaClase);
+              const [endH, endM] = horaFin.split(':');
+              endDateTime.setHours(parseInt(endH), parseInt(endM));
+
+              // Always create the class record, but only count as processed if it's a new subject
+              await tx.class.create({
+                data: {
+                  subjectId: subject.id,
+                  date: fechaClase,
+                  startTime: startDateTime,
+                  endTime: endDateTime,
+                  topic: row['temaClase']?.toString(),
+                  description: row['descripcionClase']?.toString(),
+                },
+              });
+
+              if (isNewSubject) {
+                processed++;
+              }
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+              errors.push(`Fila ${rows.indexOf(row) + 2}: ${errorMessage}`);
+              // Continue with next row even if one fails
             }
-
-            if (existingSubjectCodes.has(codigoAsignatura)) {
-              continue; // Skip duplicate subjects
-            }
-
-            const newSubject = await tx.subject.create({
-              data: {
-                code: codigoAsignatura,
-                name: nombreAsignatura,
-                credits: row['creditosClase'] ? Number(row['creditosClase']) : 0,
-                teacherId: session.user.id,
-                program: row['programa']?.toString(),
-                semester: row['semestreAsignatura'] ? Number(row['semestreAsignatura']) : 0,
-              },
-            });
-
-            // Combine date with time strings for proper DateTime
-            const startDateTime = new Date(fechaClase);
-            const [startH, startM] = horaInicio.split(':');
-            startDateTime.setHours(parseInt(startH), parseInt(startM));
-
-            const endDateTime = new Date(fechaClase);
-            const [endH, endM] = horaFin.split(':');
-            endDateTime.setHours(parseInt(endH), parseInt(endM));
-
-            await tx.class.create({
-              data: {
-                subjectId: newSubject.id,
-                date: fechaClase,
-                startTime: startDateTime,
-                endTime: endDateTime,
-                topic: row['temaClase']?.toString(),
-                description: row['descripcionClase']?.toString(),
-              },
-            });
-
-            processed++;
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-            errors.push(`Fila ${rows.indexOf(row) + 2}: ${errorMessage}`);
           }
-        }
-      });
-
-      return NextResponse.json({
-        success: true,
-        processed,
-        errors: errors.length > 0 ? errors : undefined,
-      });
-    } catch (error) {
-      console.error('Transaction error:', error);
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Error en la transacción de base de datos',
-          details: error instanceof Error ? error.message : 'Error desconocido',
-        },
-        { status: 500 }
-      );
+        });
+      } catch (error) {
+        console.error(`Error en el lote ${Math.floor(i / BATCH_SIZE) + 1}:`, error);
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        errors.push(`Error en el lote ${Math.floor(i / BATCH_SIZE) + 1}: ${errorMessage}`);
+        // Continue with next batch even if one fails
+      }
     }
+
+    // Return success response with processing summary
+    return NextResponse.json({
+      success: true,
+      processed,
+      total: rows.length,
+      errors: errors.length > 0 ? errors : undefined,
+    });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Error desconocido en el servidor';
     return NextResponse.json(
-      { error: errorMessage },
+      {
+        success: false,
+        error: 'Error al procesar el archivo',
+        details: errorMessage,
+      },
       {
         status: 500,
       }
