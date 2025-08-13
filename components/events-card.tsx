@@ -424,7 +424,7 @@ export function EventsCard({ subjectId }: EventsCardProps) {
               </Table>
             </div>
           ) : (
-            <div className="py-12 text-center">
+            <div className="h-56 py-12 text-center flex items-center justify-center">
               <p className="text-xs text-muted-foreground">No hay eventos especiales creados.</p>
             </div>
           )}

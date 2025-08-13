@@ -159,20 +159,24 @@ export default function UnenrollRequestsPage() {
           {pendingRequests.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold tracking-card">Solicitudes Pendientes</h2>
+                <h2 className="text-xl font-semibold tracking-card">Solicitudes Pendientes</h2>
                 <Badge variant="secondary" className="text-xs font-normal">
                   {pendingRequests.length}
                 </Badge>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {pendingRequests.map(request => (
-                  <Card key={request.id} className="transition-all hover:shadow-md">
-                    <CardHeader className="pb-3">
+                  <Card key={request.id}>
+                    <CardHeader>
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                         <div className="space-y-2">
-                          <CardTitle className="flex items-center gap-3 text-base">
-                            {request.student.name || 'Estudiante'}
-                            {getStatusBadge(request.status)}
+                          <CardTitle className="flex items-center gap-2">
+                            <span className="text-lg font-semibold tracking-card">
+                              {request.student.name || 'Estudiante'}
+                            </span>
+                            <span className="text-xs font-normal">
+                              {getStatusBadge(request.status)}
+                            </span>
                           </CardTitle>
                           <div className="space-y-1">
                             <p className="text-xs font-medium text-muted-foreground">
