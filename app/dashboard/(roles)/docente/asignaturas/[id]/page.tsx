@@ -10,11 +10,11 @@ import {
   ChevronRight,
   Clock,
   Edit,
-  Loader2,
   MoreHorizontal,
   UserCheck,
   UserX,
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -130,6 +130,8 @@ const GenerateReportModal = ({
   subjectName,
   isLoading,
 }: GenerateReportModalProps) => {
+  const { data: session } = useSession();
+  const hasSignature = !!session?.user?.signatureUrl;
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
@@ -152,12 +154,15 @@ const GenerateReportModal = ({
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Cancelar
           </Button>
-          <Button onClick={onGenerate} disabled={isLoading}>
+          <Button
+            onClick={onGenerate}
+            disabled={isLoading || !hasSignature}
+            title={!hasSignature ? 'Debes tener una firma registrada para generar reportes' : ''}
+          >
             {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generando...
-              </>
+              <>Generando...</>
+            ) : !hasSignature ? (
+              <div className="flex items-center gap-2">Firma requerida</div>
             ) : (
               'Generar Reporte'
             )}
@@ -1151,10 +1156,20 @@ export default function SubjectDetailPage() {
                                 )}
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>
-                                  {canTakeAttendance
-                                    ? 'Registrar asistencia'
-                                    : 'Clase aun no disponible'}
+                                <p className="text-center">
+                                  {cls.status === 'CANCELADA'
+                                    ? `Clase cancelada${cls.cancellationReason ? `: ${cls.cancellationReason}` : ''}`
+                                    : cls.status === 'REALIZADA'
+                                      ? 'Clase ya finalizada'
+                                      : canTakeAttendance
+                                        ? 'Registrar asistencia'
+                                        : hasClassStarted
+                                          ? 'La clase ya ha finalizado'
+                                          : isToday
+                                            ? 'Disponible hoy'
+                                            : isFuture
+                                              ? `Disponible en ${Math.ceil((classStartTime.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))} días`
+                                              : 'Clase no disponible'}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
