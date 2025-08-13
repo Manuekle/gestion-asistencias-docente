@@ -331,7 +331,7 @@ export default function DocenteDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16">
+              <div className="flex flex-col text-center py-16 items-center justify-center h-[calc(50vh-200px)]">
                 <p className="text-xs text-muted-foreground font-medium">
                   No hay clases programadas
                 </p>

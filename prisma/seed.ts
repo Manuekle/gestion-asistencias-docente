@@ -4,7 +4,7 @@ import { addDays } from 'date-fns';
 
 const prisma = new PrismaClient();
 
-// Helper function to generate class dates (every day, multiple times per day)
+// Helper function to generate class dates (one per day, from 7:00 AM to 11:45 PM)
 const generateClassDates = (startDate: Date, numberOfClasses: number): Date[] => {
   const dates: Date[] = [];
   let currentDate = new Date(); // Start from current date
@@ -12,46 +12,32 @@ const generateClassDates = (startDate: Date, numberOfClasses: number): Date[] =>
   // Set to today's date at 7:00 AM
   currentDate.setHours(7, 0, 0, 0);
 
-  // If current time is after 7 AM, start from today, otherwise start from today's 7 AM
+  // If current time is after 7 AM, start from tomorrow
   const now = new Date();
   if (now.getHours() >= 7) {
-    currentDate = new Date(now);
+    currentDate = addDays(currentDate, 1);
     currentDate.setHours(7, 0, 0, 0);
   }
 
-  while (dates.length < numberOfClasses) {
-    // Add class at current time
-    dates.push(new Date(currentDate));
+  // Generate one class per day
+  for (let i = 0; i < numberOfClasses; i++) {
+    // Add class at 7:00 AM
+    const classDate = new Date(currentDate);
+    classDate.setHours(7, 0, 0, 0);
+    dates.push(classDate);
 
-    // Move to next class time (same day or next day)
-    if (currentDate.getHours() === 23 && currentDate.getMinutes() >= 45) {
-      // If current time is 11:45 PM or later, move to next day at 7:00 AM
-      currentDate = addDays(currentDate, 1);
-      currentDate.setHours(7, 0, 0, 0);
-    } else if (currentDate.getHours() >= 22) {
-      // If it's 10 PM or later, next class is at 7 AM next day
-      currentDate = addDays(currentDate, 1);
-      currentDate.setHours(7, 0, 0, 0);
-    } else if (currentDate.getHours() >= 15) {
-      // If it's 3 PM or later, next class is at 7 PM
-      currentDate.setHours(19, 0, 0, 0);
-    } else if (currentDate.getHours() >= 11) {
-      // If it's 11 AM or later, next class is at 3 PM
-      currentDate.setHours(15, 0, 0, 0);
-    } else {
-      // Otherwise, next class is at 11 AM
-      currentDate.setHours(11, 0, 0, 0);
-    }
+    // Move to next day
+    currentDate = addDays(currentDate, 1);
   }
 
   return dates.slice(0, numberOfClasses);
 };
 
-// Helper function to create end time (45 minutes after start time)
+// Helper function to create end time (11:45 PM on the same day)
 const createEndTime = (startTime: Date): Date => {
   const endTime = new Date(startTime);
-  // Add 45 minutes to the start time
-  endTime.setMinutes(endTime.getMinutes() + 45);
+  // Set to 11:45 PM on the same day
+  endTime.setHours(23, 45, 0, 0);
   return endTime;
 };
 
