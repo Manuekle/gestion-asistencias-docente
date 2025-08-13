@@ -427,7 +427,7 @@ export default function UploadSubjectsPage() {
         </div>
 
         <div className="lg:col-span-2">
-          <Card className="min-h-[400px] sm:h-[calc(75vh-9rem)]">
+          <Card>
             <CardHeader>
               <CardTitle className="text-xl font-semibold tracking-heading">
                 Previsualización y Confirmación
@@ -645,8 +645,10 @@ export default function UploadSubjectsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-xs font-normal text-muted-foreground py-24">
-                  <p>Sube un archivo para ver la previsualización aquí.</p>
+                <div className="min-h-[400px] sm:h-[calc(75vh-11.5rem)]">
+                  <div className="text-center text-xs flex h-full font-normal items-center justify-center text-muted-foreground py-24">
+                    <p>Sube un archivo para ver la previsualización aquí.</p>
+                  </div>
                 </div>
               )}
             </CardContent>
