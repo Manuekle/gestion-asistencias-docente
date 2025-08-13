@@ -18,7 +18,6 @@ import { Textarea } from '@/components/ui/textarea';
 import type { UnenrollRequestStatus } from '@prisma/client';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -227,14 +226,7 @@ export default function UnenrollRequestsPage() {
                             disabled={processing[request.id]}
                             className="font-sans"
                           >
-                            {processing[request.id] ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Procesando...
-                              </>
-                            ) : (
-                              <>Aprobar</>
-                            )}
+                            {processing[request.id] ? <>Procesando...</> : <>Aprobar</>}
                           </Button>
                         </div>
                       )}
@@ -300,14 +292,7 @@ export default function UnenrollRequestsPage() {
               }}
               className="font-sans"
             >
-              {processing[showRejectDialog || ''] ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Procesando...
-                </>
-              ) : (
-                'Confirmar rechazo'
-              )}
+              {processing[showRejectDialog || ''] ? <>Procesando...</> : 'Confirmar rechazo'}
             </Button>
           </DialogFooter>
         </DialogContent>
