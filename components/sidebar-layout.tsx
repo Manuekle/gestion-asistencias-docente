@@ -165,7 +165,7 @@ function AppSidebar({ homePath }: { homePath: string }) {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center p-2 hover:bg-sidebar-accent transition-colors">
+                <button className="w-full flex items-center p-2 rounded-lg hover:bg-sidebar-accent transition-colors">
                   <Avatar className="h-8 w-8 border border-zinc-200 dark:border-zinc-700 text-xs">
                     <AvatarFallback>{session?.user?.name?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>

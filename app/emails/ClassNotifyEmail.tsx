@@ -127,7 +127,6 @@ const ClassNotifyEmail = ({
               {/* Status Indicator */}
               <Section className="mb-[32px]">
                 <div className="bg-green-50 border border-green-200 rounded-[8px] px-[16px] py-[12px] flex items-center">
-                  <div className="w-[8px] h-[8px] bg-green-500 rounded-full mr-[12px] flex-shrink-0"></div>
                   <div>
                     <Text className="text-xs font-medium text-green-800 m-0 mb-[4px]">
                       Clase activa

@@ -336,6 +336,9 @@ export default function GestionUsuariosPage() {
                   <TableHead className="px-4 py-3 font-normal text-muted-foreground">
                     <div className="flex items-center">Rol</div>
                   </TableHead>
+                  <TableHead className="px-4 py-3 font-normal text-muted-foreground">
+                    <div className="flex items-center">Código</div>
+                  </TableHead>
                   <TableHead className="px-4 py-3 text-center font-normal text-muted-foreground">
                     Estado
                   </TableHead>
@@ -407,7 +410,7 @@ export default function GestionUsuariosPage() {
                               {user.name || 'Usuario sin nombre'}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              ID: {user.document ? `${user.document.split('-')[0]}...` : 'N/A'}
+                              ID: {user.document || 'N/A'}
                             </div>
                           </div>
                         </div>
@@ -428,10 +431,15 @@ export default function GestionUsuariosPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="px-4 py-3">
+                        <div className="text-sm text-muted-foreground">
+                          {user.role === 'ESTUDIANTE' ? user.codigoEstudiantil || 'N/A' : 'N/A'}
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
                         <div className="flex justify-center lowercase text-xs font-normal">
                           {user.isActive ? (
                             <>
-                              <Badge variant="outline">
+                              <Badge variant="outline" className="font-normal text-xs">
                                 <span className="flex items-center gap-1.5">
                                   <span className="w-2 h-2 rounded-full bg-green-500"></span>
                                   Activo
@@ -440,7 +448,7 @@ export default function GestionUsuariosPage() {
                             </>
                           ) : (
                             <>
-                              <Badge variant="outline">
+                              <Badge variant="outline" className="font-normal text-xs">
                                 <span className="flex items-center gap-1.5">
                                   <span className="w-2 h-2 rounded-full bg-red-500"></span>
                                   Inactivo

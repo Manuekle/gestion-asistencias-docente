@@ -4,26 +4,25 @@ import { addDays } from 'date-fns';
 
 const prisma = new PrismaClient();
 
-// Helper function to generate class dates (one per day, from 7:00 AM to 11:45 PM)
+// Helper function to generate class dates (one per day, from 1:00 AM to 12:00 AM)
 const generateClassDates = (startDate: Date, numberOfClasses: number): Date[] => {
   const dates: Date[] = [];
   let currentDate = new Date(); // Start from current date
+  // Set to today's date at 1:00 AM
+  currentDate.setHours(1, 0, 0, 0);
 
-  // Set to today's date at 7:00 AM
-  currentDate.setHours(7, 0, 0, 0);
-
-  // If current time is after 7 AM, start from tomorrow
+  // If current time is after 1 AM, start from tomorrow
   const now = new Date();
-  if (now.getHours() >= 7) {
+  if (now.getHours() >= 1) {
     currentDate = addDays(currentDate, 1);
-    currentDate.setHours(7, 0, 0, 0);
+    currentDate.setHours(1, 0, 0, 0);
   }
 
   // Generate one class per day
   for (let i = 0; i < numberOfClasses; i++) {
-    // Add class at 7:00 AM
+    // Add class at 1:00 AM
     const classDate = new Date(currentDate);
-    classDate.setHours(7, 0, 0, 0);
+    classDate.setHours(1, 0, 0, 0);
     dates.push(classDate);
 
     // Move to next day
@@ -36,7 +35,7 @@ const generateClassDates = (startDate: Date, numberOfClasses: number): Date[] =>
 // Helper function to create end time (11:45 PM on the same day)
 const createEndTime = (startTime: Date): Date => {
   const endTime = new Date(startTime);
-  // Set to 11:45 PM on the same day
+  // Set to 11:45 PM on the same day (22 hours and 45 minutes after start)
   endTime.setHours(23, 45, 0, 0);
   return endTime;
 };
@@ -204,7 +203,7 @@ async function main() {
   console.log(`👨‍🎓 Students: 2 users`);
   console.log(`📚 Subjects: 3 subjects`);
   console.log(`📅 Classes: 48 classes total (16 per subject)`);
-  console.log(`⏰ Schedule: Monday & Thursday, 10:00 AM - 10:00 PM`);
+  console.log(`⏰ Schedule: Daily, 1:00 AM - 11:45 PM (22h 45m)`);
   console.log('================================');
   console.log('Credentials:');
   console.log('Admin:');

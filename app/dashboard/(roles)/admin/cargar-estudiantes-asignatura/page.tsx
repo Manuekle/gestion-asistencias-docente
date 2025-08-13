@@ -25,11 +25,12 @@ import { toast } from 'sonner';
 // --- Tipos de Datos ---
 interface PreviewStudentDetail {
   doc: string;
+  name: string;
   status: 'success' | 'warning' | 'error';
   message: string;
 }
 
-interface PreviewData {
+interface Resultados {
   codigoAsignatura: string;
   estudiantes: PreviewStudentDetail[];
   error?: string;
@@ -52,7 +53,7 @@ export default function UploadStudentsToSubjectsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
-  const [previewData, setPreviewData] = useState<PreviewData[]>([]);
+  const [resultados, setResultados] = useState<Resultados[]>([]);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
 
   // --- Manejadores de Eventos ---
@@ -60,12 +61,12 @@ export default function UploadStudentsToSubjectsPage() {
     setFile(selectedFile);
     if (!selectedFile) {
       setIsPreview(false);
-      setPreviewData([]);
+      setResultados([]);
       setUploadResult(null);
     } else {
       setUploadResult(null);
       setIsPreview(false);
-      setPreviewData([]);
+      setResultados([]);
     }
   };
 
@@ -88,7 +89,7 @@ export default function UploadStudentsToSubjectsPage() {
       const result = await res.json();
 
       if (res.ok && result.success) {
-        setPreviewData(result.previewData || []);
+        setResultados(result.resultados || []);
         setIsPreview(true);
         toast.success('Vista previa generada con éxito');
       } else {
@@ -108,36 +109,56 @@ export default function UploadStudentsToSubjectsPage() {
     setIsLoading(true);
 
     try {
+      // En lugar de enviar FormData nuevamente, enviamos el archivo para procesamiento final
       const formData = new FormData();
       formData.append('file', file);
+
       const res = await fetch('/api/admin/cargar-estudiantes-asignaturas', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('Response status:', res.status);
       const result = await res.json();
+      console.log('Response data:', result);
 
       if (res.ok && result.success) {
+        // Adaptar la respuesta al formato esperado por el frontend
+        const errors = result.resultados
+          .filter(
+            (r: { status: string; error?: string; codigoAsignatura: string }) =>
+              r.status === 'error' || r.status === 'skipped'
+          )
+          .map((r: { codigoAsignatura: string; error?: string }) => ({
+            codigoAsignatura: r.codigoAsignatura,
+            message: r.error || 'Error desconocido',
+          }));
+
         setUploadResult({
           success: true,
-          processedRows: result.resultados.length,
-          totalRows: result.totalRows,
-          errors: result.errors || [],
+          processedRows: result.summary?.updated || 0,
+          totalRows: result.summary?.total || 0,
+          errors: errors,
         });
         toast.success(result.message || 'Carga completada');
       } else {
         setUploadResult({
           success: false,
           processedRows: 0,
-          totalRows: result.totalRows || 0,
-          errors: result.errors || [
-            { codigoAsignatura: '', message: result.message || 'Error desconocido' },
-          ],
+          totalRows: 0,
+          errors: [{ codigoAsignatura: '', message: result.message || 'Error desconocido' }],
         });
         toast.error(result.message || 'Error en la carga');
       }
-    } catch {
+    } catch (error) {
+      console.error('Error en handleConfirmUpload:', error);
       toast.error('Error de conexión o en el servidor.');
+      setUploadResult({
+        success: false,
+        processedRows: 0,
+        totalRows: 0,
+        errors: [{ codigoAsignatura: '', message: 'Error de conexión' }],
+      });
     } finally {
       setIsLoading(false);
       setIsPreview(false);
@@ -147,7 +168,7 @@ export default function UploadStudentsToSubjectsPage() {
   const handleCancel = () => {
     setFile(null);
     setIsPreview(false);
-    setPreviewData([]);
+    setResultados([]);
     setUploadResult(null);
   };
 
@@ -274,7 +295,7 @@ export default function UploadStudentsToSubjectsPage() {
                     Cargar otro archivo
                   </Button>
                 </div>
-              ) : isPreview && previewData.length > 0 ? (
+              ) : isPreview && resultados.length > 0 ? (
                 <div className="flex flex-col h-full">
                   <div className="rounded-lg border max-h-[60vh] overflow-y-auto">
                     <Table>
@@ -285,7 +306,7 @@ export default function UploadStudentsToSubjectsPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {previewData.map((row, index) => (
+                        {resultados.map((row, index) => (
                           <TableRow key={index}>
                             <TableCell className="font-mono px-4 py-3 font-medium">
                               {row.codigoAsignatura}
@@ -360,6 +381,9 @@ export default function UploadStudentsToSubjectsPage() {
                                                           {student.doc}
                                                         </span>
                                                         <span className="text-muted-foreground">
+                                                          {student.name}
+                                                        </span>
+                                                        <span className="text-muted-foreground">
                                                           {student.message}
                                                         </span>
                                                       </div>
@@ -385,7 +409,7 @@ export default function UploadStudentsToSubjectsPage() {
                   <div className="flex justify-end gap-2 mt-4">
                     <Button
                       onClick={handleConfirmUpload}
-                      disabled={isLoading || previewData.length === 0}
+                      disabled={isLoading || resultados.length === 0}
                     >
                       {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       Confirmar Carga

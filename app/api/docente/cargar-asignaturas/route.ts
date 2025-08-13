@@ -138,69 +138,85 @@ export async function POST(request: Request) {
     let processed = 0;
     const errors: string[] = [];
 
-    await db.$transaction(async tx => {
-      for (const row of rows) {
-        try {
-          const codigoAsignatura = row['codigoAsignatura']?.toString().trim();
-          const nombreAsignatura = row['nombreAsignatura']?.toString().trim();
-          const fechaClase = new Date(row['fechaClase (YYYY-MM-DD)']);
-          const horaInicio = row['horaInicio (HH:MM)'];
-          const horaFin = row['horaFin (HH:MM)'];
+    try {
+      await db.$transaction(async tx => {
+        for (const row of rows) {
+          try {
+            const codigoAsignatura = row['codigoAsignatura']?.toString().trim();
+            const nombreAsignatura = row['nombreAsignatura']?.toString().trim();
+            const fechaClase = new Date(row['fechaClase (YYYY-MM-DD)']);
+            const horaInicio = row['horaInicio (HH:MM)'];
+            const horaFin = row['horaFin (HH:MM)'];
 
-          if (
-            !codigoAsignatura ||
-            !nombreAsignatura ||
-            isNaN(fechaClase.getTime()) ||
-            !horaInicio ||
-            !horaFin
-          ) {
-            continue; // Skip rows with missing essential data
+            if (
+              !codigoAsignatura ||
+              !nombreAsignatura ||
+              isNaN(fechaClase.getTime()) ||
+              !horaInicio ||
+              !horaFin
+            ) {
+              continue; // Skip rows with missing essential data
+            }
+
+            if (existingSubjectCodes.has(codigoAsignatura)) {
+              continue; // Skip duplicate subjects
+            }
+
+            const newSubject = await tx.subject.create({
+              data: {
+                code: codigoAsignatura,
+                name: nombreAsignatura,
+                credits: row['creditosClase'] ? Number(row['creditosClase']) : 0,
+                teacherId: session.user.id,
+                program: row['programa']?.toString(),
+                semester: row['semestreAsignatura'] ? Number(row['semestreAsignatura']) : 0,
+              },
+            });
+
+            // Combine date with time strings for proper DateTime
+            const startDateTime = new Date(fechaClase);
+            const [startH, startM] = horaInicio.split(':');
+            startDateTime.setHours(parseInt(startH), parseInt(startM));
+
+            const endDateTime = new Date(fechaClase);
+            const [endH, endM] = horaFin.split(':');
+            endDateTime.setHours(parseInt(endH), parseInt(endM));
+
+            await tx.class.create({
+              data: {
+                subjectId: newSubject.id,
+                date: fechaClase,
+                startTime: startDateTime,
+                endTime: endDateTime,
+                topic: row['temaClase']?.toString(),
+                description: row['descripcionClase']?.toString(),
+              },
+            });
+
+            processed++;
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+            errors.push(`Fila ${rows.indexOf(row) + 2}: ${errorMessage}`);
           }
-
-          if (existingSubjectCodes.has(codigoAsignatura)) {
-            continue; // Skip duplicate subjects
-          }
-
-          const newSubject = await tx.subject.create({
-            data: {
-              code: codigoAsignatura,
-              name: nombreAsignatura,
-              credits: row['creditosClase'] ? Number(row['creditosClase']) : 0,
-              teacherId: session.user.id,
-              program: row['programa']?.toString(),
-              semester: row['semestreAsignatura'] ? Number(row['semestreAsignatura']) : 0,
-            },
-          });
-
-          // Combine date with time strings for proper DateTime
-          const startDateTime = new Date(fechaClase);
-          const [startH, startM] = horaInicio.split(':');
-          startDateTime.setHours(parseInt(startH), parseInt(startM));
-
-          const endDateTime = new Date(fechaClase);
-          const [endH, endM] = horaFin.split(':');
-          endDateTime.setHours(parseInt(endH), parseInt(endM));
-
-          await tx.class.create({
-            data: {
-              subjectId: newSubject.id,
-              date: fechaClase,
-              startTime: startDateTime,
-              endTime: endDateTime,
-              topic: row['temaClase']?.toString(),
-              description: row['descripcionClase']?.toString(),
-            },
-          });
-
-          processed++;
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-          errors.push(`Fila ${rows.indexOf(row) + 2}: ${errorMessage}`);
         }
-      }
-    });
+      });
 
-    return NextResponse.json({ processed, errors });
+      return NextResponse.json({
+        success: true,
+        processed,
+        errors: errors.length > 0 ? errors : undefined,
+      });
+    } catch (error) {
+      console.error('Transaction error:', error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Error en la transacción de base de datos',
+          details: error instanceof Error ? error.message : 'Error desconocido',
+        },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Error desconocido en el servidor';
