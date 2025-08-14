@@ -1,6 +1,7 @@
 import { authOptions } from '@/lib/auth';
 import { generateAttendanceReportPDF } from '@/lib/generar-reporte-docente';
 import { db } from '@/lib/prisma';
+import { withRetry } from '@/lib/retry';
 import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -129,27 +130,76 @@ export async function POST(request: Request) {
       },
     });
 
-    // Start the PDF generation process in the background
-    generateAttendanceReportPDF(subjectId, newReport.id)
-      .then(() => {})
-      .catch(error => {});
+    // Start the PDF generation process in the background with retries and timeout
+    (async () => {
+      const MAX_GENERATION_TIME = 5 * 60 * 1000; // 5 minutos
+      const startTime = Date.now();
+
+      try {
+        console.log(
+          `[${new Date().toISOString()}] Iniciando generación de reporte ${newReport.id} en segundo plano...`
+        );
+
+        // Función con timeout
+        const generateWithTimeout = async () => {
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error('Tiempo de espera agotado al generar el reporte')),
+              MAX_GENERATION_TIME
+            )
+          );
+
+          const generationPromise = generateAttendanceReportPDF(subjectId, newReport.id);
+
+          return Promise.race([generationPromise, timeoutPromise]);
+        };
+
+        // Usar la función withRetry con timeout
+        await withRetry(
+          generateWithTimeout,
+          3, // 3 intentos
+          2000 // 2 segundos entre intentos
+        );
+
+        const elapsedTime = Date.now() - startTime;
+        console.log(
+          `[${new Date().toISOString()}] Reporte ${newReport.id} generado exitosamente en ${elapsedTime}ms`
+        );
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        console.error(
+          `[${new Date().toISOString()}] Error generando reporte ${newReport.id}:`,
+          error
+        );
+
+        // Actualizar el estado a FALLIDO con el error
+        try {
+          await db.report.update({
+            where: { id: newReport.id },
+            data: {
+              status: 'FALLIDO',
+              error: errorMessage,
+              updatedAt: new Date(),
+            },
+          });
+          console.log(
+            `[${new Date().toISOString()}] Estado del reporte ${newReport.id} actualizado a FALLIDO`
+          );
+        } catch (dbError) {
+          console.error(
+            `[${new Date().toISOString()}] Error actualizando estado del reporte a FALLIDO:`,
+            dbError
+          );
+        }
+      }
+    })();
 
     // Return the initial report with PENDING status
     // The client should poll or use WebSockets to check for status updates
-    const updatedReport = await db.report.findUnique({
-      where: { id: newReport.id },
-      include: {
-        subject: {
-          select: {
-            name: true,
-            code: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json(updatedReport, { status: 201 });
+    return NextResponse.json(newReport, { status: 201 });
   } catch (error) {
+    console.error('Error in report generation:', error);
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Datos inválidos', details: error.errors },
@@ -157,6 +207,12 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Error interno del servidor',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }

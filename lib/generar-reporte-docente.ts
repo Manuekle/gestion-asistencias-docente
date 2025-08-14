@@ -279,24 +279,57 @@ const getReportHTMLForClassRegistry = (
  * @param reportId - El ID del registro del reporte para actualizar su estado.
  */
 export const generateAttendanceReportPDF = async (subjectId: string, reportId: string) => {
+  console.log(`[${new Date().toISOString()}] Iniciando generación de PDF para reporte ${reportId}`);
   try {
+    // Update report status to IN_PROGRESS
     await db.report.update({
       where: { id: reportId },
       data: { status: 'EN_PROCESO' },
     });
 
+    console.log(`[${new Date().toISOString()}] Buscando datos de la asignatura ${subjectId}`);
     const subjectData = await db.subject.findUnique({
       where: { id: subjectId },
       include: {
         teacher: true,
-        classes: { orderBy: { date: 'asc' } },
+        classes: {
+          orderBy: { date: 'asc' },
+          include: {
+            attendances: true, // Corregido el nombre de la relación
+          },
+        },
       },
     });
+    console.log(
+      `[${new Date().toISOString()}] Datos de la asignatura obtenidos:`,
+      subjectData ? `Encontrados (${subjectData.classes?.length || 0} clases)` : 'No encontrados'
+    );
 
-    if (!subjectData) throw new Error('Asignatura no encontrada');
+    if (!subjectData) {
+      console.error(`[${new Date().toISOString()}] Asignatura no encontrada: ${subjectId}`);
+      throw new Error('Asignatura no encontrada');
+    }
+
+    // Verificar que el docente existe
+    if (!subjectData.teacher) {
+      console.error(
+        `[${new Date().toISOString()}] No se encontró el docente para la asignatura ${subjectId}`
+      );
+      throw new Error('Docente no encontrado para esta asignatura');
+    }
+
+    console.log(`[${new Date().toISOString()}] Docente encontrado:`, subjectData.teacher.name);
+    console.log(
+      `[${new Date().toISOString()}] Número de clases:`,
+      subjectData.classes?.length || 0
+    );
 
     const reportData: ClassReportData = {
-      subject: subjectData as Subject & { teacher: User; classes: Class[] },
+      subject: {
+        ...subjectData,
+        teacher: subjectData.teacher,
+        classes: subjectData.classes || [],
+      } as Subject & { teacher: User; classes: Class[] },
     };
 
     // Obtener la firma del docente y convertirla a Data URI
@@ -335,30 +368,37 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
       }
     }
 
-    // Obtener el logo y convertirlo a Data URI
+    // Usar el logo desde un CDN con CORS habilitado
     const logoUrl = 'https://fup.edu.co/wp-content/uploads/Logo-FUP-2018-Isotipo-01-300x300-1.png';
-    let logoDataUri = '';
-    try {
-      const response = await fetch(logoUrl);
-      if (response.ok) {
-        const imageBuffer = await response.arrayBuffer();
-        const imageBase64 = Buffer.from(imageBuffer).toString('base64');
-        logoDataUri = `data:image/png;base64,${imageBase64}`;
-      }
-    } catch (error) {
-      console.error('Error al obtener el logo:', error);
-    }
+    const logoDataUri = logoUrl; // Usar la URL directamente en el HTML
+
+    // El logo se carga directamente desde la URL en el HTML
 
     const htmlContent = getReportHTMLForClassRegistry(reportData, logoDataUri, signatureDataUri);
 
+    // Asegurarse de que el HTML sea válido
+    if (!htmlContent) {
+      throw new Error('Error al generar el contenido HTML del reporte');
+    }
+
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-dev-shm-usage'],
-      executablePath:
-        process.env.NODE_ENV === 'production'
-          ? process.env.PUPPETEER_EXECUTABLE_PATH
-          : '/home/manudev/.cache/puppeteer/chrome/linux-137.0.7151.119/chrome-linux64/chrome',
       headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu',
+      ],
+      defaultViewport: {
+        width: 1200,
+        height: 800,
+      },
     });
+
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     const pdfBuffer = await page.pdf({
