@@ -1,13 +1,25 @@
 import type { LucideIcon } from 'lucide-react';
 import type { Role } from '.';
 
-export interface NavLink {
+export interface NavLinkBase {
   href: string;
   label: string;
-  icon: LucideIcon;
   roles: Role[];
-  badge?: string | number;
   description?: string;
+}
+
+export interface NavLink extends NavLinkBase {
+  icon: LucideIcon;
+  badge?: string | number;
+  subLinks?: NavSubLink[];
+  isSubLink?: boolean;
+  parentHref?: string;
+}
+
+export interface NavSubLink extends NavLinkBase {
+  icon?: LucideIcon;
+  isSubLink: true;
+  parentHref: string;
 }
 
 export interface NavLinkGroup {

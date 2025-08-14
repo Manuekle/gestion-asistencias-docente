@@ -53,13 +53,13 @@ import { CalendarIcon, Edit, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Loading } from './ui/loading';
+import { Loading } from '../ui/loading';
 
-interface EventsCardProps {
+interface EventsTableProps {
   subjectId: string;
 }
 
-export function EventsCard({ subjectId }: EventsCardProps) {
+export function EventsTable({ subjectId }: EventsTableProps) {
   // State for Events
   const [events, setEvents] = useState<SubjectEvent[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(true);

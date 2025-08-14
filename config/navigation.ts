@@ -52,6 +52,13 @@ export const navLinkGroups: NavLinkGroup[] = [
         roles: ['ESTUDIANTE'],
         description: 'Consulta tus asistencias',
       },
+      {
+        href: '/dashboard/estudiante/escanear',
+        icon: QrCode,
+        label: 'Escanear Asistencia',
+        roles: ['ESTUDIANTE'],
+        description: 'Escanear código QR para asistencia',
+      },
     ],
   },
   {
@@ -65,6 +72,26 @@ export const navLinkGroups: NavLinkGroup[] = [
         label: 'Mis Asignaturas',
         roles: ['DOCENTE'],
         description: 'Gestiona tus asignaturas y estudiantes',
+        subLinks: [
+          {
+            href: '/dashboard/docente/asignaturas/[id]',
+            label: 'Mis Clases',
+            description: 'Gestiona tus clases y eventos.',
+            roles: ['DOCENTE'],
+            isSubLink: true,
+            parentHref: '/dashboard/docente/asignaturas/[id]',
+            icon: BookMarked,
+          },
+          {
+            href: '/dashboard/docente/asignaturas/[id]/clases/[classId]/asistencia',
+            label: 'Asistencia',
+            description: 'Gestiona la asistencia de tus estudiantes.',
+            roles: ['DOCENTE'],
+            isSubLink: true,
+            parentHref: '/dashboard/docente/asignaturas/[id]/clases/[classId]/asistencia',
+            icon: QrCode,
+          },
+        ],
       },
       {
         href: '/dashboard/docente/cargar-asignaturas',
@@ -93,13 +120,35 @@ export const navLinkGroups: NavLinkGroup[] = [
         label: 'Gestión de Usuarios',
         roles: ['ADMIN'],
         description: 'Administrar cuentas de usuario',
+        subLinks: [
+          {
+            href: '/dashboard/admin/usuarios/cargar-usuarios',
+            label: 'Cargar Usuarios',
+            description: 'Cargar usuarios desde archivo Excel',
+            roles: ['ADMIN'],
+            isSubLink: true,
+            parentHref: '/dashboard/admin/usuarios/cargar-usuarios',
+            icon: Users,
+          },
+        ],
       },
       {
         href: '/dashboard/admin/asignar-estudiante',
         icon: UserPlus,
         label: 'Asignar Estudiante',
         roles: ['ADMIN'],
-        description: 'Asignar o retirar estudiantes de asignaturas',
+        description: 'Asignar Estudiante a una asignatura',
+        subLinks: [
+          {
+            href: '/dashboard/admin/asignar-estudiante/cargar-estudiantes-asignatura',
+            label: 'Cargar Estudiante',
+            description: 'Cargar estudiantes a asignaturas desde archivo Excel',
+            roles: ['ADMIN'],
+            isSubLink: true,
+            parentHref: '/dashboard/admin/asignar-estudiante/cargar-estudiantes-asignatura',
+            icon: UserPlus,
+          },
+        ],
       },
       {
         href: '/dashboard/admin/reportes',
@@ -108,13 +157,6 @@ export const navLinkGroups: NavLinkGroup[] = [
         roles: ['ADMIN'],
         description: 'Reportes generales de docentes',
       },
-      // {
-      //   href: '/dashboard/admin/cargar-estudiantes-asignatura',
-      //   icon: TrendingUp,
-      //   label: 'Cargar Estudiantes a Asignaturas',
-      //   roles: ['ADMIN'],
-      //   description: 'Cargar estudiantes a asignaturas desde un archivo Excel',
-      // },
       {
         href: '/dashboard/admin/solicitudes',
         icon: TrendingUp,

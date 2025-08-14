@@ -254,17 +254,97 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
   const breadcrumbLinks = React.useMemo(() => {
     if (!userRole) return [];
 
-    const allLinks = navLinkGroups.flatMap(group =>
-      group.links.filter(link => link.roles.includes(userRole))
-    );
+    // Función para aplanar todos los enlaces, incluyendo los subLinks
+    const getAllLinks = () => {
+      return navLinkGroups.flatMap(group =>
+        group.links
+          .filter(link => link.roles.includes(userRole))
+          .flatMap(link => {
+            const result = [{ ...link, isSubLink: false }];
+            if (link.subLinks) {
+              result.push(
+                ...link.subLinks
+                  .filter(subLink => subLink.roles.includes(userRole))
+                  .map(subLink => ({
+                    ...subLink,
+                    parentHref: link.href,
+                    isSubLink: true,
+                    icon: subLink.icon || link.icon, // Provide a fallback icon from parent
+                  }))
+              );
+            }
+            return result;
+          })
+      );
+    };
 
-    const sortedLinks = allLinks.sort((a, b) => b.href.length - a.href.length);
-    const currentLink = sortedLinks.find(link => pathname.startsWith(link.href));
+    const allLinks = getAllLinks();
+
+    // Función para verificar si una ruta coincide con un patrón de ruta dinámica
+    const isMatchingRoute = (routePattern: string, currentPath: string) => {
+      // Si la ruta incluye [id], la convertimos en un patrón de expresión regular
+      if (routePattern.includes('[id]')) {
+        const pattern = routePattern.replace(/\[id\]/g, '[^/]+');
+        const regex = new RegExp(`^${pattern}(?:/|$)`);
+        return regex.test(currentPath);
+      }
+      // Para rutas estáticas, comparación normal
+      return currentPath === routePattern || currentPath.startsWith(`${routePattern}/`);
+    };
+
+    // Encontrar el enlace que mejor coincida con la ruta actual
+    const currentLink = allLinks
+      .sort((a, b) => b.href.length - a.href.length)
+      .find(link => isMatchingRoute(link.href, pathname));
 
     const crumbs = [{ href: homePath, label: 'Dashboard' }];
-    if (currentLink && currentLink.href !== homePath) {
-      crumbs.push(currentLink);
+
+    if (!currentLink) return crumbs;
+
+    // Si es un subLink, añadimos primero su padre
+    if (currentLink.isSubLink && currentLink.parentHref) {
+      const parentLink = allLinks.find(
+        link => !link.isSubLink && link.href === currentLink.parentHref
+      );
+      if (parentLink) {
+        crumbs.push({
+          href: parentLink.href,
+          label: parentLink.label,
+        });
+      }
     }
+    // Si no es un subLink pero tiene subLinks, lo añadimos directamente
+    else if (!currentLink.isSubLink) {
+      // Solo lo añadimos si no es el home
+      if (currentLink.href !== homePath) {
+        crumbs.push({
+          href: currentLink.href,
+          label: currentLink.label,
+        });
+      }
+    }
+
+    // Finalmente, si es un subLink o la ruta actual es un subLink, lo añadimos
+    if (currentLink.isSubLink || (currentLink.subLinks && pathname !== currentLink.href)) {
+      // Buscar si hay un subLink activo
+      const activeSubLink = currentLink.subLinks?.find(
+        subLink => pathname === subLink.href || pathname.startsWith(`${subLink.href}/`)
+      );
+
+      if (activeSubLink) {
+        crumbs.push({
+          href: activeSubLink.href,
+          label: activeSubLink.label,
+        });
+      } else if (currentLink.isSubLink) {
+        // Si es un subLink y no hemos encontrado otro subLink más específico
+        crumbs.push({
+          href: currentLink.href,
+          label: currentLink.label,
+        });
+      }
+    }
+
     return crumbs;
   }, [pathname, userRole, homePath]);
 

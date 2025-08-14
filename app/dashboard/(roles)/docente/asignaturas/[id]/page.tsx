@@ -1,6 +1,6 @@
 'use client';
 
-import { EventsCard } from '@/components/events-card';
+import { EventsTable } from '@/components/tables/events-table';
 import { DatePicker } from '@/components/ui/date-picker';
 import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import {
@@ -74,9 +74,79 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import type { Class } from '@prisma/client';
+import { Class, ClassStatus as PrismaClassStatus } from '@prisma/client';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+// Utility functions for date handling
+const dateUtils = {
+  // Crear una fecha local sin conversiones de timezone
+  createLocalDate: (dateInput: string | Date): Date => {
+    if (typeof dateInput === 'string') {
+      // Si es una fecha ISO (YYYY-MM-DD), crear fecha local
+      if (dateInput.includes('T')) {
+        return new Date(dateInput);
+      } else {
+        // Para fechas en formato YYYY-MM-DD, crear fecha local
+        const [year, month, day] = dateInput.split('-').map(Number);
+        return new Date(year, month - 1, day);
+      }
+    }
+    return new Date(dateInput);
+  },
+
+  // Formatear fecha para mostrar
+  formatDisplayDate: (date: Date): string => {
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  },
+
+  // Formatear hora para mostrar
+  formatDisplayTime: (date: Date): string => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    return `${displayHour}:${displayMinutes} ${period}`;
+  },
+
+  // Obtener fecha de hoy sin hora
+  getTodayWithoutTime: (): Date => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  },
+
+  // Comparar solo fechas (sin hora)
+  isSameDay: (date1: Date, date2: Date): boolean => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  },
+
+  // Crear fecha combinando fecha y hora
+  combineDateTime: (date: Date, timeString: string): Date => {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const combined = new Date(date);
+    combined.setHours(hours, minutes, 0, 0);
+    return combined;
+  },
+
+  // Formatear fecha para la API (YYYY-MM-DD)
+  formatForAPI: (date: Date): string => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  },
+};
 
 interface Student {
   id: string;
@@ -93,7 +163,11 @@ interface StudentAttendance {
   status: string;
 }
 
-type ClassStatus = 'PROGRAMADA' | 'REALIZADA' | 'CANCELADA';
+// Usar el tipo de Prisma para el estado real de la base de datos
+type ClassStatus = PrismaClassStatus;
+
+// Tipo extendido solo para uso visual
+type VisualClassStatus = ClassStatus | 'EN_CURSO' | 'FINALIZADA';
 
 interface ClassWithStatus extends Omit<Class, 'cancellationReason'> {
   status: ClassStatus;
@@ -105,13 +179,21 @@ const classStatusMap = {
     label: 'Programada',
     color: 'text-xs font-normal',
   },
+  EN_CURSO: {
+    label: 'En curso',
+    color: 'text-xs font-normal text-blue-600 dark:text-blue-400',
+  },
   REALIZADA: {
     label: 'Realizada',
-    color: 'text-xs font-normal',
+    color: 'text-xs font-normal text-green-600 dark:text-green-400',
+  },
+  FINALIZADA: {
+    label: 'Finalizada',
+    color: 'text-xs font-normal text-gray-600 dark:text-gray-400',
   },
   CANCELADA: {
     label: 'Cancelada',
-    color: 'text-xs font-normal',
+    color: 'text-xs font-normal text-amber-600 dark:text-amber-400',
   },
 } as const;
 
@@ -555,46 +637,29 @@ export default function SubjectDetailPage() {
     pagination.limit,
   ]);
 
+  // FUNCIÓN CORREGIDA PARA FORMATEAR FECHAS
   const formatClassDate = (cls: Class) => {
-    // Usar la fecha directamente sin conversiones de zona horaria
     let displayDate = 'N/A';
     let timeRange = '';
 
-    if (cls.date) {
-      // Crear fecha desde la cadena de fecha (YYYY-MM-DD) sin zona horaria
-      const dateParts = cls.date.toString().split('T')[0].split('-');
-      const year = Number.parseInt(dateParts[0]);
-      const month = Number.parseInt(dateParts[1]) - 1; // Los meses en JS van de 0-11
-      const day = Number.parseInt(dateParts[2]);
+    try {
+      // Crear la fecha usando dateUtils
+      const classDate = dateUtils.createLocalDate(cls.date);
+      displayDate = dateUtils.formatDisplayDate(classDate);
 
-      const classDate = new Date(year, month, day);
+      // Formatear el rango de horas
+      if (cls.startTime && cls.endTime) {
+        const startDate = new Date(cls.startTime);
+        const endDate = new Date(cls.endTime);
 
-      displayDate = classDate.toLocaleDateString('es-ES', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    }
+        const startTimeFormatted = dateUtils.formatDisplayTime(startDate);
+        const endTimeFormatted = dateUtils.formatDisplayTime(endDate);
 
-    // Formatear el rango de horas
-    if (cls.startTime && cls.endTime) {
-      const startDate = new Date(cls.startTime);
-      const endDate = new Date(cls.endTime);
-
-      const formatTimeAMPM = (date: Date) => {
-        const hours = date.getHours();
-        const minutes = date.getMinutes();
-        const period = hours >= 12 ? 'PM' : 'AM';
-        const displayHour = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
-        const displayMinutes = minutes.toString().padStart(2, '0');
-        return `${displayHour}:${displayMinutes} ${period}`;
-      };
-
-      const startTimeFormatted = formatTimeAMPM(startDate);
-      const endTimeFormatted = formatTimeAMPM(endDate);
-
-      timeRange = `${startTimeFormatted} - ${endTimeFormatted}`;
+        timeRange = `${startTimeFormatted} - ${endTimeFormatted}`;
+      }
+    } catch (error) {
+      console.error('Error formatting class date:', error);
+      displayDate = 'Fecha inválida';
     }
 
     return timeRange ? `${displayDate}, ${timeRange}` : displayDate;
@@ -632,8 +697,8 @@ export default function SubjectDetailPage() {
   const resetClassForm = () => {
     setCurrentClass(null);
     setClassDate(new Date());
-    setStartTime(''); // Changed from null to ''
-    setEndTime(''); // Also change this if endTime has the same type
+    setStartTime('');
+    setEndTime('');
     setClassTopic('');
   };
 
@@ -653,21 +718,17 @@ export default function SubjectDetailPage() {
       return;
     }
 
-    // Crear fechas combinadas con la fecha y hora
-    const startDateTime = new Date(classDate);
-    const [startHours, startMinutes] = startTime.split(':').map(Number);
-    startDateTime.setHours(startHours, startMinutes, 0, 0);
-
-    const endDateTime = new Date(classDate);
-    const [endHours, endMinutes] = endTime.split(':').map(Number);
-    endDateTime.setHours(endHours, endMinutes, 0, 0);
-
-    // Formatear fechas para la API - usar la fecha seleccionada, no la actual
-    const formattedDate = `${classDate.getFullYear()}-${(classDate.getMonth() + 1).toString().padStart(2, '0')}-${classDate.getDate().toString().padStart(2, '0')}`;
-    const formattedStartTime = startDateTime.toISOString();
-    const formattedEndTime = endDateTime.toISOString();
-
     try {
+      // MANEJO CORREGIDO DE FECHAS
+      const formattedDate = dateUtils.formatForAPI(classDate);
+
+      // Crear fechas combinadas con la fecha y hora usando dateUtils
+      const startDateTime = dateUtils.combineDateTime(classDate, startTime);
+      const endDateTime = dateUtils.combineDateTime(classDate, endTime);
+
+      const formattedStartTime = startDateTime.toISOString();
+      const formattedEndTime = endDateTime.toISOString();
+
       const response = await fetch(`/api/docente/clases/${currentClass?.id}`, {
         method: 'PUT',
         credentials: 'include',
@@ -681,8 +742,10 @@ export default function SubjectDetailPage() {
           topic: classTopic,
         }),
       });
+
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'No se pudo actualizar la clase.');
+
       toast.success('¡Clase actualizada con éxito!');
       fetchClasses(pagination.page, pagination.limit);
       setIsEditClassDialogOpen(false);
@@ -696,36 +759,44 @@ export default function SubjectDetailPage() {
 
   const openEditClassDialog = (cls: ClassWithStatus) => {
     setCurrentClass(cls);
-    setClassDate(new Date(cls.date));
 
-    // Extraer la hora de inicio y fin de las fechas ISO
-    if (cls.startTime) {
-      const startDate = new Date(cls.startTime);
-      const hours = startDate.getHours().toString().padStart(2, '0');
-      const minutes = startDate.getMinutes().toString().padStart(2, '0');
-      setStartTime(`${hours}:${minutes}`);
-    } else {
-      setStartTime('');
+    try {
+      // MANEJO CORREGIDO DE FECHAS PARA EDICIÓN
+      const classDate = dateUtils.createLocalDate(cls.date);
+      setClassDate(classDate);
+
+      // Extraer la hora de inicio y fin de las fechas ISO
+      if (cls.startTime) {
+        const startDate = new Date(cls.startTime);
+        const hours = startDate.getHours().toString().padStart(2, '0');
+        const minutes = startDate.getMinutes().toString().padStart(2, '0');
+        setStartTime(`${hours}:${minutes}`);
+      } else {
+        setStartTime('');
+      }
+
+      if (cls.endTime) {
+        const endDate = new Date(cls.endTime);
+        const hours = endDate.getHours().toString().padStart(2, '0');
+        const minutes = endDate.getMinutes().toString().padStart(2, '0');
+        setEndTime(`${hours}:${minutes}`);
+      } else if (cls.startTime) {
+        // Si hay hora de inicio pero no de fin, establecer 2 horas después
+        const startDate = new Date(cls.startTime);
+        startDate.setHours(startDate.getHours() + 2);
+        const hours = startDate.getHours().toString().padStart(2, '0');
+        const minutes = startDate.getMinutes().toString().padStart(2, '0');
+        setEndTime(`${hours}:${minutes}`);
+      } else {
+        setEndTime('');
+      }
+
+      setClassTopic(cls.topic || '');
+      setIsEditClassDialogOpen(true);
+    } catch (error) {
+      console.error('Error opening edit dialog:', error);
+      toast.error('Error al cargar los datos de la clase');
     }
-
-    if (cls.endTime) {
-      const endDate = new Date(cls.endTime);
-      const hours = endDate.getHours().toString().padStart(2, '0');
-      const minutes = endDate.getMinutes().toString().padStart(2, '0');
-      setEndTime(`${hours}:${minutes}`);
-    } else if (cls.startTime) {
-      // Si hay hora de inicio pero no de fin, establecer 1 hora después
-      const startDate = new Date(cls.startTime);
-      startDate.setHours(startDate.getHours() + 1);
-      const hours = startDate.getHours().toString().padStart(2, '0');
-      const minutes = startDate.getMinutes().toString().padStart(2, '0');
-      setEndTime(`${hours}:${minutes}`);
-    } else {
-      setEndTime('');
-    }
-
-    setClassTopic(cls.topic || '');
-    setIsEditClassDialogOpen(true);
   };
 
   // --- MANEJADORES DE MATRÍCULA ---
@@ -1081,46 +1152,74 @@ export default function SubjectDetailPage() {
                 </TableHeader>
                 <TableBody>
                   {classes.map(cls => {
+                    // LÓGICA CORREGIDA PARA DETERMINAR ESTADOS
+                    const today = dateUtils.getTodayWithoutTime();
                     const now = new Date();
-                    const classDate = new Date(cls.date);
-                    const classEndTime = cls.endTime ? new Date(cls.endTime) : classDate;
-                    const isPast = classEndTime < now;
-                    const isFuture = classDate > now;
-                    const isToday = classDate.toDateString() === now.toDateString();
 
-                    const statusInfo = classStatusMap[cls.status as ClassStatus] || {
-                      label: 'Desconocido',
-                      color: 'bg-gray-100 text-gray-800',
+                    // Crear fechas usando dateUtils
+                    const classDate = dateUtils.createLocalDate(cls.date);
+                    const classDateOnly = new Date(classDate);
+                    classDateOnly.setHours(0, 0, 0, 0);
+
+                    // Obtener fechas de inicio y fin de la clase
+                    const classStartTime = cls.startTime ? new Date(cls.startTime) : null;
+                    const classEndTime = cls.endTime ? new Date(cls.endTime) : null;
+
+                    // Determinar estados de fecha
+                    const isToday = dateUtils.isSameDay(classDateOnly, today);
+                    const isFuture = classDateOnly > today;
+                    const isPast = classDateOnly < today;
+
+                    // Determinar si la clase está en curso (solo si es hoy y dentro del horario)
+                    const isWithinClassTime =
+                      isToday &&
+                      classStartTime &&
+                      classEndTime &&
+                      now >= classStartTime &&
+                      now <= classEndTime;
+
+                    // La clase está programada para hoy pero aún no ha comenzado
+                    const isScheduledForToday = isToday && classStartTime && now < classStartTime;
+
+                    // La clase de hoy ya terminó
+                    const isTodayFinished = isToday && classEndTime && now > classEndTime;
+
+                    // Determinar el estado visual de la clase
+                    let visualStatus: VisualClassStatus = cls.status;
+
+                    if (cls.status === 'PROGRAMADA') {
+                      if (isWithinClassTime) {
+                        visualStatus = 'EN_CURSO';
+                      } else if (isTodayFinished || isPast) {
+                        visualStatus = 'FINALIZADA';
+                      }
+                    }
+
+                    // Obtener información de estado visual
+                    const statusInfo = classStatusMap[
+                      visualStatus as keyof typeof classStatusMap
+                    ] || {
+                      label: visualStatus === 'FINALIZADA' ? 'Finalizada' : 'Desconocido',
+                      color:
+                        visualStatus === 'FINALIZADA'
+                          ? 'text-xs font-normal text-gray-600 dark:text-gray-400'
+                          : 'text-xs font-normal',
                     };
 
-                    // Determine which actions should be enabled based on status and date
+                    // Determinar qué acciones están disponibles
                     const isProgramada = cls.status === 'PROGRAMADA';
-                    const isRealizada = cls.status === 'REALIZADA';
-                    const isCancelada = cls.status === 'CANCELADA';
+                    const isEnCurso = visualStatus === 'EN_CURSO';
 
-                    // Acciones disponibles según la tabla de requerimientos
-                    // 1. Para PROGRAMADA que aún no ha pasado:
-                    //    - Asistencia: No
-                    //    - Editar: Sí
-                    //    - Cancelar: Sí
-                    //    - Marcar como realizada: Sí (opcional)
-                    //
-                    // 2. Para PROGRAMADA que ya pasó:
-                    //    - Asistencia: Sí
-                    //    - Editar: No
-                    //    - Cancelar: No
-                    //    - Marcar como realizada: Sí
-                    //
-                    // 3. Para REALIZADA o CANCELADA:
-                    //    - Todas las acciones: No
+                    const canEdit = isProgramada && (isFuture || isScheduledForToday);
+                    const canCancel = isProgramada && (isFuture || isScheduledForToday);
+                    const canMarkAsDone = (isProgramada || isEnCurso) && (isToday || isPast);
 
-                    const classStartTime = new Date(cls.startTime || cls.date);
-                    const hasClassStarted = classStartTime < now;
-
-                    const canEdit = isProgramada && isFuture;
-                    const canCancel = isProgramada && isFuture; // Solo futuro, no incluir hoy
-                    const canMarkAsDone = isProgramada && hasClassStarted; // Solo disponible después de la hora de inicio
-                    const canTakeAttendance = isProgramada && isToday; // Solo disponible si es el mismo día de la clase
+                    // El botón de asistencia debe estar habilitado si:
+                    const canTakeAttendance =
+                      (isWithinClassTime || isScheduledForToday || isTodayFinished || isPast) &&
+                      (isProgramada || isEnCurso) &&
+                      cls.status !== 'REALIZADA' &&
+                      cls.status !== 'CANCELADA';
 
                     return (
                       <TableRow
@@ -1163,13 +1262,11 @@ export default function SubjectDetailPage() {
                                       ? 'Clase ya finalizada'
                                       : canTakeAttendance
                                         ? 'Registrar asistencia'
-                                        : hasClassStarted
-                                          ? 'La clase ya ha finalizado'
-                                          : isToday
-                                            ? 'Disponible hoy'
-                                            : isFuture
-                                              ? `Disponible en ${Math.ceil((classStartTime.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))} días`
-                                              : 'Clase no disponible'}
+                                        : isToday
+                                          ? 'Disponible hoy'
+                                          : isFuture
+                                            ? `Disponible en ${Math.ceil((classDateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))} días`
+                                            : 'Clase pasada sin registro'}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
@@ -1337,7 +1434,7 @@ export default function SubjectDetailPage() {
         </CardContent>
       </Card>
 
-      <EventsCard subjectId={subjectId} />
+      <EventsTable subjectId={subjectId} />
 
       {/* DIÁLOGO DE CONFIRMACIÓN DE CANCELACIÓN */}
       <AlertDialog
