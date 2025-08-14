@@ -2,9 +2,16 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -34,6 +41,12 @@ export default function AsignarEstudiantePage() {
   const [codigoAsignatura, setCodigoAsignatura] = useState('');
   const [documentoEstudiante, setDocumentoEstudiante] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showUnassignDialog, setShowUnassignDialog] = useState(false);
+  const [showErrorDialog, setShowErrorDialog] = useState({
+    show: false,
+    title: '',
+    message: '',
+  });
   const [searchResults, setSearchResults] = useState<{
     subject: SubjectInfo | null;
     student: StudentInfo | null;
@@ -107,18 +120,26 @@ export default function AsignarEstudiantePage() {
       const data: ApiResponse = await response.json();
 
       if (data.success) {
-        toast(data.message || 'Estudiante asignado correctamente');
+        toast.success(data.message || 'Estudiante asignado correctamente');
         setSearchResults({
           subject: data.subject || null,
           student: data.student || null,
           isEnrolled: true,
         });
       } else {
-        toast(data.error || 'Error al asignar el estudiante');
+        setShowErrorDialog({
+          show: true,
+          title: 'Error',
+          message: data.error || 'Error al asignar el estudiante',
+        });
       }
     } catch (error) {
       console.error('Error:', error);
-      toast('Error de conexión con el servidor');
+      setShowErrorDialog({
+        show: true,
+        title: 'Error de conexión',
+        message: 'No se pudo conectar con el servidor',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -127,11 +148,13 @@ export default function AsignarEstudiantePage() {
   const handleUnassign = async () => {
     if (!codigoAsignatura || !documentoEstudiante) return;
 
-    if (!confirm('¿Está seguro de retirar a este estudiante de la asignatura?')) {
-      return;
-    }
+    setShowUnassignDialog(true);
+  };
 
+  const confirmUnassign = async () => {
+    setShowUnassignDialog(false);
     setIsLoading(true);
+
     try {
       const response = await fetch('/api/admin/asignar-estudiante', {
         method: 'DELETE',
@@ -144,18 +167,26 @@ export default function AsignarEstudiantePage() {
       const data: ApiResponse = await response.json();
 
       if (data.success) {
-        toast(data.message || 'Estudiante retirado correctamente');
+        toast.success(data.message || 'Estudiante retirado correctamente');
         setSearchResults({
           subject: data.subject || null,
           student: data.student || null,
           isEnrolled: false,
         });
       } else {
-        toast(data.error || 'Error al retirar el estudiante');
+        setShowErrorDialog({
+          show: true,
+          title: 'Error',
+          message: data.error || 'Error al retirar el estudiante',
+        });
       }
     } catch (error) {
       console.error('Error:', error);
-      toast('Error de conexión con el servidor');
+      setShowErrorDialog({
+        show: true,
+        title: 'Error de conexión',
+        message: 'No se pudo conectar con el servidor',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -211,6 +242,8 @@ export default function AsignarEstudiantePage() {
 
             <div className="flex gap-2">
               <Button
+                variant="outline"
+                className="text-xs"
                 onClick={handleSearch}
                 disabled={isLoading || !codigoAsignatura || !documentoEstudiante}
               >
@@ -251,11 +284,7 @@ export default function AsignarEstudiantePage() {
                       onClick={handleUnassign}
                       disabled={isLoading || !searchResults.student || !searchResults.subject}
                     >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        ' Retirar de la asignatura'
-                      )}
+                      {isLoading ? 'Retirando...' : ' Retirar de la asignatura'}
                     </Button>
                   ) : (
                     <Button
@@ -263,11 +292,7 @@ export default function AsignarEstudiantePage() {
                       className="text-xs"
                       disabled={isLoading || !searchResults.student || !searchResults.subject}
                     >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        'Asignar a la asignatura'
-                      )}
+                      {isLoading ? 'Asignando...' : 'Asignar a la asignatura'}
                     </Button>
                   )}
                 </div>
@@ -276,6 +301,57 @@ export default function AsignarEstudiantePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog for Unassign */}
+      <Dialog open={showUnassignDialog} onOpenChange={setShowUnassignDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="tracking-tight text-xl">Confirmar retiro</DialogTitle>
+            <DialogDescription className="text-xs">
+              ¿Está seguro de retirar a este estudiante de la asignatura?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col-reverse sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => setShowUnassignDialog(false)}
+              disabled={isLoading}
+              className="font-sans"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmUnassign}
+              disabled={isLoading}
+              className="font-sans"
+            >
+              {isLoading ? 'Procesando...' : 'Confirmar retiro'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Dialog */}
+      <Dialog
+        open={showErrorDialog.show}
+        onOpenChange={open => !open && setShowErrorDialog(prev => ({ ...prev, show: false }))}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="tracking-tight text-xl">{showErrorDialog.title}</DialogTitle>
+            <DialogDescription className="text-sm">{showErrorDialog.message}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => setShowErrorDialog(prev => ({ ...prev, show: false }))}
+              className="mt-4"
+            >
+              Aceptar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
