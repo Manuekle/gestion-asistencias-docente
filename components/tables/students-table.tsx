@@ -13,7 +13,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loading } from '@/components/ui/loading';
-import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 import {
   Table,
   TableBody,
@@ -22,8 +21,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ChevronLeft, ChevronRight, UserX } from 'lucide-react';
-import React from 'react';
+import { UserX } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { TablePagination } from '../shared/table-pagination';
 
 export interface Student {
   id: string;
@@ -37,11 +37,6 @@ export interface Student {
 interface StudentsTableProps {
   students: Student[];
   isLoading: boolean;
-  page: number;
-  totalPages: number;
-  start: number;
-  end: number;
-  onPageChange: (page: number) => void;
   currentStudentForUnenroll: { id: string; name: string } | null;
   unenrollReason: string;
   setUnenrollReason: (reason: string) => void;
@@ -51,13 +46,8 @@ interface StudentsTableProps {
 }
 
 export const StudentsTable: React.FC<StudentsTableProps> = ({
-  students,
+  students: allStudents,
   isLoading,
-  page,
-  totalPages,
-  start,
-  end,
-  onPageChange,
   currentStudentForUnenroll,
   unenrollReason,
   setUnenrollReason,
@@ -65,6 +55,20 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
   handleUnenrollRequest,
   isSubmitting,
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // Calculate pagination
+  const totalItems = allStudents.length;
+  const currentStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return allStudents.slice(startIndex, startIndex + itemsPerPage);
+  }, [allStudents, currentPage, itemsPerPage]);
+
+  // Reset to first page when students change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [allStudents]);
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -79,8 +83,10 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <Loading />
-        ) : students.length > 0 ? (
+          <div className="flex justify-center py-8">
+            <Loading className="h-8 w-8" />
+          </div>
+        ) : allStudents.length > 0 ? (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -106,7 +112,7 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students.map(student => (
+                {currentStudents.map(student => (
                   <TableRow key={student.id}>
                     <TableCell className="text-xs px-4 py-2">{student.name || 'N/A'}</TableCell>
                     <TableCell className="text-xs px-4 py-2">{student.document || 'N/A'}</TableCell>
@@ -226,55 +232,17 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
                 ))}
               </TableBody>
             </Table>
-            {/* Paginación estudiantes */}
-            {totalPages > 1 && (
-              <div className="grid grid-cols-2 py-2 px-4 gap-2 items-center border-t">
-                <span className="text-xs text-muted-foreground col-span-1 justify-self-start items-center">
-                  Mostrando {start}–{end} de {students.length} registros
-                </span>
-                <Pagination className="col-span-1 justify-end items-center">
-                  <PaginationContent>
-                    <PaginationItem>
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        onClick={() => onPageChange(Math.max(1, page - 1))}
-                        disabled={page === 1}
-                      >
-                        <span className="sr-only">Anterior</span>
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                    </PaginationItem>
-                    {Array.from({ length: totalPages }).map((_, i) => (
-                      <PaginationItem key={i}>
-                        <Button
-                          variant={page === i + 1 ? 'outline' : 'ghost'}
-                          className="h-8 w-8 p-0"
-                          onClick={() => onPageChange(i + 1)}
-                        >
-                          {i + 1}
-                        </Button>
-                      </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-                        disabled={page === totalPages}
-                      >
-                        <span className="sr-only">Siguiente</span>
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
+            <TablePagination
+              currentPage={currentPage}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              className="border-t"
+            />
           </div>
         ) : (
           <p className="text-xs text-muted-foreground text-center py-12">
-            Aún no hay estudiantes matriculados en esta asignatura.
+            No hay estudiantes matriculados en esta asignatura.
           </p>
         )}
       </CardContent>

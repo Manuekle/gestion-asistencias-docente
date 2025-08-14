@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { NextResponse } from 'next/server';
 
 // GET /api/docente/eventos?subjectId=... - Obtener todos los eventos de una asignatura
 
@@ -26,8 +26,6 @@ export async function GET(request: Request) {
   try {
     const query = DocenteEventosQuerySchema.safeParse({
       subjectId: clean(searchParams.get('subjectId')),
-      page: clean(searchParams.get('page')),
-      limit: clean(searchParams.get('limit')),
       sortBy: clean(searchParams.get('sortBy')),
       sortOrder: clean(searchParams.get('sortOrder')),
     });
@@ -39,7 +37,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const { subjectId, page, limit, sortBy, sortOrder } = query.data;
+    const { subjectId, sortBy, sortOrder } = query.data;
 
     const subject = await db.subject.findFirst({
       where: {
@@ -55,22 +53,13 @@ export async function GET(request: Request) {
       );
     }
 
-    const totalEvents = await db.subjectEvent.count({ where: { subjectId } });
     const events = await db.subjectEvent.findMany({
       where: { subjectId },
       orderBy: { [sortBy]: sortOrder },
-      skip: (page - 1) * limit,
-      take: limit,
     });
 
     return NextResponse.json({
       data: events,
-      pagination: {
-        page,
-        limit,
-        total: totalEvents,
-        totalPages: Math.ceil(totalEvents / limit),
-      },
       message: 'Eventos obtenidos correctamente',
     });
   } catch (error) {

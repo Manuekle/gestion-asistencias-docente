@@ -5,7 +5,7 @@ import { EventsTable } from '@/components/tables/events-table';
 import { StudentsTable } from '@/components/tables/students-table';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -119,14 +119,6 @@ type LocalClassWithStatus = Omit<
   cancellationReason?: string | null;
   [key: string]: unknown; // For any additional properties
 };
-
-// Add missing Pagination interface
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
 
 // Utility function to convert LocalClassWithStatus to TableClassWithStatus
 const toTableClass = (cls: LocalClassWithStatus): TableClassWithStatus => {
@@ -263,14 +255,6 @@ export default function SubjectDetailPage() {
   const [isLoadingSubject, setIsLoadingSubject] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Add pagination state that was missing
-  const [pagination, setPagination] = useState<Pagination>({
-    page: 1,
-    limit: 5,
-    total: 0,
-    totalPages: 1,
-  });
-
   // Class management state
   const [isEditClassDialogOpen, setIsEditClassDialogOpen] = useState(false);
   const [currentClass, setCurrentClass] = useState<TableClassWithStatus | null>(null);
@@ -290,37 +274,8 @@ export default function SubjectDetailPage() {
   const [hasScheduledClasses, setHasScheduledClasses] = useState(false);
   const [reportExistsForCurrentPeriod, setReportExistsForCurrentPeriod] = useState(false);
 
-  // Pagination state for classes
-  const [classPage, setClassPage] = useState(1);
-  const classesPerPage = 5; // Reduced for testing
-
-  // Calculate pagination values
-  const totalClassPages = Math.max(1, Math.ceil(classes.length / classesPerPage));
-  const classStart = (classPage - 1) * classesPerPage + 1;
-  const classEnd = Math.min(classPage * classesPerPage, classes.length);
-
-  // Reset to first page when classes change
-  useEffect(() => {
-    setClassPage(1);
-  }, [classes.length]);
-
-  // Get paginated classes for current page
-  const paginatedClasses = useMemo(() => {
-    return classes.slice((classPage - 1) * classesPerPage, classPage * classesPerPage).map(cls =>
-      toTableClass({
-        ...cls,
-        date: cls.date,
-        startTime: cls.startTime,
-        endTime: cls.endTime,
-        topic: cls.topic || null,
-        description: cls.description || null,
-        status: cls.status,
-        cancellationReason: cls.cancellationReason || null,
-      })
-    );
-  }, [classes, classPage, classesPerPage]);
-
-  // Handle page change for classes
+  // Format classes for the table
+  const tableClasses = classes.map(cls => toTableClass(cls));
 
   // Handlers para ClassesTable
   const handleEditClass = (tableClass: TableClassWithStatus) => {
@@ -415,16 +370,7 @@ export default function SubjectDetailPage() {
   const [classToCancel, setClassToCancel] = useState<LocalClassWithStatus | null>(null);
   const [cancelReason, setCancelReason] = useState('');
 
-  // Paginación estudiantes
-  const [studentPage, setStudentPage] = useState(1);
-  const studentsPerPage = 10;
-  const totalStudentPages = Math.ceil(enrolledStudents.length / studentsPerPage);
-  const paginatedStudents = enrolledStudents.slice(
-    (studentPage - 1) * studentsPerPage,
-    studentPage * studentsPerPage
-  );
-  const studentStart = (studentPage - 1) * studentsPerPage + 1;
-  const studentEnd = Math.min(studentPage * studentsPerPage, enrolledStudents.length);
+  // Student data without pagination
 
   // --- HANDLERS ---
   const handleUpdateClassStatus = async (classId: string, status: ClassStatus, reason?: string) => {
@@ -452,7 +398,7 @@ export default function SubjectDetailPage() {
       setClasses(prev => prev.map(c => (c.id === classId ? updatedClass : c)));
       toast.success(`La clase ha sido marcada como ${status.toLowerCase()}.`);
       // Refresh the current page to ensure data is in sync
-      fetchClasses(pagination.page, pagination.limit);
+      fetchClasses();
     } catch (error) {
       // Revert on error
       setClasses(originalClasses);
@@ -489,75 +435,62 @@ export default function SubjectDetailPage() {
     return currentMonth <= 6 ? 1 : 2; // Jan-Jun: Period 1, Jul-Dec: Period 2
   }, []);
 
-  const fetchClasses = useCallback(
-    async (page: number, limit: number) => {
-      if (!subjectId) {
-        setError('ID de asignatura no válido');
-        return;
+  // Fetch all classes without pagination
+  const fetchClasses = useCallback(async () => {
+    if (!subjectId) {
+      setError('ID de asignatura no válido');
+      return;
+    }
+
+    try {
+      setIsLoadingClasses(true);
+      setError(null);
+
+      const response = await fetch(
+        `/api/docente/clases?subjectId=${subjectId}&sortBy=date&sortOrder=desc`,
+        {
+          credentials: 'include',
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || 'Error al cargar las clases';
+        throw new Error(errorMessage);
       }
 
+      const result = await response.json();
+
+      if (!result || !result.data || !Array.isArray(result.data)) {
+        throw new Error('Formato de respuesta inválido al cargar las clases');
+      }
+
+      // Check if any class is in PROGRAMADA status
+      const hasScheduled = result.data.some((cls: LocalClassWithStatus) => cls.status === 'PROGRAMADA');
+      setHasScheduledClasses(hasScheduled);
+
+      setClasses(result.data);
+
+      // Check if a report already exists for the current period
       try {
-        setIsLoadingClasses(true);
-        setError(null);
-
-        const response = await fetch(
-          `/api/docente/clases?subjectId=${subjectId}&page=${page}&limit=${limit}&sortBy=date&sortOrder=desc`,
-          {
-            credentials: 'include', // Incluir credenciales para autenticación
-          }
-        );
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage = errorData.message || 'Error al cargar las clases';
-          throw new Error(errorMessage);
-        }
-
-        const result = await response.json();
-
-        if (!result || !Array.isArray(result.data)) {
-          throw new Error('Formato de respuesta inválido al cargar las clases');
-        }
-
-        const { data, pagination: paginationData } = result;
-
-        // Check if any class is in PROGRAMADA status
-        const hasScheduled = data.some((cls: LocalClassWithStatus) => cls.status === 'PROGRAMADA');
-        setHasScheduledClasses(hasScheduled);
-
-        setClasses(data);
-        setPagination(prev => ({
-          ...prev,
-          page: paginationData?.page || 1,
-          limit: paginationData?.limit || limit,
-          total: paginationData?.total || 0,
-          totalPages: paginationData?.totalPages || 1,
-        }));
-
-        // Check if a report already exists for the current period
-        try {
-          const currentPeriod = getCurrentPeriod();
-          const reportExists = await checkReportExistsForPeriod(currentPeriod);
-          setReportExistsForCurrentPeriod(reportExists);
-        } catch (error) {
-          // Don't block the UI for this error
-          console.error('Error checking report existence:', error);
-        }
+        const currentPeriod = getCurrentPeriod();
+        const reportExists = await checkReportExistsForPeriod(currentPeriod);
+        setReportExistsForCurrentPeriod(reportExists);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Error al cargar las clases';
-        setError(errorMessage);
-        // Don't show toast here, it will be handled by the main error state
-      } finally {
-        setIsLoadingClasses(false);
+        console.error('Error checking report existence:', error);
       }
-    },
-    [subjectId, checkReportExistsForPeriod, getCurrentPeriod]
-  );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al cargar las clases';
+      setError(errorMessage);
+    } finally {
+      setIsLoadingClasses(false);
+    }
+  }, [subjectId, checkReportExistsForPeriod, getCurrentPeriod]);
 
-  // Fetch classes when page changes
+  // Fetch classes when mounted
   useEffect(() => {
-    fetchClasses(classPage, classesPerPage);
-  }, [classPage, classesPerPage, fetchClasses]);
+    fetchClasses();
+  }, [fetchClasses]);
 
   const fetchSubject = useCallback(async () => {
     if (!subjectId) {
@@ -596,8 +529,7 @@ export default function SubjectDetailPage() {
         code: data.code || 'N/A',
       });
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Error desconocido al cargar la asignatura';
+      const errorMessage = error instanceof Error ? error.message : 'Error al cargar la asignatura';
       setError(errorMessage);
       // Set a default subject if there's an error
       setSubject({
@@ -651,21 +583,15 @@ export default function SubjectDetailPage() {
   useEffect(() => {
     if (!subjectId) return;
 
-    // Show a single loading state
     const loadingToast = toast.loading('Cargando datos de la asignatura...');
 
     const loadData = async () => {
       try {
-        await Promise.all([
-          fetchSubject(),
-          fetchClasses(pagination.page, pagination.limit),
-          fetchEnrolledStudents(),
-        ]);
+        await Promise.all([fetchSubject(), fetchClasses(), fetchEnrolledStudents()]);
         toast.dismiss(loadingToast);
       } catch (error) {
         console.error('Error loading data:', error);
         toast.dismiss(loadingToast);
-        // Only show error in the UI, not as toast since it's already handled in fetch functions
       }
     };
 
@@ -674,14 +600,7 @@ export default function SubjectDetailPage() {
     return () => {
       toast.dismiss(loadingToast);
     };
-  }, [
-    subjectId,
-    fetchSubject,
-    fetchClasses,
-    fetchEnrolledStudents,
-    pagination.page,
-    pagination.limit,
-  ]);
+  }, [subjectId, fetchSubject, fetchClasses, fetchEnrolledStudents]);
 
   const handleUnenrollRequest = async (studentId: string, reason: string) => {
     if (!subjectId) return;
@@ -779,13 +698,8 @@ export default function SubjectDetailPage() {
 
       {/* SECCIÓN DE GESTIÓN DE ESTUDIANTES */}
       <StudentsTable
-        students={paginatedStudents}
+        students={enrolledStudents}
         isLoading={isLoadingStudents}
-        page={studentPage}
-        totalPages={totalStudentPages}
-        start={studentStart}
-        end={studentEnd}
-        onPageChange={setStudentPage}
         currentStudentForUnenroll={currentStudentForUnenroll}
         unenrollReason={unenrollReason}
         setUnenrollReason={setUnenrollReason}
@@ -795,18 +709,8 @@ export default function SubjectDetailPage() {
       />
 
       <ClassesTable
-        classes={paginatedClasses}
+        classes={tableClasses}
         isLoading={isLoadingClasses}
-        page={classPage}
-        totalPages={totalClassPages}
-        start={classStart}
-        end={classEnd}
-        totalClasses={classes.length}
-        onPageChange={newPage => {
-          if (newPage >= 1 && newPage <= totalClassPages) {
-            setClassPage(newPage);
-          }
-        }}
         handleEdit={handleEditClass}
         handleCancel={handleCancelClass}
         handleMarkAsDone={handleMarkClassAsDone}

@@ -36,8 +36,6 @@ export async function GET(request: Request) {
     const query = DocenteClaseQuerySchema.parse({
       subjectId: clean(searchParams.get('subjectId')),
       fetch: clean(searchParams.get('fetch')),
-      page: clean(searchParams.get('page')),
-      limit: clean(searchParams.get('limit')),
       sortBy: clean(searchParams.get('sortBy')),
       sortOrder: clean(searchParams.get('sortOrder')),
     });
@@ -54,16 +52,11 @@ export async function GET(request: Request) {
         { status: 404 }
       );
     }
-    // Eventos: paginación y ordenamiento
+    // Eventos: ordenamiento
     if (query.fetch === 'events') {
-      const total = await db.subjectEvent.count({
-        where: { subjectId: query.subjectId },
-      });
       const events = await db.subjectEvent.findMany({
         where: { subjectId: query.subjectId },
         orderBy: { date: query.sortOrder },
-        skip: (query.page - 1) * query.limit,
-        take: query.limit,
       });
       const validados = z.array(DocenteEventoSchema).safeParse(events);
       if (!validados.success) {
@@ -77,26 +70,15 @@ export async function GET(request: Request) {
       }
       return NextResponse.json({
         data: validados.data,
-        pagination: {
-          total,
-          page: query.page,
-          limit: query.limit,
-          totalPages: Math.ceil(total / query.limit),
-        },
       });
     }
-    // Clases: paginación y ordenamiento
-    const total = await db.class.count({
-      where: { subjectId: query.subjectId },
-    });
+    // Clases: ordenamiento
     const classes = await db.class.findMany({
       where: { subjectId: query.subjectId },
       orderBy: [
         { date: 'asc' }, // Ordenar por fecha ascendente (más cercana primero)
         { startTime: 'asc' }, // Si hay varias clases el mismo día, ordenar por hora de inicio
       ],
-      skip: (query.page - 1) * query.limit,
-      take: query.limit,
       include: {
         subject: { select: { name: true, code: true } },
       },
@@ -159,12 +141,6 @@ export async function GET(request: Request) {
     }
     return NextResponse.json({
       data: validados.data,
-      pagination: {
-        total,
-        page: query.page,
-        limit: query.limit,
-        totalPages: Math.ceil(total / query.limit),
-      },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

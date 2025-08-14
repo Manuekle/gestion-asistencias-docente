@@ -19,8 +19,6 @@ export async function GET(req: NextRequest) {
 
     const query = UserSearchQuerySchema.safeParse({
       search: clean(searchParams.get('search')),
-      page: clean(searchParams.get('page')),
-      limit: clean(searchParams.get('limit')),
       sortBy: clean(searchParams.get('sortBy')),
       sortOrder: clean(searchParams.get('sortOrder')),
     });
@@ -30,7 +28,6 @@ export async function GET(req: NextRequest) {
           message: 'Datos de entrada inválidos',
           errors: query.error.errors,
           data: [],
-          pagination: null,
         },
         { status: 400 }
       );
@@ -39,12 +36,6 @@ export async function GET(req: NextRequest) {
     if (!query.data.search) {
       return NextResponse.json({
         data: [],
-        pagination: {
-          total: 0,
-          page: query.data.page,
-          limit: query.data.limit,
-          totalPages: 0,
-        },
         message: 'Sin término de búsqueda',
       });
     }
@@ -60,31 +51,17 @@ export async function GET(req: NextRequest) {
       ],
     };
 
-    const skip = (query.data.page - 1) * query.data.limit;
-    const [users, total] = await Promise.all([
-      db.user.findMany({
-        where,
-        select: {
-          id: true,
-          name: true,
-          correoInstitucional: true,
-          correoPersonal: true,
-          role: true,
-        },
-        orderBy: { [query.data.sortBy]: query.data.sortOrder },
-        skip,
-        take: query.data.limit,
-      }),
-      db.user.count({
-        where: {
-          role: Role.ESTUDIANTE,
-          OR: [
-            { name: { contains: query.data.search, mode: 'insensitive' as const } },
-            { correoInstitucional: { contains: query.data.search, mode: 'insensitive' as const } },
-          ],
-        },
-      }),
-    ]);
+    const users = await db.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        correoInstitucional: true,
+        correoPersonal: true,
+        role: true,
+      },
+      orderBy: { [query.data.sortBy]: query.data.sortOrder },
+    });
     // Validar la respuesta
     const usuariosValidados = UserSchema.array().safeParse(users);
     if (!usuariosValidados.success) {
@@ -93,19 +70,12 @@ export async function GET(req: NextRequest) {
           message: 'Error de validación en la respuesta',
           errors: usuariosValidados.error.errors,
           data: [],
-          pagination: null,
         },
         { status: 500 }
       );
     }
     return NextResponse.json({
       data: usuariosValidados.data,
-      pagination: {
-        total,
-        page: query.data.page,
-        limit: query.data.limit,
-        totalPages: Math.ceil(total / query.data.limit),
-      },
       message: 'Usuarios encontrados',
     });
   } catch (error) {
@@ -115,7 +85,6 @@ export async function GET(req: NextRequest) {
           message: 'Datos de entrada inválidos',
           errors: error.errors,
           data: [],
-          pagination: null,
         },
         { status: 400 }
       );
@@ -124,7 +93,6 @@ export async function GET(req: NextRequest) {
       {
         message: 'Error interno del servidor al buscar usuarios',
         data: [],
-        pagination: null,
       },
       { status: 500 }
     );

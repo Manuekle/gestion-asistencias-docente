@@ -23,19 +23,14 @@ export async function GET(request: Request) {
     // Validar parámetros de consulta
     const { searchParams } = new URL(request.url);
     const query = DocenteSubjectQuerySchema.parse({
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
       sortBy: searchParams.get('sortBy'),
       sortOrder: searchParams.get('sortOrder'),
     });
 
     const where = { teacherId: session.user.id };
-    const total = await db.subject.count({ where });
     const subjects = await db.subject.findMany({
       where,
       orderBy: { [query.sortBy]: query.sortOrder },
-      skip: (query.page - 1) * query.limit,
-      take: query.limit,
     });
     const validados = z.array(DocenteSubjectSchema).safeParse(subjects);
     if (!validados.success) {
@@ -49,12 +44,6 @@ export async function GET(request: Request) {
     }
     return NextResponse.json({
       data: validados.data,
-      pagination: {
-        total,
-        page: query.page,
-        limit: query.limit,
-        totalPages: Math.ceil(total / query.limit),
-      },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

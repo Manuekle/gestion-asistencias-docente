@@ -22,14 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loading } from '@/components/ui/loading';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Table,
@@ -44,7 +37,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import { Ban, CheckCircle, Clock, Edit, MoreHorizontal, UserCheck } from 'lucide-react';
 import Link from 'next/link';
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { TablePagination } from '../shared/table-pagination';
 
 export interface ClassWithStatus {
   id: string;
@@ -60,12 +54,6 @@ export interface ClassWithStatus {
 interface ClassesTableProps {
   classes: ClassWithStatus[];
   isLoading: boolean;
-  page: number;
-  totalPages: number;
-  start: number;
-  end: number;
-  totalClasses?: number; // Add total count for better pagination display
-  onPageChange: (page: number) => void;
   handleEdit: (cls: ClassWithStatus) => void;
   handleCancel: (cls: ClassWithStatus) => void;
   handleMarkAsDone: (classId: string) => void;
@@ -78,48 +66,42 @@ interface ClassesTableProps {
   };
 }
 
-export const ClassesTable: React.FC<
-  ClassesTableProps & {
-    // Cancel dialog
-    isCancelDialogOpen: boolean;
-    classToCancel: ClassWithStatus | null;
-    cancelReason: string;
-    setCancelReason: (reason: string) => void;
-    onCancelDialogOpenChange: (open: boolean) => void;
-    onConfirmCancel: () => void;
-    // Edit dialog
-    isEditDialogOpen: boolean;
-    classDate: Date | undefined;
-    setClassDate: (d: Date | undefined) => void;
-    startTime: string;
-    setStartTime: (v: string) => void;
-    endTime: string;
-    setEndTime: (v: string) => void;
-    classTopic: string;
-    setClassTopic: (v: string) => void;
-    classDescription: string;
-    setClassDescription: (v: string) => void;
-    isSubmitting: boolean;
-    onEditDialogOpenChange: (open: boolean) => void;
-    onSubmitEdit: (e: React.FormEvent) => void;
-    isDatePickerOpen: boolean;
-    setIsDatePickerOpen: (open: boolean) => void;
-    isStartTimePickerOpen: boolean;
-    setIsStartTimePickerOpen: (open: boolean) => void;
-    isEndTimePickerOpen: boolean;
-    setIsEndTimePickerOpen: (open: boolean) => void;
-    resetEditForm: () => void;
-    formatClassDate: (cls: ClassWithStatus) => string;
-  }
-> = ({
-  classes,
+interface ClassesTableDialogProps {
+  // Cancel dialog
+  isCancelDialogOpen: boolean;
+  classToCancel: ClassWithStatus | null;
+  cancelReason: string;
+  setCancelReason: (reason: string) => void;
+  onCancelDialogOpenChange: (open: boolean) => void;
+  onConfirmCancel: () => void;
+  // Edit dialog
+  isEditDialogOpen: boolean;
+  classDate: Date | undefined;
+  setClassDate: (d: Date | undefined) => void;
+  startTime: string;
+  setStartTime: (v: string) => void;
+  endTime: string;
+  setEndTime: (v: string) => void;
+  classTopic: string;
+  setClassTopic: (v: string) => void;
+  classDescription: string;
+  setClassDescription: (v: string) => void;
+  isSubmitting: boolean;
+  onEditDialogOpenChange: (open: boolean) => void;
+  onSubmitEdit: (e: React.FormEvent) => void;
+  isDatePickerOpen: boolean;
+  setIsDatePickerOpen: (open: boolean) => void;
+  isStartTimePickerOpen: boolean;
+  setIsStartTimePickerOpen: (open: boolean) => void;
+  isEndTimePickerOpen: boolean;
+  setIsEndTimePickerOpen: (open: boolean) => void;
+  resetEditForm: () => void;
+  formatClassDate: (cls: ClassWithStatus) => string;
+}
+
+export const ClassesTable: React.FC<ClassesTableProps & ClassesTableDialogProps> = ({
+  classes: allClasses,
   isLoading,
-  page,
-  totalPages,
-  start,
-  end,
-  totalClasses,
-  onPageChange,
   handleEdit,
   handleCancel,
   handleMarkAsDone,
@@ -154,23 +136,43 @@ export const ClassesTable: React.FC<
   resetEditForm,
   formatClassDate,
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // Calculate pagination
+  const totalItems = allClasses.length;
+  const currentItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return allClasses.slice(startIndex, startIndex + itemsPerPage);
+  }, [allClasses, currentPage, itemsPerPage]);
+
+  // Reset to first page when classes change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [allClasses]);
+
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-xl font-semibold tracking-heading">
-              Gestión de Clases
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Crea y administra las sesiones de clase para esta asignatura.
-            </CardDescription>
-          </div>
+        <CardHeader>
+          <CardTitle>Clases</CardTitle>
+          <CardDescription>
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <Loading className="h-4 w-4" />
+                <span>Cargando clases...</span>
+              </div>
+            ) : (
+              `Mostrando ${allClasses.length} ${allClasses.length === 1 ? 'clase' : 'clases'}`
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <Loading />
-          ) : classes.length > 0 ? (
+            <div className="flex justify-center py-8">
+              <Loading className="h-8 w-8" />
+            </div>
+          ) : allClasses.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -184,7 +186,7 @@ export const ClassesTable: React.FC<
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {classes.map(cls => {
+                  {currentItems.map(cls => {
                     // Lógica de fechas y estado visual
                     const today = dateUtils.getTodayWithoutTime();
                     const now = new Date();
@@ -240,11 +242,27 @@ export const ClassesTable: React.FC<
                         <TableCell className="text-xs px-4 py-2">
                           <div className="flex flex-col">
                             <span>{dateUtils.formatDisplayDate(classDate)}</span>
-                            {cls.status === 'CANCELADA' && cls.cancellationReason && (
+                            {cls.startTime && (
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(cls.startTime).toLocaleTimeString('en-US', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: true,
+                                })}
+                                {cls.endTime
+                                  ? ` - ${new Date(cls.endTime).toLocaleTimeString('en-US', {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                      hour12: true,
+                                    })}`
+                                  : ''}
+                              </span>
+                            )}
+                            {/* {cls.status === 'CANCELADA' && cls.cancellationReason && (
                               <span className="text-xs text-amber-600 mt-1 dark:text-amber-400">
                                 Motivo: {cls.cancellationReason}
                               </span>
-                            )}
+                            )} */}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs px-4 py-2">
@@ -367,93 +385,13 @@ export const ClassesTable: React.FC<
                   })}
                 </TableBody>
               </Table>
-
-              {/* Fixed Pagination */}
-              {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2 px-4 gap-2 border-t">
-                  <span className="text-xs text-muted-foreground w-full">
-                    Mostrando {start}-{end} de {totalClasses || classes.length} clases
-                  </span>
-                  <Pagination className="w-full sm:justify-end justify-center">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          href="#"
-                          onClick={e => {
-                            e.preventDefault();
-                            if (page > 1) onPageChange(page - 1);
-                          }}
-                          className={cn(
-                            'cursor-pointer',
-                            page === 1 && 'pointer-events-none opacity-50'
-                          )}
-                        />
-                      </PaginationItem>
-
-                      {/* Page Numbers with improved logic */}
-                      {(() => {
-                        const pageNumbers = [];
-                        const maxVisiblePages = 5;
-
-                        if (totalPages <= maxVisiblePages) {
-                          // Show all pages if total is small
-                          for (let i = 1; i <= totalPages; i++) {
-                            pageNumbers.push(i);
-                          }
-                        } else {
-                          // Show smart pagination
-                          if (page <= 3) {
-                            // Show first 5 pages
-                            for (let i = 1; i <= maxVisiblePages; i++) {
-                              pageNumbers.push(i);
-                            }
-                          } else if (page >= totalPages - 2) {
-                            // Show last 5 pages
-                            for (let i = totalPages - 4; i <= totalPages; i++) {
-                              pageNumbers.push(i);
-                            }
-                          } else {
-                            // Show current page in center
-                            for (let i = page - 2; i <= page + 2; i++) {
-                              pageNumbers.push(i);
-                            }
-                          }
-                        }
-
-                        return pageNumbers.map(pageNum => (
-                          <PaginationItem key={pageNum}>
-                            <PaginationLink
-                              href="#"
-                              onClick={e => {
-                                e.preventDefault();
-                                onPageChange(pageNum);
-                              }}
-                              isActive={pageNum === page}
-                              className="cursor-pointer"
-                            >
-                              {pageNum}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ));
-                      })()}
-
-                      <PaginationItem>
-                        <PaginationNext
-                          href="#"
-                          onClick={e => {
-                            e.preventDefault();
-                            if (page < totalPages) onPageChange(page + 1);
-                          }}
-                          className={cn(
-                            'cursor-pointer',
-                            page === totalPages && 'pointer-events-none opacity-50'
-                          )}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
-              )}
+              <TablePagination
+                currentPage={currentPage}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                className="border-t"
+              />
             </div>
           ) : (
             <p className="text-xs text-muted-foreground text-center py-12">
