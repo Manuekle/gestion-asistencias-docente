@@ -8,6 +8,7 @@ import {
   Settings,
   TrendingUp,
   User,
+  UserPlus,
   Users,
 } from 'lucide-react';
 
@@ -94,19 +95,26 @@ export const navLinkGroups: NavLinkGroup[] = [
         description: 'Administrar cuentas de usuario',
       },
       {
+        href: '/dashboard/admin/asignar-estudiante',
+        icon: UserPlus,
+        label: 'Asignar Estudiante',
+        roles: ['ADMIN'],
+        description: 'Asignar o retirar estudiantes de asignaturas',
+      },
+      {
         href: '/dashboard/admin/reportes',
         icon: TrendingUp,
         label: 'Reportes Docentes',
         roles: ['ADMIN'],
         description: 'Reportes generales de docentes',
       },
-      {
-        href: '/dashboard/admin/cargar-estudiantes-asignatura',
-        icon: TrendingUp,
-        label: 'Cargar Estudiantes a Asignaturas',
-        roles: ['ADMIN'],
-        description: 'Cargar estudiantes a asignaturas desde un archivo Excel',
-      },
+      // {
+      //   href: '/dashboard/admin/cargar-estudiantes-asignatura',
+      //   icon: TrendingUp,
+      //   label: 'Cargar Estudiantes a Asignaturas',
+      //   roles: ['ADMIN'],
+      //   description: 'Cargar estudiantes a asignaturas desde un archivo Excel',
+      // },
       {
         href: '/dashboard/admin/solicitudes',
         icon: TrendingUp,
