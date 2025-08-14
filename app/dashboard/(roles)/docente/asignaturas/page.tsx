@@ -1,5 +1,6 @@
 'use client';
 
+import { TablePagination } from '@/components/shared/table-pagination';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Loading } from '@/components/ui/loading';
@@ -19,17 +20,28 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Subject } from '@prisma/client';
+import { Subject as PrismaSubject } from '@prisma/client';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+
+// Extend the base Subject type with period information
+type SubjectWithPeriod = Omit<PrismaSubject, 'createdAt'> & {
+  period?: string;
+  createdAt: Date | string;
+};
 
 export default function SubjectsPage() {
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error';
     message: string;
   } | null>(null);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [subjects, setSubjects] = useState<SubjectWithPeriod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Get current year and period (1: Jan-Jun, 2: Jul-Dec)
   const getCurrentPeriod = () => {
     const now = new Date();
@@ -39,15 +51,29 @@ export default function SubjectsPage() {
     return `${currentYear}-${currentPeriod}`;
   };
 
+  // Get period from a date (1: Jan-Jun, 2: Jul-Dec)
+  const getPeriodFromDate = (date: Date | string): string => {
+    const d = date instanceof Date ? date : new Date(date);
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1; // getMonth() is 0-indexed
+    const period = month <= 6 ? '1' : '2';
+    return `${year}-${period}`;
+  };
+
   const [selectedPeriod, setSelectedPeriod] = useState<string>(getCurrentPeriod());
   const [availablePeriods, setAvailablePeriods] = useState<string[]>([]);
+  const [filteredSubjects, setFilteredSubjects] = useState<SubjectWithPeriod[]>([]);
 
   const fetchSubjects = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `/api/docente/asignaturas?page=1&limit=100&sortBy=createdAt&sortOrder=desc`
-      );
+      // Include the period in the API request
+      const url = new URL('/api/docente/asignaturas', window.location.origin);
+      url.searchParams.append('sortBy', 'createdAt');
+      url.searchParams.append('sortOrder', 'desc');
+      url.searchParams.append('period', selectedPeriod);
+
+      const response = await fetch(url.toString());
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -55,156 +81,34 @@ export default function SubjectsPage() {
       }
 
       const responseData = await response.json();
-
       const allSubjects = responseData.data || [];
 
-      if (allSubjects.length > 0) {
-      }
-
-      // Filtrar por año y período seleccionado
-      const [selectedYearStr, selectedPeriodNum] = selectedPeriod.split('-');
-      const selectedYear = parseInt(selectedYearStr, 10);
-
-      // Definir un tipo extendido que incluya los campos que necesitamos
-      type SubjectWithDate = Subject & {
-        createdAt: string | Date | { toISOString: () => string };
-      };
-
-      const filteredSubjects = allSubjects.filter((subject: SubjectWithDate) => {
-        try {
-          // Si no hay fecha, usar la fecha actual
-          if (!subject.createdAt) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const period = now.getMonth() < 6 ? '1' : '2';
-            const currentPeriod = `${year}-${period}`;
-            return currentPeriod === selectedPeriod;
-          }
-
-          // Manejar diferentes formatos de fecha
-          let subjectDate: Date;
-
-          // Manejar diferentes formatos de fecha
-          if (typeof subject.createdAt === 'string') {
-            // Si es un string, intentar parsearlo
-            subjectDate = new Date(subject.createdAt);
-
-            // Si no es una fecha válida, intentar agregar 'Z' al final
-            if (isNaN(subjectDate.getTime()) && !subject.createdAt.endsWith('Z')) {
-              subjectDate = new Date(`${subject.createdAt}Z`);
-            }
-          } else if (subject.createdAt instanceof Date) {
-            // Si ya es un objeto Date
-            subjectDate = subject.createdAt;
-          } else if (
-            subject.createdAt &&
-            typeof subject.createdAt === 'object' &&
-            'toISOString' in subject.createdAt
-          ) {
-            // Si es un objeto con método toISOString (como las fechas de Prisma)
-            const dateObj = subject.createdAt as { toISOString: () => string };
-            subjectDate = new Date(dateObj.toISOString());
-          } else {
-            // Cualquier otro caso, intentar convertir a fecha
-            subjectDate = new Date(String(subject.createdAt));
-          }
-
-          // Verificar si la fecha es válida
-          if (isNaN(subjectDate.getTime())) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const period = now.getMonth() < 6 ? '1' : '2';
-            const currentPeriod = `${year}-${period}`;
-            return currentPeriod === selectedPeriod;
-          }
-
-          const subjectYear = subjectDate.getFullYear();
-          const subjectMonth = subjectDate.getMonth() + 1;
-          const subjectPeriod = subjectMonth <= 6 ? '1' : '2';
-          const subjectPeriodStr = `${subjectYear}-${subjectPeriod}`;
-
-          return subjectPeriodStr === selectedPeriod;
-        } catch (error) {
-          return false;
-        }
-      });
-
-      // Obtener años y períodos únicos de las asignaturas
+      // Extract unique periods from the API response
       const periods = new Set<string>();
 
-      // Agregar el período actual primero
+      // Add the current period first
       periods.add(selectedPeriod);
 
-      // Agregar períodos de las asignaturas existentes
-      allSubjects.forEach((subject: Subject) => {
-        try {
-          if (!subject.createdAt) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const period = now.getMonth() < 6 ? '1' : '2';
-            periods.add(`${year}-${period}`);
-            return;
-          }
-
-          let subjectDate: Date;
-
-          // Manejar diferentes formatos de fecha
-          if (typeof subject.createdAt === 'string') {
-            const dateStr = subject.createdAt;
-            const dateStrAsString = String(dateStr);
-            subjectDate = new Date(dateStrAsString);
-            if (isNaN(subjectDate.getTime()) && !dateStrAsString.endsWith('Z')) {
-              subjectDate = new Date(`${dateStrAsString}Z`);
-            }
-          } else if (subject.createdAt instanceof Date) {
-            subjectDate = subject.createdAt;
-          } else if (
-            subject.createdAt &&
-            typeof subject.createdAt === 'object' &&
-            'toISOString' in subject.createdAt
-          ) {
-            const dateObj = subject.createdAt as { toISOString: () => string };
-            subjectDate = new Date(dateObj.toISOString());
-          } else {
-            subjectDate = new Date(String(subject.createdAt));
-          }
-
-          if (isNaN(subjectDate.getTime())) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const period = now.getMonth() < 6 ? '1' : '2';
-            periods.add(`${year}-${period}`);
-            return;
-          }
-
-          const year = subjectDate.getFullYear();
-          const month = subjectDate.getMonth() + 1;
-          const period = month <= 6 ? '1' : '2';
-          periods.add(`${year}-${period}`);
-        } catch (error) {
-          const now = new Date();
-          const year = now.getFullYear();
-          const period = now.getMonth() < 6 ? '1' : '2';
-          periods.add(`${year}-${period}`);
+      // Add periods from all subjects
+      allSubjects.forEach((subject: SubjectWithPeriod) => {
+        if (subject.period) {
+          periods.add(subject.period);
         }
       });
 
-      // Convertir a array, filtrar valores inválidos y ordenar
-      const sortedPeriods = Array.from(periods)
-        .filter(period => {
-          const [year] = period.split('-');
-          return !isNaN(parseInt(year, 10));
-        })
-        .sort((a, b) => {
-          const [yearA, periodA] = a.split('-');
-          const [yearB, periodB] = b.split('-');
-          return yearB !== yearA
-            ? parseInt(yearB, 10) - parseInt(yearA, 10)
-            : parseInt(periodB, 10) - parseInt(periodA, 10);
-        });
+      // Sort periods from newest to oldest
+      const sortedPeriods = Array.from(periods).sort((a, b) => {
+        const [yearA, periodA] = a.split('-');
+        const [yearB, periodB] = b.split('-');
+
+        // Sort by year descending, then by period descending
+        return yearB !== yearA
+          ? parseInt(yearB, 10) - parseInt(yearA, 10)
+          : parseInt(periodB, 10) - parseInt(periodA, 10);
+      });
 
       setAvailablePeriods(sortedPeriods);
-      setSubjects(filteredSubjects);
+      setSubjects(allSubjects);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error inesperado';
       setFeedback({ type: 'error', message: errorMessage });
@@ -212,7 +116,29 @@ export default function SubjectsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedPeriod, setSubjects]);
+  }, [selectedPeriod]);
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  // Update filtered subjects when subjects or selectedPeriod changes
+  useEffect(() => {
+    if (subjects.length === 0) {
+      setFilteredSubjects([]);
+      return;
+    }
+
+    // Filter subjects by selected period
+    const filtered = subjects.filter(subject => {
+      const subjectPeriod = getPeriodFromDate(subject.createdAt);
+      return subjectPeriod === selectedPeriod;
+    });
+
+    setFilteredSubjects(filtered);
+    setCurrentPage(1); // Reset to first page when filter changes
+  }, [selectedPeriod, subjects]);
 
   useEffect(() => {
     fetchSubjects();
@@ -251,7 +177,7 @@ export default function SubjectsPage() {
           </Alert>
         )}
         <div>
-          <div className="border rounded-md overflow-x-auto">
+          <div className="border rounded-md">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/60">
@@ -259,7 +185,9 @@ export default function SubjectsPage() {
                   <TableHead className="text-xs font-normal px-4 py-2">Código</TableHead>
                   <TableHead className="text-xs font-normal px-4 py-2">Programa</TableHead>
                   <TableHead className="text-xs font-normal px-4 py-2">Semestre</TableHead>
-                  <TableHead className="text-xs font-normal px-4 py-2">Créditos</TableHead>
+                  <TableHead className="text-xs font-normal text-right px-4 py-2">
+                    Créditos
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -269,7 +197,7 @@ export default function SubjectsPage() {
                       <Loading />
                     </TableCell>
                   </TableRow>
-                ) : subjects.length === 0 ? (
+                ) : filteredSubjects.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="py-24 text-center">
                       <div className="flex flex-col items-center">
@@ -281,34 +209,48 @@ export default function SubjectsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  subjects.map(subject => (
-                    <TableRow key={subject.id} className="border-b">
-                      <TableCell className="font-normal whitespace-nowrap px-4 py-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Link
-                                href={`/dashboard/docente/asignaturas/${subject.id}`}
-                                className="hover:underline"
-                              >
-                                {subject.name}
-                              </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Ir a mi clase</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </TableCell>
-                      <TableCell className="px-4 py-2">{subject.code}</TableCell>
-                      <TableCell className="px-4 py-2">{subject.program || 'N/A'}</TableCell>
-                      <TableCell className="px-4 py-2">{subject.semester || 'N/A'}</TableCell>
-                      <TableCell className="px-4 py-2">{subject.credits || 'N/A'}</TableCell>
-                    </TableRow>
-                  ))
+                  filteredSubjects
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map(subject => (
+                      <TableRow key={subject.id}>
+                        <TableCell className="font-normal whitespace-nowrap px-4 py-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Link
+                                  href={`/dashboard/docente/asignaturas/${subject.id}`}
+                                  className="hover:underline"
+                                >
+                                  {subject.name}
+                                </Link>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Ir a mi clase</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TableCell>
+                        <TableCell className="px-4 py-2">{subject.code}</TableCell>
+                        <TableCell className="px-4 py-2">{subject.program || 'N/A'}</TableCell>
+                        <TableCell className="px-4 py-2">{subject.semester || 'N/A'}</TableCell>
+                        <TableCell className="px-4 py-2 text-right">
+                          {subject.credits || 'N/A'}
+                        </TableCell>
+                      </TableRow>
+                    ))
                 )}
               </TableBody>
             </Table>
+            {filteredSubjects.length > 0 && (
+              <div className="border-t">
+                <TablePagination
+                  currentPage={currentPage}
+                  totalItems={filteredSubjects.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

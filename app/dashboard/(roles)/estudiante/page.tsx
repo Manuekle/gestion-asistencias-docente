@@ -387,8 +387,9 @@ export default function EstudianteDashboard() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              No tienes asignaturas registradas
+            <div className="text-center py-8 text-xs text-muted-foreground flex flex-col items-center justify-center h-32">
+              <p className="text-xs text-muted-foreground">No tienes asignaturas registradas</p>
+              <p className="text-xs text-muted-foreground/70">Tus asignaturas aparecerán aquí</p>
             </div>
           )}
         </CardContent>

@@ -51,7 +51,7 @@ type ClassInfo = {
 export default function AttendancePage() {
   const params = useParams();
   const router = useRouter();
-  const classId = params.classId as string;
+  const id = params.id as string;
 
   const [students, setStudents] = useState<StudentAttendance[]>([]);
   const [classInfo, setClassInfo] = useState<ClassInfo | null>(null);
@@ -85,14 +85,14 @@ export default function AttendancePage() {
   };
 
   const fetchData = useCallback(async () => {
-    if (!classId) return;
+    if (!id) return;
 
     if (!qrData) setIsLoading(true);
     setError(null);
     try {
       const [classRes, attendanceRes] = await Promise.all([
-        fetch(`/api/docente/clases/${classId}`),
-        fetch(`/api/docente/clases/${classId}/asistencia`),
+        fetch(`/api/docente/clases/${id}`),
+        fetch(`/api/docente/clases/${id}/asistencia`),
       ]);
 
       if (!classRes.ok) throw new Error('No se pudieron cargar los detalles de la clase.');
@@ -169,7 +169,7 @@ export default function AttendancePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [classId, qrData, router, setError, setIsLoading]);
+  }, [id, qrData, router, setError, setIsLoading]);
 
   useEffect(() => {
     fetchData();
@@ -204,7 +204,7 @@ export default function AttendancePage() {
   const handleSaveChanges = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/docente/clases/${classId}/asistencia`, {
+      const response = await fetch(`/api/docente/clases/${id}/asistencia`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -230,7 +230,7 @@ export default function AttendancePage() {
   const handleGenerateQr = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch(`/api/docente/clases/${classId}/generar-qr`, {
+      const response = await fetch(`/api/docente/clases/${id}/generar-qr`, {
         method: 'POST',
       });
       const responseData = await response.json();

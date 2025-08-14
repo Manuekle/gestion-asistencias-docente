@@ -466,7 +466,9 @@ export default function SubjectDetailPage() {
       }
 
       // Check if any class is in PROGRAMADA status
-      const hasScheduled = result.data.some((cls: LocalClassWithStatus) => cls.status === 'PROGRAMADA');
+      const hasScheduled = result.data.some(
+        (cls: LocalClassWithStatus) => cls.status === 'PROGRAMADA'
+      );
       setHasScheduledClasses(hasScheduled);
 
       setClasses(result.data);

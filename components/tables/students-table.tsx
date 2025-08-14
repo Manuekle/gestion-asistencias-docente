@@ -77,7 +77,7 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
             Gestión de Estudiantes
           </CardTitle>
           <CardDescription className="text-xs">
-            Matricula y administra a los estudiantes de esta asignatura.
+            Gestiona los estudiantes matriculados en esta asignatura.
           </CardDescription>
         </div>
       </CardHeader>
@@ -241,7 +241,7 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({
             />
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground text-center py-12">
+          <p className="text-xs text-muted-foreground text-center py-12 h-52 flex items-center justify-center">
             No hay estudiantes matriculados en esta asignatura.
           </p>
         )}

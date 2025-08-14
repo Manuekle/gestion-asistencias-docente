@@ -154,18 +154,15 @@ export const ClassesTable: React.FC<ClassesTableProps & ClassesTableDialogProps>
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>Clases</CardTitle>
-          <CardDescription>
-            {isLoading ? (
-              <div className="flex items-center gap-2">
-                <Loading className="h-4 w-4" />
-                <span>Cargando clases...</span>
-              </div>
-            ) : (
-              `Mostrando ${allClasses.length} ${allClasses.length === 1 ? 'clase' : 'clases'}`
-            )}
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-semibold tracking-heading">
+              Gestión de Clases
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Gestiona las sesiones de clase para esta asignatura.
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (

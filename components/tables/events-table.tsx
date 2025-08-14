@@ -217,7 +217,7 @@ export function EventsTable({ subjectId }: EventsTableProps) {
           <div className="flex justify-between items-center flex-wrap gap-2">
             <div>
               <CardTitle className="text-xl font-semibold tracking-heading font-sans">
-                Eventos Especiales
+                Gestión de Eventos Especiales
               </CardTitle>
               <CardDescription className="text-xs font-sans">
                 Gestiona exámenes, entregas y anuncios importantes.

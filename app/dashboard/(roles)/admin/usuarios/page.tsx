@@ -2,6 +2,7 @@
 
 import { CreateUserModal } from '@/components/modals/create-user-modal';
 import { EditUserRoleModal } from '@/components/modals/edit-user-role-modal';
+import { TablePagination } from '@/components/shared/table-pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,12 +14,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-} from '@/components/ui/pagination';
 import {
   Select,
   SelectContent,
@@ -37,18 +32,7 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import type { User } from '@/types';
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  MoreHorizontal,
-  Search,
-  UserCheck,
-  UserCog,
-  User as UserIcon,
-  UserX,
-} from 'lucide-react';
+import { MoreHorizontal, Search, UserCheck, UserCog, User as UserIcon, UserX } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -132,113 +116,14 @@ export default function GestionUsuariosPage() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
 
-  // Cambiar página
-  const goToPage = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  };
-
   // Resetear a la primera página cuando cambia el término de búsqueda
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, itemsPerPage]);
 
-  // Función para renderizar los controles de paginación
-  const renderPagination = () => {
-    if (filteredUsers.length === 0) return null;
-
-    const pages = [];
-    const maxPages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
-    const endPage = Math.min(totalPages, startPage + maxPages - 1);
-
-    if (endPage - startPage + 1 < maxPages) {
-      startPage = Math.max(1, endPage - maxPages + 1);
-    }
-
-    // Botón Primera Página
-    pages.push(
-      <PaginationItem key="first">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => goToPage(1)}
-          disabled={currentPage === 1}
-          className="h-8 w-8 p-0"
-        >
-          <span className="sr-only">Primera página</span>
-          <ChevronsLeft className="h-4 w-4" />
-        </Button>
-      </PaginationItem>
-    );
-
-    // Botón Página Anterior
-    pages.push(
-      <PaginationItem key="prev">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => goToPage(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="h-8 w-8 p-0"
-        >
-          <span className="sr-only">Página anterior</span>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-      </PaginationItem>
-    );
-
-    // Números de página
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <PaginationItem key={i}>
-          <PaginationLink
-            href="#"
-            onClick={e => {
-              e.preventDefault();
-              goToPage(i);
-            }}
-            isActive={currentPage === i}
-            className={currentPage === i ? 'font-semibold' : ''}
-          >
-            {i}
-          </PaginationLink>
-        </PaginationItem>
-      );
-    }
-
-    // Botón Siguiente Página
-    pages.push(
-      <PaginationItem key="next">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => goToPage(currentPage + 1)}
-          disabled={currentPage >= totalPages}
-          className="h-8 w-8 p-0"
-        >
-          <span className="sr-only">Siguiente página</span>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </PaginationItem>
-    );
-
-    // Botón Última Página
-    pages.push(
-      <PaginationItem key="last">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => goToPage(totalPages)}
-          disabled={currentPage >= totalPages}
-          className="h-8 w-8 p-0"
-        >
-          <span className="sr-only">Última página</span>
-          <ChevronsRight className="h-4 w-4" />
-        </Button>
-      </PaginationItem>
-    );
-
-    return pages;
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
   };
 
   return (
@@ -327,22 +212,12 @@ export default function GestionUsuariosPage() {
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="px-4 py-3 font-normal text-muted-foreground">
-                    <div className="flex items-center">Usuario</div>
-                  </TableHead>
-                  <TableHead className="px-4 py-3 font-normal text-muted-foreground">
-                    <div className="flex items-center">Correo</div>
-                  </TableHead>
-                  <TableHead className="px-4 py-3 font-normal text-muted-foreground">
-                    <div className="flex items-center">Rol</div>
-                  </TableHead>
-                  <TableHead className="px-4 py-3 font-normal text-muted-foreground">
-                    <div className="flex items-center">Código</div>
-                  </TableHead>
-                  <TableHead className="px-4 py-3 text-center font-normal text-muted-foreground">
-                    Estado
-                  </TableHead>
-                  <TableHead className="w-[120px] px-4 py-3 text-right font-normal text-muted-foreground">
+                  <TableHead className="text-xs font-normal px-4 py-2">Usuario</TableHead>
+                  <TableHead className="text-xs font-normal px-4 py-2">Correo</TableHead>
+                  <TableHead className="text-xs font-normal px-4 py-2">Rol</TableHead>
+                  <TableHead className="text-xs font-normal px-4 py-2">Código</TableHead>
+                  <TableHead className="text-xs font-normal px-4 py-2">Estado</TableHead>
+                  <TableHead className="text-xs font-normal text-right px-4 py-2">
                     Acciones
                   </TableHead>
                 </TableRow>
@@ -351,7 +226,7 @@ export default function GestionUsuariosPage() {
                 {loading ? (
                   Array.from({ length: itemsPerPage }).map((_, index) => (
                     <TableRow key={index}>
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="text-xs px-4 py-3">
                         <div className="flex items-center space-x-3">
                           <Skeleton className="h-10 w-10 rounded-full" />
                           <div className="space-y-1">
@@ -360,18 +235,18 @@ export default function GestionUsuariosPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="text-xs px-4 py-3">
                         <Skeleton className="h-4 w-48" />
                       </TableCell>
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="text-xs px-4 py-3">
                         <Skeleton className="h-6 w-20 rounded-full" />
                       </TableCell>
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="text-xs px-4 py-3">
                         <div className="flex justify-center">
                           <Skeleton className="h-6 w-20 rounded-full" />
                         </div>
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-right">
+                      <TableCell className="text-xs px-4 py-3 text-right">
                         <div className="flex justify-end">
                           <Skeleton className="h-8 w-8 rounded-md" />
                         </div>
@@ -400,7 +275,7 @@ export default function GestionUsuariosPage() {
                 ) : (
                   paginatedUsers.map(user => (
                     <TableRow key={user.id} className="hover:bg-muted/50 group">
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="text-xs px-4 py-3">
                         <div className="flex items-center space-x-3">
                           <div className="flex-shrink-0 h-10 w-10 rounded-full bg-muted flex items-center justify-center">
                             <UserIcon className="h-5 w-5 text-muted-foreground" />
@@ -415,7 +290,7 @@ export default function GestionUsuariosPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="text-xs px-4 py-3">
                         <div className="flex items-center">
                           <span
                             className="truncate max-w-[200px]"
@@ -425,17 +300,17 @@ export default function GestionUsuariosPage() {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="text-xs px-4 py-3">
                         <Badge className="text-xs font-normal" variant="outline">
                           {user.role.toLowerCase()}
                         </Badge>
                       </TableCell>
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="text-xs px-4 py-3">
                         <div className="text-sm text-muted-foreground">
                           {user.role === 'ESTUDIANTE' ? user.codigoEstudiantil || 'N/A' : 'N/A'}
                         </div>
                       </TableCell>
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="text-xs px-4 py-3">
                         <div className="flex justify-center lowercase text-xs font-normal">
                           {user.isActive ? (
                             <>
@@ -458,7 +333,7 @@ export default function GestionUsuariosPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="text-xs px-4 py-3">
                         <div className="flex justify-end">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -509,19 +384,13 @@ export default function GestionUsuariosPage() {
           </div>
 
           <div className="px-4 py-3 border-t">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-xs text-muted-foreground">
-                Mostrando {startIndex + 1} a{' '}
-                {Math.min(startIndex + itemsPerPage, filteredUsers.length)} de{' '}
-                {filteredUsers.length} usuarios
-              </div>
-              <div className="w-full sm:w-auto flex justify-center">
-                <Pagination>
-                  <PaginationContent className="flex-wrap justify-center sm:justify-end gap-1">
-                    {renderPagination()}
-                  </PaginationContent>
-                </Pagination>
-              </div>
+            <div className="border-t p-4">
+              <TablePagination
+                currentPage={currentPage}
+                totalItems={filteredUsers.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handlePageChange}
+              />
             </div>
           </div>
         </CardContent>

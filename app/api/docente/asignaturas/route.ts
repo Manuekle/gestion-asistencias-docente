@@ -11,6 +11,15 @@ import {
   DocenteSubjectUpdateSchema,
 } from './schema';
 
+// Helper function to get period from a date (1: Jan-Jun, 2: Jul-Dec)
+const getPeriodFromDate = (date: Date | string): string => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1; // getMonth() is 0-indexed
+  const period = month <= 6 ? '1' : '2';
+  return `${year}-${period}`;
+};
+
 // HU-004: Ver Asignaturas Creadas
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -22,17 +31,31 @@ export async function GET(request: Request) {
   try {
     // Validar parámetros de consulta
     const { searchParams } = new URL(request.url);
+    const period = searchParams.get('period');
     const query = DocenteSubjectQuerySchema.parse({
       sortBy: searchParams.get('sortBy'),
       sortOrder: searchParams.get('sortOrder'),
     });
 
-    const where = { teacherId: session.user.id };
+    // Build the where clause with proper TypeScript types
+    const where: {
+      teacherId: string;
+      OR?: Array<{ code: { contains: string } }>;
+    } = { teacherId: session.user.id };
+
     const subjects = await db.subject.findMany({
       where,
       orderBy: { [query.sortBy]: query.sortOrder },
     });
-    const validados = z.array(DocenteSubjectSchema).safeParse(subjects);
+
+    // Filter by period if provided, otherwise include all subjects
+    const filteredSubjects = period
+      ? subjects.filter(subject => {
+          const subjectPeriod = getPeriodFromDate(subject.createdAt);
+          return subjectPeriod === period;
+        })
+      : subjects;
+    const validados = z.array(DocenteSubjectSchema).safeParse(filteredSubjects);
     if (!validados.success) {
       return NextResponse.json(
         {
@@ -42,8 +65,18 @@ export async function GET(request: Request) {
         { status: 500 }
       );
     }
+
+    // Add period information to each subject based on createdAt
+    const subjectsWithPeriods = validados.data.map(subject => {
+      const period = getPeriodFromDate(subject.createdAt);
+      return {
+        ...subject,
+        period,
+      };
+    });
+
     return NextResponse.json({
-      data: validados.data,
+      data: subjectsWithPeriods,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
