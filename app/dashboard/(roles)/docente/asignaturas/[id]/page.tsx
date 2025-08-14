@@ -1,82 +1,25 @@
 'use client';
 
+import { ClassesTable } from '@/components/tables/classes-table';
 import { EventsTable } from '@/components/tables/events-table';
-import { DatePicker } from '@/components/ui/date-picker';
-import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import {
-  Ban,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Edit,
-  MoreHorizontal,
-  UserCheck,
-  UserX,
-} from 'lucide-react';
+import { StudentsTable } from '@/components/tables/students-table';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardDescription, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loading, LoadingPage } from '@/components/ui/loading';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
-import { Class, ClassStatus as PrismaClassStatus } from '@prisma/client';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { LoadingPage } from '@/components/ui/loading';
+import { ClassStatus as PrismaClassStatus } from '@prisma/client';
 
 // Utility functions for date handling
 const dateUtils = {
@@ -157,22 +100,69 @@ interface Student {
   telefono?: string | null;
 }
 
-interface StudentAttendance {
-  id: string;
-  name: string | null;
-  status: string;
-}
-
-// Usar el tipo de Prisma para el estado real de la base de datos
 type ClassStatus = PrismaClassStatus;
 
-// Tipo extendido solo para uso visual
-type VisualClassStatus = ClassStatus | 'EN_CURSO' | 'FINALIZADA';
+// Import the ClassWithStatus type from the table component
+import type { ClassWithStatus as TableClassWithStatus } from '@/components/tables/classes-table';
 
-interface ClassWithStatus extends Omit<Class, 'cancellationReason'> {
+// Local alias that extends the table type with Date support for form handling
+type LocalClassWithStatus = Omit<
+  TableClassWithStatus,
+  'date' | 'startTime' | 'endTime' | 'topic' | 'description' | 'status' | 'cancellationReason'
+> & {
+  date: string | Date;
+  startTime?: string | Date | null;
+  endTime?: string | Date | null;
+  topic?: string | null;
+  description?: string | null;
   status: ClassStatus;
-  cancellationReason: string | null;
+  cancellationReason?: string | null;
+  [key: string]: unknown; // For any additional properties
+};
+
+// Add missing Pagination interface
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
+
+// Utility function to convert LocalClassWithStatus to TableClassWithStatus
+const toTableClass = (cls: LocalClassWithStatus): TableClassWithStatus => {
+  return {
+    ...cls,
+    date: typeof cls.date === 'string' ? cls.date : dateUtils.formatForAPI(cls.date),
+    startTime: cls.startTime
+      ? typeof cls.startTime === 'string'
+        ? cls.startTime
+        : dateUtils.formatDisplayTime(cls.startTime)
+      : undefined,
+    endTime: cls.endTime
+      ? typeof cls.endTime === 'string'
+        ? cls.endTime
+        : dateUtils.formatDisplayTime(cls.endTime)
+      : undefined,
+    topic: cls.topic || undefined,
+    description: cls.description || undefined,
+    status: cls.status as string, // Safe cast since we know it's a valid status
+    cancellationReason: cls.cancellationReason || undefined,
+  };
+};
+
+// Utility function to convert TableClassWithStatus to LocalClassWithStatus
+const toLocalClass = (cls: TableClassWithStatus): LocalClassWithStatus => {
+  return {
+    ...cls,
+    date: cls.date,
+    startTime: cls.startTime || null,
+    endTime: cls.endTime || null,
+    topic: cls.topic || null,
+    description: cls.description || null,
+    status: cls.status as ClassStatus, // Safe cast since we know it's a valid status
+    cancellationReason: cls.cancellationReason || null,
+  };
+};
 
 const classStatusMap = {
   PROGRAMADA: {
@@ -271,10 +261,19 @@ export default function SubjectDetailPage() {
   const [subject, setSubject] = useState<Subject | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isLoadingSubject, setIsLoadingSubject] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Add pagination state that was missing
+  const [pagination, setPagination] = useState<Pagination>({
+    page: 1,
+    limit: 5,
+    total: 0,
+    totalPages: 1,
+  });
 
   // Class management state
   const [isEditClassDialogOpen, setIsEditClassDialogOpen] = useState(false);
-  const [currentClass, setCurrentClass] = useState<ClassWithStatus | null>(null);
+  const [currentClass, setCurrentClass] = useState<TableClassWithStatus | null>(null);
   const [classDate, setClassDate] = useState<Date | undefined>(new Date());
   const [startTime, setStartTime] = useState<string>('');
   const [endTime, setEndTime] = useState<string>('');
@@ -286,18 +285,76 @@ export default function SubjectDetailPage() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Classes state
-  const [classes, setClasses] = useState<ClassWithStatus[]>([]);
+  const [classes, setClasses] = useState<LocalClassWithStatus[]>([]);
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
   const [hasScheduledClasses, setHasScheduledClasses] = useState(false);
   const [reportExistsForCurrentPeriod, setReportExistsForCurrentPeriod] = useState(false);
 
-  // Pagination state
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 1,
-  });
+  // Pagination state for classes
+  const [classPage, setClassPage] = useState(1);
+  const classesPerPage = 5; // Reduced for testing
+
+  // Calculate pagination values
+  const totalClassPages = Math.max(1, Math.ceil(classes.length / classesPerPage));
+  const classStart = (classPage - 1) * classesPerPage + 1;
+  const classEnd = Math.min(classPage * classesPerPage, classes.length);
+
+  // Reset to first page when classes change
+  useEffect(() => {
+    setClassPage(1);
+  }, [classes.length]);
+
+  // Get paginated classes for current page
+  const paginatedClasses = useMemo(() => {
+    return classes.slice((classPage - 1) * classesPerPage, classPage * classesPerPage).map(cls =>
+      toTableClass({
+        ...cls,
+        date: cls.date,
+        startTime: cls.startTime,
+        endTime: cls.endTime,
+        topic: cls.topic || null,
+        description: cls.description || null,
+        status: cls.status,
+        cancellationReason: cls.cancellationReason || null,
+      })
+    );
+  }, [classes, classPage, classesPerPage]);
+
+  // Handle page change for classes
+
+  // Handlers para ClassesTable
+  const handleEditClass = (tableClass: TableClassWithStatus) => {
+    // Set the current class in the table format
+    setCurrentClass(tableClass);
+
+    // Convert the table class to local class for form handling
+    const localClass = toLocalClass(tableClass);
+
+    // Convert the date to a Date object for the form
+    const classDate = dateUtils.createLocalDate(localClass.date as string);
+    setClassDate(classDate);
+
+    // Format times for the form
+    const formatTime = (time: string | Date | null | undefined): string => {
+      if (!time) return '';
+      return typeof time === 'string' ? time : dateUtils.formatDisplayTime(time);
+    };
+
+    setStartTime(formatTime(localClass.startTime));
+    setEndTime(formatTime(localClass.endTime));
+    setClassTopic(localClass.topic || '');
+    setClassDescription(localClass.description || '');
+    setIsEditClassDialogOpen(true);
+  };
+
+  const handleCancelClass = (cls: TableClassWithStatus) => {
+    setClassToCancel(toLocalClass(cls));
+    setCancelReason('');
+  };
+
+  const handleMarkClassAsDone = (classId: string) => {
+    handleUpdateClassStatus(classId, 'REALIZADA');
+  };
 
   // Other UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -333,8 +390,6 @@ export default function SubjectDetailPage() {
         throw new Error(errorData.error || 'Error al generar el reporte');
       }
 
-      const data = await response.json();
-
       toast.success('El reporte se está generando. Recibirás un correo cuando esté listo.');
       setIsReportModalOpen(false);
       setReportExistsForCurrentPeriod(true);
@@ -357,12 +412,8 @@ export default function SubjectDetailPage() {
     id: string;
     name: string;
   } | null>(null);
-  const [classToCancel, setClassToCancel] = useState<ClassWithStatus | null>(null);
+  const [classToCancel, setClassToCancel] = useState<LocalClassWithStatus | null>(null);
   const [cancelReason, setCancelReason] = useState('');
-  const [isAttendanceDialogOpen, setIsAttendanceDialogOpen] = useState(false);
-  const [attendances, setAttendances] = useState<StudentAttendance[]>([]);
-  const [isUpdatingAttendance, setIsUpdatingAttendance] = useState<string | null>(null);
-  const [popoverStates, setPopoverStates] = useState<Record<string, boolean>>({});
 
   // Paginación estudiantes
   const [studentPage, setStudentPage] = useState(1);
@@ -425,6 +476,7 @@ export default function SubjectDetailPage() {
         const { exists } = await response.json();
         return exists;
       } catch (error) {
+        console.error('Error checking report existence:', error);
         return false;
       }
     },
@@ -470,7 +522,7 @@ export default function SubjectDetailPage() {
         const { data, pagination: paginationData } = result;
 
         // Check if any class is in PROGRAMADA status
-        const hasScheduled = data.some((cls: ClassWithStatus) => cls.status === 'PROGRAMADA');
+        const hasScheduled = data.some((cls: LocalClassWithStatus) => cls.status === 'PROGRAMADA');
         setHasScheduledClasses(hasScheduled);
 
         setClasses(data);
@@ -487,8 +539,9 @@ export default function SubjectDetailPage() {
           const currentPeriod = getCurrentPeriod();
           const reportExists = await checkReportExistsForPeriod(currentPeriod);
           setReportExistsForCurrentPeriod(reportExists);
-        } catch (reportError) {
+        } catch (error) {
           // Don't block the UI for this error
+          console.error('Error checking report existence:', error);
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Error al cargar las clases';
@@ -501,18 +554,10 @@ export default function SubjectDetailPage() {
     [subjectId, checkReportExistsForPeriod, getCurrentPeriod]
   );
 
-  // Pagination handlers
-  const handleClassPageChange = useCallback(
-    (newPage: number) => {
-      if (newPage >= 1 && newPage <= pagination.totalPages) {
-        setPagination(prev => ({ ...prev, page: newPage }));
-        fetchClasses(newPage, pagination.limit);
-      }
-    },
-    [pagination.totalPages, pagination.limit, fetchClasses]
-  );
-
-  // Pagination is handled by handleClassPageChange
+  // Fetch classes when page changes
+  useEffect(() => {
+    fetchClasses(classPage, classesPerPage);
+  }, [classPage, classesPerPage, fetchClasses]);
 
   const fetchSubject = useCallback(async () => {
     if (!subjectId) {
@@ -618,6 +663,7 @@ export default function SubjectDetailPage() {
         ]);
         toast.dismiss(loadingToast);
       } catch (error) {
+        console.error('Error loading data:', error);
         toast.dismiss(loadingToast);
         // Only show error in the UI, not as toast since it's already handled in fetch functions
       }
@@ -636,170 +682,6 @@ export default function SubjectDetailPage() {
     pagination.page,
     pagination.limit,
   ]);
-
-  // FUNCIÓN CORREGIDA PARA FORMATEAR FECHAS
-  const formatClassDate = (cls: Class) => {
-    let displayDate = 'N/A';
-    let timeRange = '';
-
-    try {
-      // Crear la fecha usando dateUtils
-      const classDate = dateUtils.createLocalDate(cls.date);
-      displayDate = dateUtils.formatDisplayDate(classDate);
-
-      // Formatear el rango de horas
-      if (cls.startTime && cls.endTime) {
-        const startDate = new Date(cls.startTime);
-        const endDate = new Date(cls.endTime);
-
-        const startTimeFormatted = dateUtils.formatDisplayTime(startDate);
-        const endTimeFormatted = dateUtils.formatDisplayTime(endDate);
-
-        timeRange = `${startTimeFormatted} - ${endTimeFormatted}`;
-      }
-    } catch (error) {
-      console.error('Error formatting class date:', error);
-      displayDate = 'Fecha inválida';
-    }
-
-    return timeRange ? `${displayDate}, ${timeRange}` : displayDate;
-  };
-
-  // --- HANDLERS: ATTENDANCE & CLASSES ---
-
-  const handleUpdateAttendance = useCallback(
-    async (classId: string, studentId: string, status: string) => {
-      try {
-        setIsUpdatingAttendance(studentId);
-        const response = await fetch(`/api/docente/clases/${classId}/asistencia`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ studentId, status }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Error al actualizar la asistencia');
-        }
-
-        // Update the local state to reflect the change
-        setAttendances(prevAttendances =>
-          prevAttendances.map(att => (att.id === studentId ? { ...att, status } : att))
-        );
-      } catch (error) {
-        toast.error('Error al actualizar la asistencia');
-      } finally {
-        setIsUpdatingAttendance(null);
-      }
-    },
-    []
-  );
-
-  const resetClassForm = () => {
-    setCurrentClass(null);
-    setClassDate(new Date());
-    setStartTime('');
-    setEndTime('');
-    setClassTopic('');
-  };
-
-  const handleSubmitClass = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!classDate || !startTime || !endTime || !classTopic) {
-      toast.error('Por favor complete todos los campos');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    // Validar que la hora de fin sea posterior a la de inicio
-    if (startTime >= endTime) {
-      toast.error('La hora de fin debe ser posterior a la de inicio');
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      // MANEJO CORREGIDO DE FECHAS
-      const formattedDate = dateUtils.formatForAPI(classDate);
-
-      // Crear fechas combinadas con la fecha y hora usando dateUtils
-      const startDateTime = dateUtils.combineDateTime(classDate, startTime);
-      const endDateTime = dateUtils.combineDateTime(classDate, endTime);
-
-      const formattedStartTime = startDateTime.toISOString();
-      const formattedEndTime = endDateTime.toISOString();
-
-      const response = await fetch(`/api/docente/clases/${currentClass?.id}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          date: formattedDate,
-          startTime: formattedStartTime,
-          endTime: formattedEndTime,
-          topic: classTopic,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'No se pudo actualizar la clase.');
-
-      toast.success('¡Clase actualizada con éxito!');
-      fetchClasses(pagination.page, pagination.limit);
-      setIsEditClassDialogOpen(false);
-      resetClassForm();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'No se pudo actualizar la clase.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const openEditClassDialog = (cls: ClassWithStatus) => {
-    setCurrentClass(cls);
-
-    try {
-      // MANEJO CORREGIDO DE FECHAS PARA EDICIÓN
-      const classDate = dateUtils.createLocalDate(cls.date);
-      setClassDate(classDate);
-
-      // Extraer la hora de inicio y fin de las fechas ISO
-      if (cls.startTime) {
-        const startDate = new Date(cls.startTime);
-        const hours = startDate.getHours().toString().padStart(2, '0');
-        const minutes = startDate.getMinutes().toString().padStart(2, '0');
-        setStartTime(`${hours}:${minutes}`);
-      } else {
-        setStartTime('');
-      }
-
-      if (cls.endTime) {
-        const endDate = new Date(cls.endTime);
-        const hours = endDate.getHours().toString().padStart(2, '0');
-        const minutes = endDate.getMinutes().toString().padStart(2, '0');
-        setEndTime(`${hours}:${minutes}`);
-      } else if (cls.startTime) {
-        // Si hay hora de inicio pero no de fin, establecer 2 horas después
-        const startDate = new Date(cls.startTime);
-        startDate.setHours(startDate.getHours() + 2);
-        const hours = startDate.getHours().toString().padStart(2, '0');
-        const minutes = startDate.getMinutes().toString().padStart(2, '0');
-        setEndTime(`${hours}:${minutes}`);
-      } else {
-        setEndTime('');
-      }
-
-      setClassTopic(cls.topic || '');
-      setIsEditClassDialogOpen(true);
-    } catch (error) {
-      console.error('Error opening edit dialog:', error);
-      toast.error('Error al cargar los datos de la clase');
-    }
-  };
-
-  // --- MANEJADORES DE MATRÍCULA ---
 
   const handleUnenrollRequest = async (studentId: string, reason: string) => {
     if (!subjectId) return;
@@ -836,9 +718,6 @@ export default function SubjectDetailPage() {
 
   // Loading state
   const isLoading = isLoadingSubject || isLoadingClasses || isLoadingStudents;
-
-  // Error state
-  const [error, setError] = useState<string | null>(null);
 
   // Show loading state
   if (isLoading) {
@@ -895,1023 +774,136 @@ export default function SubjectDetailPage() {
           }
         >
           {reportExistsForCurrentPeriod ? 'Reporte Generado' : 'Generar Reporte'}
-          {/* {hasScheduledClasses && (
-            <span className="ml-2 text-xs text-yellow-500">(Clases pendientes)</span>
-          )} */}
         </Button>
       </div>
 
       {/* SECCIÓN DE GESTIÓN DE ESTUDIANTES */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-xl font-semibold tracking-heading">
-              Gestión de Estudiantes
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Matricula y administra a los estudiantes de esta asignatura.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoadingStudents ? (
-            <Loading />
-          ) : enrolledStudents.length > 0 ? (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/60">
-                    <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
-                      Nombre
-                    </TableHead>
-                    <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
-                      Documento
-                    </TableHead>
-                    <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
-                      Correo Institucional
-                    </TableHead>
-                    <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
-                      Correo Personal
-                    </TableHead>
-                    <TableHead className="text-xs tracking-tight font-normal px-4 py-2">
-                      Teléfono
-                    </TableHead>
-                    <TableHead className="text-xs tracking-tight font-normal text-right px-4 py-2">
-                      Acciones
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedStudents.map(student => (
-                    <TableRow key={student.id}>
-                      <TableCell className="text-xs px-4 py-2">{student.name || 'N/A'}</TableCell>
-                      <TableCell className="text-xs px-4 py-2">
-                        {student.document || 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-2">
-                        {student.correoInstitucional ? (
-                          <a
-                            href={`mailto:${student.correoInstitucional}`}
-                            title="Enviar correo"
-                            className="hover:underline"
-                          >
-                            {student.correoInstitucional}
-                          </a>
-                        ) : (
-                          'N/A'
-                        )}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-2">
-                        {student.correoPersonal ? (
-                          <a
-                            href={`mailto:${student.correoPersonal}`}
-                            title="Enviar correo"
-                            className="hover:underline"
-                          >
-                            {student.correoPersonal}
-                          </a>
-                        ) : (
-                          'N/A'
-                        )}
-                      </TableCell>
-                      <TableCell className="text-xs px-4 py-2">
-                        {student.telefono ? (
-                          <a
-                            href={`tel:${student.telefono}`}
-                            className="hover:underline"
-                            title="Llamar"
-                          >
-                            {student.telefono}
-                          </a>
-                        ) : (
-                          'N/A'
-                        )}
-                      </TableCell>
-                      <TableCell className="text-xs tracking-tight text-right px-4 py-2">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              title="Solicitar desmatrícula"
-                              onClick={() =>
-                                setCurrentStudentForUnenroll({
-                                  id: student.id,
-                                  name: student.name || 'el estudiante',
-                                })
-                              }
-                            >
-                              <UserX className="h-4 w-4 text-amber-500" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="font-sans text-xl font-semibold tracking-tight">
-                                Solicitar desmatrícula
-                              </AlertDialogTitle>
-                              <AlertDialogDescription className="space-y-4 font-sans">
-                                <p>
-                                  Se enviará una solicitud al administrador para desmatricular a{' '}
-                                  {currentStudentForUnenroll?.name} de la asignatura.
-                                </p>
-                                <div className="space-y-2">
-                                  <Label
-                                    className="text-xs font-normal text-black dark:text-white"
-                                    htmlFor="reason"
-                                  >
-                                    Motivo de la solicitud
-                                  </Label>
-                                  <Input
-                                    id="reason"
-                                    placeholder="Ingrese el motivo de la solicitud"
-                                    value={unenrollReason}
-                                    className="text-xs"
-                                    onChange={e => setUnenrollReason(e.target.value)}
-                                    required
-                                  />
-                                </div>
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel
-                                className="font-sans"
-                                onClick={() => {
-                                  setUnenrollReason('');
-                                  setCurrentStudentForUnenroll(null);
-                                }}
-                              >
-                                Cancelar
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={async () => {
-                                  if (currentStudentForUnenroll && unenrollReason.trim()) {
-                                    await handleUnenrollRequest(
-                                      currentStudentForUnenroll.id,
-                                      unenrollReason
-                                    );
-                                  } else {
-                                    toast.error(
-                                      'Por favor ingrese un motivo para la desmatriculación'
-                                    );
-                                  }
-                                }}
-                                className="bg-amber-600 text-white hover:bg-amber-700 font-sans"
-                                disabled={!unenrollReason.trim() || isSubmitting}
-                              >
-                                {isSubmitting ? 'Enviando...' : 'Enviar solicitud'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {/* Paginación estudiantes */}
-              {totalStudentPages > 1 && (
-                <div className="grid grid-cols-2 py-2 px-4 gap-2 items-center border-t">
-                  <span className="text-xs text-muted-foreground col-span-1 justify-self-start items-center">
-                    Mostrando {studentStart}–{studentEnd} de {enrolledStudents.length} registros
-                  </span>
-                  <Pagination className="col-span-1 justify-end items-center">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <Button
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setStudentPage(p => Math.max(1, p - 1))}
-                          disabled={studentPage === 1}
-                        >
-                          <span className="sr-only">Anterior</span>
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                      </PaginationItem>
-                      {Array.from({ length: totalStudentPages }).map((_, i) => (
-                        <PaginationItem key={i}>
-                          <Button
-                            variant={studentPage === i + 1 ? 'outline' : 'ghost'}
-                            className="h-8 w-8 p-0"
-                            onClick={() => setStudentPage(i + 1)}
-                          >
-                            {i + 1}
-                          </Button>
-                        </PaginationItem>
-                      ))}
-                      <PaginationItem>
-                        <Button
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setStudentPage(p => Math.min(totalStudentPages, p + 1))}
-                          disabled={studentPage === totalStudentPages}
-                        >
-                          <span className="sr-only">Siguiente</span>
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground text-center py-12">
-              Aún no hay estudiantes matriculados en esta asignatura.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <StudentsTable
+        students={paginatedStudents}
+        isLoading={isLoadingStudents}
+        page={studentPage}
+        totalPages={totalStudentPages}
+        start={studentStart}
+        end={studentEnd}
+        onPageChange={setStudentPage}
+        currentStudentForUnenroll={currentStudentForUnenroll}
+        unenrollReason={unenrollReason}
+        setUnenrollReason={setUnenrollReason}
+        setCurrentStudentForUnenroll={setCurrentStudentForUnenroll}
+        handleUnenrollRequest={handleUnenrollRequest}
+        isSubmitting={isSubmitting}
+      />
 
-      {/* SECCIÓN DE GESTIÓN DE CLASES */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-xl font-semibold tracking-heading">
-              Gestión de Clases
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Crea y administra las sesiones de clase para esta asignatura.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoadingClasses ? (
-            <Loading />
-          ) : classes.length > 0 ? (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/60">
-                    <TableHead className="text-xs font-normal px-4 py-2">Fecha</TableHead>
-                    <TableHead className="text-xs font-normal px-4 py-2">Tema</TableHead>
-                    <TableHead className="text-xs font-normal px-4 py-2">Estado</TableHead>
-                    <TableHead className="text-xs font-normal text-right px-4 py-2">
-                      Acciones
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {classes.map(cls => {
-                    // LÓGICA CORREGIDA PARA DETERMINAR ESTADOS
-                    const today = dateUtils.getTodayWithoutTime();
-                    const now = new Date();
+      <ClassesTable
+        classes={paginatedClasses}
+        isLoading={isLoadingClasses}
+        page={classPage}
+        totalPages={totalClassPages}
+        start={classStart}
+        end={classEnd}
+        totalClasses={classes.length}
+        onPageChange={newPage => {
+          if (newPage >= 1 && newPage <= totalClassPages) {
+            setClassPage(newPage);
+          }
+        }}
+        handleEdit={handleEditClass}
+        handleCancel={handleCancelClass}
+        handleMarkAsDone={handleMarkClassAsDone}
+        classStatusMap={classStatusMap}
+        dateUtils={dateUtils}
+        // Dialog states
+        isCancelDialogOpen={!!classToCancel}
+        classToCancel={classToCancel ? toTableClass(classToCancel) : null}
+        cancelReason={cancelReason}
+        setCancelReason={setCancelReason}
+        onCancelDialogOpenChange={open => {
+          if (!open) setClassToCancel(null);
+        }}
+        onConfirmCancel={async () => {
+          if (classToCancel) {
+            await handleUpdateClassStatus(classToCancel.id, 'CANCELADA', cancelReason);
+            setClassToCancel(null);
+            setCancelReason('');
+          }
+        }}
+        isEditDialogOpen={isEditClassDialogOpen}
+        onEditDialogOpenChange={setIsEditClassDialogOpen}
+        // Form states
+        classDate={classDate || new Date()}
+        setClassDate={setClassDate}
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
+        classTopic={classTopic}
+        setClassTopic={setClassTopic}
+        classDescription={classDescription}
+        setClassDescription={setClassDescription}
+        isSubmitting={isSubmitting}
+        // Date picker states
+        isDatePickerOpen={isDatePickerOpen}
+        setIsDatePickerOpen={setIsDatePickerOpen}
+        isStartTimePickerOpen={isStartTimePickerOpen}
+        setIsStartTimePickerOpen={setIsStartTimePickerOpen}
+        isEndTimePickerOpen={isEndTimePickerOpen}
+        setIsEndTimePickerOpen={setIsEndTimePickerOpen}
+        // Form submission
+        onSubmitEdit={async () => {
+          if (!currentClass) return;
 
-                    // Crear fechas usando dateUtils
-                    const classDate = dateUtils.createLocalDate(cls.date);
-                    const classDateOnly = new Date(classDate);
-                    classDateOnly.setHours(0, 0, 0, 0);
+          try {
+            setIsSubmitting(true);
+            // Format the date and time for the API
+            const formattedDate = classDate ? dateUtils.formatForAPI(classDate) : '';
+            const formattedStartTime = startTime || '';
+            const formattedEndTime = endTime || '';
 
-                    // Obtener fechas de inicio y fin de la clase
-                    const classStartTime = cls.startTime ? new Date(cls.startTime) : null;
-                    const classEndTime = cls.endTime ? new Date(cls.endTime) : null;
+            const response = await fetch(`/api/docente/clases/${currentClass.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                date: formattedDate,
+                startTime: formattedStartTime,
+                endTime: formattedEndTime,
+                topic: classTopic,
+                description: classDescription,
+              }),
+            });
 
-                    // Determinar estados de fecha
-                    const isToday = dateUtils.isSameDay(classDateOnly, today);
-                    const isFuture = classDateOnly > today;
-                    const isPast = classDateOnly < today;
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || 'No se pudo actualizar la clase.');
+            }
 
-                    // Determinar si la clase está en curso (solo si es hoy y dentro del horario)
-                    const isWithinClassTime =
-                      isToday &&
-                      classStartTime &&
-                      classEndTime &&
-                      now >= classStartTime &&
-                      now <= classEndTime;
+            const updatedClass = await response.json();
 
-                    // La clase está programada para hoy pero aún no ha comenzado
-                    const isScheduledForToday = isToday && classStartTime && now < classStartTime;
+            // Update the classes list
+            setClasses(prev => prev.map(c => (c.id === updatedClass.id ? updatedClass : c)));
 
-                    // La clase de hoy ya terminó
-                    const isTodayFinished = isToday && classEndTime && now > classEndTime;
-
-                    // Determinar el estado visual de la clase
-                    let visualStatus: VisualClassStatus = cls.status;
-
-                    if (cls.status === 'PROGRAMADA') {
-                      if (isWithinClassTime) {
-                        visualStatus = 'EN_CURSO';
-                      } else if (isTodayFinished || isPast) {
-                        visualStatus = 'FINALIZADA';
-                      }
-                    }
-
-                    // Obtener información de estado visual
-                    const statusInfo = classStatusMap[
-                      visualStatus as keyof typeof classStatusMap
-                    ] || {
-                      label: visualStatus === 'FINALIZADA' ? 'Finalizada' : 'Desconocido',
-                      color:
-                        visualStatus === 'FINALIZADA'
-                          ? 'text-xs font-normal text-gray-600 dark:text-gray-400'
-                          : 'text-xs font-normal',
-                    };
-
-                    // Determinar qué acciones están disponibles
-                    const isProgramada = cls.status === 'PROGRAMADA';
-                    const isEnCurso = visualStatus === 'EN_CURSO';
-
-                    const canEdit = isProgramada && (isFuture || isScheduledForToday);
-                    const canCancel = isProgramada && (isFuture || isScheduledForToday);
-                    const canMarkAsDone = (isProgramada || isEnCurso) && (isToday || isPast);
-
-                    // El botón de asistencia debe estar habilitado si:
-                    const canTakeAttendance =
-                      (isWithinClassTime || isScheduledForToday || isTodayFinished || isPast) &&
-                      (isProgramada || isEnCurso) &&
-                      cls.status !== 'REALIZADA' &&
-                      cls.status !== 'CANCELADA';
-
-                    return (
-                      <TableRow
-                        key={cls.id}
-                        className={
-                          cls.status === 'CANCELADA' ? 'opacity-70 bg-gray-50 dark:bg-zinc-900' : ''
-                        }
-                        data-state={cls.status === 'CANCELADA' ? 'cancelled' : undefined}
-                      >
-                        <TableCell className="text-xs px-4 py-2">
-                          <div className="flex flex-col">
-                            <span>{formatClassDate(cls)}</span>
-                            {cls.status === 'CANCELADA' && cls.cancellationReason && (
-                              <span className="text-xs text-amber-600 mt-1 dark:text-amber-400">
-                                Motivo: {cls.cancellationReason}
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs px-4 py-2">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                {canTakeAttendance ? (
-                                  <Link
-                                    href={`/dashboard/docente/clases/${cls.id}/asistencia`}
-                                    className="hover:underline"
-                                  >
-                                    {cls.topic || 'Sin tema'}
-                                  </Link>
-                                ) : (
-                                  <span className="cursor-default">{cls.topic || 'N/A'}</span>
-                                )}
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-center">
-                                  {cls.status === 'CANCELADA'
-                                    ? `Clase cancelada${cls.cancellationReason ? `: ${cls.cancellationReason}` : ''}`
-                                    : cls.status === 'REALIZADA'
-                                      ? 'Clase ya finalizada'
-                                      : canTakeAttendance
-                                        ? 'Registrar asistencia'
-                                        : isToday
-                                          ? 'Disponible hoy'
-                                          : isFuture
-                                            ? `Disponible en ${Math.ceil((classDateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))} días`
-                                            : 'Clase pasada sin registro'}
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </TableCell>
-                        <TableCell className="px-4 py-2">
-                          <Badge
-                            variant="outline"
-                            className={cn('font-light text-xs dark:text-white', statusInfo.color)}
-                          >
-                            {statusInfo.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-xs text-right px-4 py-2 font-sans">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Abrir menú</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="min-w-[180px]">
-                              <DropdownMenuLabel className="font-sans font-medium">
-                                Acciones
-                              </DropdownMenuLabel>
-                              <DropdownMenuItem
-                                asChild
-                                disabled={!canTakeAttendance}
-                                className={
-                                  !canTakeAttendance
-                                    ? 'opacity-50 cursor-not-allowed'
-                                    : 'cursor-pointer'
-                                }
-                              >
-                                <Link
-                                  href={`/dashboard/docente/clases/${cls.id}/asistencia`}
-                                  className="flex items-center w-full"
-                                  onClick={e => !canTakeAttendance && e.preventDefault()}
-                                >
-                                  <UserCheck className="mr-2 h-4 w-4" />
-                                  <span>Asistencia</span>
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onSelect={e => {
-                                  e.preventDefault();
-                                  if (canEdit) openEditClassDialog(cls);
-                                }}
-                                className={
-                                  !canEdit ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                                }
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                <span>Editar</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onSelect={e => {
-                                  e.preventDefault();
-                                  if (canCancel) setClassToCancel(cls);
-                                }}
-                                className={
-                                  !canCancel
-                                    ? 'opacity-50 cursor-not-allowed'
-                                    : 'text-amber-600 hover:text-amber-700 cursor-pointer'
-                                }
-                              >
-                                <Ban className="mr-2 h-4 w-4" />
-                                <span>Cancelar Clase</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onSelect={e => {
-                                  e.preventDefault();
-                                  if (canMarkAsDone) handleUpdateClassStatus(cls.id, 'REALIZADA');
-                                }}
-                                className={
-                                  !canMarkAsDone
-                                    ? 'opacity-50 cursor-not-allowed'
-                                    : 'cursor-pointer'
-                                }
-                              >
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                <span>Marcar como Realizada</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              {/* Paginación clases */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2 px-4 gap-2 border-t">
-                <span className="text-xs text-muted-foreground w-full">
-                  Mostrando {(pagination.page - 1) * pagination.limit + 1}-
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} de{' '}
-                  {pagination.total} clases
-                </span>
-                {pagination.totalPages > 1 && (
-                  <Pagination className="w-full sm:justify-end justify-center">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          href="#"
-                          onClick={e => {
-                            e.preventDefault();
-                            if (pagination.page > 1) handleClassPageChange(pagination.page - 1);
-                          }}
-                          className={pagination.page === 1 ? 'pointer-events-none opacity-50' : ''}
-                        />
-                      </PaginationItem>
-                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                        let pageNum: number;
-                        if (pagination.totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (pagination.page <= 3) {
-                          pageNum = i + 1;
-                        } else if (pagination.page >= pagination.totalPages - 2) {
-                          pageNum = pagination.totalPages - 4 + i;
-                        } else {
-                          pageNum = pagination.page - 2 + i;
-                        }
-
-                        return (
-                          <PaginationItem key={pageNum}>
-                            <PaginationLink
-                              href="#"
-                              onClick={e => {
-                                e.preventDefault();
-                                handleClassPageChange(pageNum);
-                              }}
-                              isActive={pagination.page === pageNum}
-                            >
-                              {pageNum}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
-                      <PaginationItem>
-                        <PaginationNext
-                          href="#"
-                          onClick={e => {
-                            e.preventDefault();
-                            if (pagination.page < pagination.totalPages)
-                              handleClassPageChange(pagination.page + 1);
-                          }}
-                          className={
-                            pagination.page === pagination.totalPages
-                              ? 'pointer-events-none opacity-50'
-                              : ''
-                          }
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
-              </div>
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              Aún no has creado ninguna clase para esta asignatura.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+            toast.success('La clase ha sido actualizada correctamente.');
+            setIsEditClassDialogOpen(false);
+          } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Error al actualizar la clase');
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
+        resetEditForm={() => {
+          setClassDate(new Date());
+          setStartTime('');
+          setEndTime('');
+          setClassTopic('');
+          setClassDescription('');
+        }}
+        formatClassDate={cls => {
+          const date =
+            typeof cls.date === 'string' ? dateUtils.createLocalDate(cls.date) : cls.date;
+          return dateUtils.formatDisplayDate(date);
+        }}
+      />
 
       <EventsTable subjectId={subjectId} />
-
-      {/* DIÁLOGO DE CONFIRMACIÓN DE CANCELACIÓN */}
-      <AlertDialog
-        open={!!classToCancel}
-        onOpenChange={isOpen => {
-          if (!isOpen) {
-            setClassToCancel(null);
-            setCancelReason('');
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar Clase</AlertDialogTitle>
-            <AlertDialogDescription>
-              Estás a punto de cancelar la clase de{' '}
-              <strong>{classToCancel?.topic || 'tema por definir'}</strong> del{' '}
-              <strong>{classToCancel ? formatClassDate(classToCancel) : ''}</strong>. Se enviará una
-              notificación a todos los estudiantes matriculados.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-4">
-            <Label htmlFor="cancel-reason">Motivo de la cancelación (requerido)</Label>
-            <Textarea
-              id="cancel-reason"
-              placeholder="Ej: calamidad doméstica, cita médica, etc."
-              value={cancelReason}
-              onChange={e => setCancelReason(e.target.value)}
-              className="mt-2 text-xs"
-            />
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cerrar</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={!cancelReason.trim()}
-              onClick={() => {
-                if (classToCancel) {
-                  handleUpdateClassStatus(classToCancel.id, 'CANCELADA', cancelReason);
-                  setClassToCancel(null);
-                  setCancelReason('');
-                }
-              }}
-              className="bg-amber-600 hover:bg-amber-700"
-            >
-              Confirmar Cancelación
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* DIÁLOGO DE EDICIÓN DE CLASE */}
-      <Dialog
-        open={isEditClassDialogOpen}
-        onOpenChange={isOpen => {
-          setIsEditClassDialogOpen(isOpen);
-          if (!isOpen) {
-            resetClassForm();
-            setIsDatePickerOpen(false);
-            setIsStartTimePickerOpen(false);
-            setIsEndTimePickerOpen(false);
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-[500px] font-sans">
-          <DialogHeader>
-            <DialogTitle className="text-foreground font-semibold text-xl tracking-tight">
-              Editar Clase
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-xs">
-              Modifica los detalles de la clase. Haz clic en Guardar Cambios cuando hayas terminado.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmitClass} className="font-sans">
-            <div className="space-y-6 py-4">
-              {/* Selector de Fecha */}
-              <div className="space-y-2">
-                <Label className="text-xs font-normal">Fecha</Label>
-                <DatePicker
-                  value={classDate}
-                  onChange={date => {
-                    setClassDate(date || undefined);
-                  }}
-                />
-              </div>
-
-              {/* Selector de Horario */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Hora de Inicio */}
-                  <div className="space-y-2">
-                    <Label className="text-xs text-normal">Hora de inicio</Label>
-                    <Popover open={isStartTimePickerOpen} onOpenChange={setIsStartTimePickerOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal text-xs"
-                          type="button"
-                        >
-                          <Clock className="mr-2 h-4 w-4 opacity-50" />
-                          {startTime
-                            ? (() => {
-                                const hour = Number.parseInt(startTime.split(':')[0]);
-                                const period = hour >= 12 ? 'PM' : 'AM';
-                                const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                                return `${displayHour}:00 ${period}`;
-                              })()
-                            : 'Seleccionar'}
-                          {!startTime && <span className="text-muted-foreground">Requerido</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-48 p-0"
-                        align="start"
-                        onOpenAutoFocus={e => e.preventDefault()}
-                      >
-                        <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 p-2">
-                          {Array.from({ length: 16 }, (_, i) => {
-                            const hour = i + 7; // 7AM a 10PM
-                            const time24 = `${hour.toString().padStart(2, '0')}:00`;
-                            const period = hour >= 12 ? 'PM' : 'AM';
-                            const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                            const timeDisplay = `${displayHour}:00 ${period}`;
-
-                            return (
-                              <Button
-                                key={time24}
-                                variant="ghost"
-                                className="font-sans w-full justify-center text-center h-9 px-3 text-xs hover:bg-accent rounded-sm"
-                                onClick={() => {
-                                  setStartTime(time24);
-                                  setIsStartTimePickerOpen(false); // Cerrar popover
-                                  // Auto-ajustar hora de fin si es necesaria
-                                  const startHour = Number.parseInt(time24.split(':')[0]);
-                                  const endHour = Math.min(startHour + 2, 22); // Mínimo 2 horas, máximo 10PM
-                                  const newEndTime = `${endHour.toString().padStart(2, '0')}:00`;
-                                  if (
-                                    !endTime ||
-                                    endTime <= time24 ||
-                                    Number.parseInt(endTime.split(':')[0]) - startHour < 2
-                                  ) {
-                                    setEndTime(newEndTime);
-                                  }
-                                }}
-                                type="button"
-                              >
-                                {timeDisplay}
-                              </Button>
-                            );
-                          })}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {/* Hora de Fin */}
-                  <div className="space-y-2">
-                    <Label className="text-xs text-normal">Hora de fin</Label>
-                    <Popover open={isEndTimePickerOpen} onOpenChange={setIsEndTimePickerOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal text-xs"
-                          type="button"
-                          disabled={!startTime}
-                        >
-                          <Clock className="mr-2 h-4 w-4 opacity-50" />
-                          {endTime
-                            ? (() => {
-                                const hour = Number.parseInt(endTime.split(':')[0]);
-                                const period = hour >= 12 ? 'PM' : 'AM';
-                                const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                                return `${displayHour}:00 ${period}`;
-                              })()
-                            : 'Seleccionar'}
-                          {!endTime && startTime && (
-                            <span className="text-muted-foreground ml-2">Requerido</span>
-                          )}
-                          {!startTime && (
-                            <span className="text-muted-foreground ml-2">
-                              Seleccione hora de inicio primero
-                            </span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-48 p-0"
-                        align="start"
-                        onOpenAutoFocus={e => e.preventDefault()}
-                      >
-                        <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 p-2">
-                          {startTime &&
-                            Array.from({ length: 16 }, (_, i) => {
-                              const hour = i + 7; // 7AM a 10PM
-                              const time24 = `${hour.toString().padStart(2, '0')}:00`;
-                              const period = hour >= 12 ? 'PM' : 'AM';
-                              const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                              const timeDisplay = `${displayHour}:00 ${period}`;
-                              const startHour = Number.parseInt(startTime.split(':')[0]);
-                              const currentHour = Number.parseInt(time24.split(':')[0]);
-
-                              // Solo mostrar horas que sean al menos 2 horas después del inicio
-                              if (currentHour < startHour + 2) return null;
-
-                              return (
-                                <Button
-                                  key={time24}
-                                  variant="ghost"
-                                  className="font-sans w-full justify-center text-center h-9 px-3 text-xs hover:bg-accent rounded-sm"
-                                  onClick={() => {
-                                    setEndTime(time24);
-                                    setIsEndTimePickerOpen(false);
-                                  }}
-                                  type="button"
-                                >
-                                  {timeDisplay}
-                                </Button>
-                              );
-                            }).filter(Boolean)}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-
-                {/* Indicador de Duración */}
-                {startTime && endTime && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
-                    <Clock className="h-4 w-4" />
-                    <span>
-                      Duración:{' '}
-                      {(() => {
-                        const start = Number.parseInt(startTime.split(':')[0]);
-                        const end = Number.parseInt(endTime.split(':')[0]);
-                        const duration = end - start;
-                        return `${duration} ${duration === 1 ? 'hora' : 'horas'}`;
-                      })()}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Campo de Tema */}
-              <div className="space-y-2">
-                <Label htmlFor="topic-edit" className="text-xs font-normal">
-                  Tema de la Clase
-                </Label>
-                <Input
-                  id="topic-edit"
-                  value={classTopic}
-                  onChange={e => setClassTopic(e.target.value)}
-                  className="text-xs"
-                  placeholder="Ej: Introducción a las Derivadas"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="descripcionClase" className="text-xs font-normal">
-                  Descripción
-                </Label>
-                <Input
-                  id="descripcionClase"
-                  value={classDescription}
-                  onChange={e => setClassDescription(e.target.value)}
-                  className="text-xs"
-                  placeholder="Ej: Introducción a las Derivadas"
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="gap-2">
-              <DialogClose asChild>
-                <Button type="button" variant="outline">
-                  Cancelar
-                </Button>
-              </DialogClose>
-              <Button
-                type="submit"
-                disabled={
-                  isSubmitting || !classDate || !startTime || !endTime || startTime >= endTime
-                }
-                className="min-w-[120px]"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
-                    Actualizando...
-                  </>
-                ) : (
-                  'Guardar Cambios'
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog to confirm class deletion */}
-      <AlertDialog
-        open={!!classToCancel}
-        onOpenChange={isOpen => {
-          if (!isOpen) {
-            setClassToCancel(null);
-            setCancelReason('');
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-sans text-xl font-semibold tracking-tight">
-              ¿Seguro que quieres cancelar la clase?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-sans text-xs text-muted-foreground">
-              Estás a punto de cancelar la clase de "{classToCancel?.topic || 'Sin tema'}" del{' '}
-              {classToCancel && formatClassDate(classToCancel)}. Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-4 space-y-2 font-sans">
-            <Label htmlFor="cancel-reason" className="font-sans font-semibold">
-              Motivo de la cancelación
-            </Label>
-            <p className="text-xs text-muted-foreground">
-              Este motivo se enviará a los estudiantes.
-            </p>
-            <Textarea
-              id="cancel-reason"
-              placeholder="Ej: calamidad doméstica, problemas de salud, etc."
-              value={cancelReason}
-              className="resize-none"
-              onChange={e => setCancelReason(e.target.value)}
-            />
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="font-sans">Cerrar</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={!cancelReason.trim() || isSubmitting}
-              onClick={() => {
-                if (classToCancel) {
-                  handleUpdateClassStatus(classToCancel.id, 'CANCELADA', cancelReason);
-                  setClassToCancel(null);
-                  setCancelReason('');
-                }
-              }}
-              className="bg-rose-600 text-white hover:bg-rose-700 font-sans"
-            >
-              {isSubmitting ? 'Cancelando...' : 'Confirmar Cancelación'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Dialog para Gestionar Asistencia */}
-      <Dialog open={isAttendanceDialogOpen} onOpenChange={setIsAttendanceDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <div className="flex items-center justify-between font-sans">
-              <DialogTitle>Gestionar Asistencia</DialogTitle>
-              {currentClass &&
-                (() => {
-                  const statusInfo = classStatusMap[currentClass.status] || {
-                    label: 'Desconocido',
-                    color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
-                  };
-                  return (
-                    <span
-                      className={cn(
-                        'px-3 py-1 rounded-full text-xs font-semibold',
-                        statusInfo.color
-                      )}
-                    >
-                      {statusInfo.label}
-                    </span>
-                  );
-                })()}
-            </div>
-            <DialogDescription>
-              {currentClass &&
-                `Clase del ${format(new Date(currentClass.date), 'PPP', { locale: es })} - Tema: ${currentClass.topic || 'Sin tema'}`}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4 font-sans">
-            {isUpdatingAttendance ? (
-              <Loading />
-            ) : attendances.length > 0 ? (
-              <div className="max-h-[50vh] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nombre</TableHead>
-                      <TableHead>Documento</TableHead>
-                      <TableHead>Correo Institucional</TableHead>
-                      <TableHead>Correo Personal</TableHead>
-                      <TableHead>Teléfono</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {attendances.map(att => (
-                      <TableRow key={att.id}>
-                        <TableCell className="font-normal">{att.name || 'Sin nombre'}</TableCell>
-                        <TableCell>
-                          <Badge className="text-xs">{att.status}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Popover
-                            open={popoverStates[att.id] || false}
-                            onOpenChange={isOpen =>
-                              setPopoverStates(prev => ({
-                                ...prev,
-                                [att.id]: isOpen,
-                              }))
-                            }
-                          >
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 w-[90px]"
-                                disabled={
-                                  isUpdatingAttendance === att.id ||
-                                  currentClass?.status === 'REALIZADA' ||
-                                  currentClass?.status === 'CANCELADA'
-                                }
-                              >
-                                {isUpdatingAttendance === att.id ? (
-                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-                                ) : (
-                                  'Cambiar'
-                                )}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto p-1"
-                              onOpenAutoFocus={e => e.preventDefault()}
-                            >
-                              <div className="flex flex-col gap-1">
-                                {['Presente', 'Ausente', 'Tardanza', 'Justificado'].map(status => (
-                                  <Button
-                                    key={status}
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleUpdateAttendance(currentClass?.id || '', att.id, status)
-                                    }
-                                    className="justify-start"
-                                    disabled={att.status === status}
-                                  >
-                                    {status}
-                                  </Button>
-                                ))}
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-10">
-                <p>No hay estudiantes matriculados en esta asignatura.</p>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setIsAttendanceDialogOpen(false)}
-            >
-              Cerrar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

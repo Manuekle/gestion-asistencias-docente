@@ -4,26 +4,27 @@ import { addDays } from 'date-fns';
 
 const prisma = new PrismaClient();
 
-// Helper function to generate class dates (one per day, from 1:00 AM to 12:00 AM)
+// Helper function to generate class dates (one per day, from 12:00 PM to 10:00 PM)
 const generateClassDates = (startDate: Date, numberOfClasses: number): Date[] => {
   const dates: Date[] = [];
-  let currentDate = new Date(); // Start from current date
-  // Set to today's date at 1:00 AM
-  currentDate.setHours(1, 0, 0, 0);
 
-  // If current time is after 1 AM, start from tomorrow
+  // Create date in local timezone for today (August 14, 2025) - ALWAYS start from today
+  const today = new Date(2025, 7, 14); // Month is 0-indexed, so 7 = August
+  let currentDate = new Date(today);
+  currentDate.setHours(12, 0, 0, 0); // Set to 12:00 PM local time
+
   const now = new Date();
-  if (now.getHours() >= 1) {
-    currentDate = addDays(currentDate, 1);
-    currentDate.setHours(1, 0, 0, 0);
-  }
+  console.log(`Current local time: ${now.toLocaleString()}`);
+  console.log(`Starting classes TODAY: ${currentDate.toLocaleString()}`);
 
-  // Generate one class per day
+  // Generate one class per day starting from today
   for (let i = 0; i < numberOfClasses; i++) {
-    // Add class at 1:00 AM
+    // Create class date at 12:00 PM local time
     const classDate = new Date(currentDate);
-    classDate.setHours(1, 0, 0, 0);
+    classDate.setHours(12, 0, 0, 0);
     dates.push(classDate);
+
+    console.log(`Class ${i + 1} scheduled for: ${classDate.toLocaleString()}`);
 
     // Move to next day
     currentDate = addDays(currentDate, 1);
@@ -32,11 +33,11 @@ const generateClassDates = (startDate: Date, numberOfClasses: number): Date[] =>
   return dates.slice(0, numberOfClasses);
 };
 
-// Helper function to create end time (11:45 PM on the same day)
+// Helper function to create end time (10:00 PM on the same day)
 const createEndTime = (startTime: Date): Date => {
   const endTime = new Date(startTime);
-  // Set to 11:45 PM on the same day (22 hours and 45 minutes after start)
-  endTime.setHours(23, 45, 0, 0);
+  // Set to 10:00 PM on the same day (10 hours after start)
+  endTime.setHours(22, 0, 0, 0);
   return endTime;
 };
 
@@ -180,6 +181,10 @@ async function main() {
       const startTime = classDates[i];
       const endTime = createEndTime(startTime);
 
+      console.log(`   📅 Creating class ${i + 1}:`);
+      console.log(`      Start: ${startTime.toLocaleString()}`);
+      console.log(`      End: ${endTime.toLocaleString()}`);
+
       // Create class with start and end times
       await prisma.class.create({
         data: {
@@ -192,7 +197,7 @@ async function main() {
         },
       });
     }
-    console.log(`   ✅ Created 16 classes for ${subject.name} (7:00 AM - 11:45 PM)`);
+    console.log(`   ✅ Created 16 classes for ${subject.name} (12:00 PM - 10:00 PM)`);
   }
 
   console.log('\n🎉 Seeding completed successfully!');
@@ -203,7 +208,7 @@ async function main() {
   console.log(`👨‍🎓 Students: 2 users`);
   console.log(`📚 Subjects: 3 subjects`);
   console.log(`📅 Classes: 48 classes total (16 per subject)`);
-  console.log(`⏰ Schedule: Daily, 1:00 AM - 11:45 PM (22h 45m)`);
+  console.log(`⏰ Schedule: Daily, 12:00 PM - 10:00 PM (10 hours)`);
   console.log('================================');
   console.log('Credentials:');
   console.log('Admin:');

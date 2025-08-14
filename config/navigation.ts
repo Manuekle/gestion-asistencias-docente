@@ -41,7 +41,7 @@ export const navLinkGroups: NavLinkGroup[] = [
       {
         href: '/dashboard/estudiante/asistencia',
         icon: QrCode,
-        label: 'Registrar Asistencia',
+        label: 'Asistencia',
         roles: ['ESTUDIANTE'],
         description: 'Escanear código QR para asistencia',
       },
@@ -55,7 +55,7 @@ export const navLinkGroups: NavLinkGroup[] = [
       {
         href: '/dashboard/estudiante/escanear',
         icon: QrCode,
-        label: 'Escanear Asistencia',
+        label: 'Escanear',
         roles: ['ESTUDIANTE'],
         description: 'Escanear código QR para asistencia',
       },
@@ -83,12 +83,12 @@ export const navLinkGroups: NavLinkGroup[] = [
             icon: BookMarked,
           },
           {
-            href: '/dashboard/docente/asignaturas/[id]/clases/[classId]/asistencia',
+            href: '/dashboard/docente/asignaturas/[id]/clase/[id]/asistencia',
             label: 'Asistencia',
             description: 'Gestiona la asistencia de tus estudiantes.',
             roles: ['DOCENTE'],
             isSubLink: true,
-            parentHref: '/dashboard/docente/asignaturas/[id]/clases/[classId]/asistencia',
+            parentHref: '/dashboard/docente/asignaturas/[id]/clase/[id]/asistencia',
             icon: QrCode,
           },
         ],
