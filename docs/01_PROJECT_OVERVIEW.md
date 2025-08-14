@@ -11,15 +11,15 @@
 | Campo           | Detalle                               |
 | --------------- | ------------------------------------- |
 | **Proyecto**    | Sistema de Gestión de Asistencias FUP |
-| **Versión**     | 1.0.0                                 |
-| **Fecha**       | Junio 2025                            |
+| **Versión**     | 1.1.0                                 |
+| **Fecha**       | Agosto 2025                           |
 | **Autor**       | Manuel Esteban Erazo Medina           |
 | **Estado**      | En Desarrollo                         |
 | **Metodología** | Extreme Programming (XP)              |
 
 ## 🎯 Visión del Producto
 
-**Crear un sistema integral de gestión de asistencias que transforme digitalmente el proceso tradicional de registro académico en la FUP, proporcionando herramientas automatizadas, seguras y analíticas para mejorar el seguimiento estudiantil.**
+**Crear un sistema integral de gestión de asistencias que transforme digitalmente el proceso tradicional de registro académico en la FUP, proporcionando herramientas automatizadas, seguras y analíticas para mejorar el seguimiento estudiantil y la gestión de recursos educativos.**
 
 ## 👥 Roles y Permisos del Sistema
 
@@ -30,6 +30,10 @@
 - Acceso a reportes globales y estadísticas
 - Gestión de estados de usuario (activar/desactivar)
 - Supervisión de actividad del sistema
+- Gestión de aulas y recursos tecnológicos
+- Aprobación de solicitudes de reserva de aulas
+- Visualización de calendario de reservas
+- Asignación de recursos tecnológicos
 
 ### 👨‍🏫 **Docente**
 
@@ -38,7 +42,10 @@
 - Inscripción/desinscripción de estudiantes
 - Generación y control de códigos QR
 - Registro manual de asistencias
-- Generación de reportes de asistencia en formato PDF, con firma digital del docente.
+- Generación de reportes de asistencia en formato PDF, con firma digital del docente
+- Solicitud de reserva de aulas y recursos tecnológicos
+- Visualización de calendario de reservas propias
+- Gestión de solicitudes de recursos pendientes y aprobadas
 
 ### 🎓 **Estudiante**
 

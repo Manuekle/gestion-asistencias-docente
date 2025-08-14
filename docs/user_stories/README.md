@@ -12,3 +12,4 @@ Esta sección contiene todas las historias de usuario del proyecto, agrupadas po
 6.  [**Épica 6: Reportes y Analíticas Avanzadas**](./EPIC_06_REPORTS_ANALYTICS.md)
 7.  [**Épica 7: Comunicación y Notificaciones**](./EPIC_07_COMMUNICATION.md)
 8.  [**Épica 8: Configuración y Administración**](./EPIC_08_ADMINISTRATION.md)
+9.  [**Épica 9: Gestión de Aulas y Recursos**](./EPIC_09_CLASSROOM_MANAGEMENT.md)

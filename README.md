@@ -53,6 +53,14 @@ Digitalizar y automatizar el proceso de registro de asistencia en la FUP, elimin
 - ✅ Notificaciones masivas mediante WhatsApp Business.
 - ✅ Plantillas personalizadas y programación de avisos.
 
+### 🏫 **Gestión de Aulas y Recursos**
+
+- ✅ Sistema de reserva de aulas con calendario interactivo
+- ✅ Gestión de inventario de recursos tecnológicos (proyectores, equipos, etc.)
+- ✅ Validación de disponibilidad en tiempo real
+- ✅ Notificaciones automáticas de reservas
+- ✅ Panel de administración de solicitudes
+
 ### 🛠️ **Herramientas y Utilidades**
 
 - ✅ Módulo de carga masiva de datos (CSV/Excel) con validación y rollback.
@@ -88,14 +96,20 @@ Toda la documentación detallada del proyecto, incluyendo la visión, arquitectu
 - Gestión completa de usuarios (CRUD)  
 - Carga masiva de datos  
 - Dashboard con analíticas  
-- Reportes administrativos  
+- Reportes administrativos
+- Gestión de aulas y recursos tecnológicos
+- Aprobación de solicitudes de reserva
+- Calendario general de ocupación  
   
 #### ✅ Panel Docente (95%)  
 
 - Generación de códigos QR  
 - Control de asistencia manual  
 - Generación de reportes PDF  
-- Dashboard con estadísticas  
+- Dashboard con estadísticas
+- Solicitud de reserva de aulas y recursos
+- Calendario personal de reservas
+- Historial de solicitudes  
   
 #### ✅ Panel Estudiante (90%)  
 
