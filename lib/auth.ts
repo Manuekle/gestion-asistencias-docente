@@ -3,6 +3,7 @@ import { Role } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { CACHE_TTL, redis } from './redis';
 
 // 🔧 Configuración según entorno
 const isProduction = process.env.NODE_ENV === 'production';
@@ -21,6 +22,7 @@ export const authOptions: NextAuthOptions = {
   debug: !isProduction,
 
   providers: [
+    // In lib/auth.ts
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -30,9 +32,39 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        // Check cache first
+        const cacheKey = `auth:${credentials.email}`;
+        const cachedAuth = await redis.get(cacheKey);
+
+        if (cachedAuth && typeof cachedAuth === 'string') {
+          try {
+            const { user, hash } = JSON.parse(cachedAuth);
+            const isValid = await bcrypt.compare(credentials.password, hash);
+            return isValid ? user : null;
+          } catch (error) {
+            console.error('Failed to parse cached auth data:', error);
+            return null;
+          }
+        }
+
+        // Not in cache, check database
         const user = await db.user.findFirst({
           where: {
             OR: [{ correoPersonal: credentials.email }, { correoInstitucional: credentials.email }],
+          },
+          select: {
+            id: true,
+            role: true,
+            name: true,
+            correoPersonal: true,
+            correoInstitucional: true,
+            signatureUrl: true,
+            codigoDocente: true,
+            codigoEstudiantil: true,
+            telefono: true,
+            document: true,
+            isActive: true,
+            password: true,
           },
         });
 
@@ -41,19 +73,20 @@ export const authOptions: NextAuthOptions = {
         const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
         if (!isPasswordCorrect) return null;
 
-        return {
-          id: user.id,
-          role: user.role,
-          name: user.name,
-          correoPersonal: user.correoPersonal,
-          correoInstitucional: user.correoInstitucional,
-          signatureUrl: user.signatureUrl,
-          codigoDocente: user.codigoDocente,
-          codigoEstudiantil: user.codigoEstudiantil,
-          telefono: user.telefono,
-          document: user.document,
-          isActive: user.isActive,
-        };
+        // Prepare user data for session (exclude password)
+        const { password, ...userData } = user;
+
+        // Cache successful login
+        await redis.set(
+          cacheKey,
+          JSON.stringify({
+            user: userData,
+            hash: user.password,
+          }),
+          { ex: CACHE_TTL.AUTH }
+        );
+
+        return userData;
       },
     }),
   ],
@@ -72,13 +105,62 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, trigger }) {
       if (user) {
-        Object.assign(token, user);
+        // Cache user data on sign in
+        const userData = {
+          id: user.id,
+          role: user.role,
+          name: user.name,
+          correoPersonal: user.correoPersonal,
+          correoInstitucional: user.correoInstitucional,
+          signatureUrl: user.signatureUrl,
+          codigoDocente: user.codigoDocente,
+          codigoEstudiantil: user.codigoEstudiantil,
+          telefono: user.telefono,
+          document: user.document,
+          isActive: user.isActive,
+        };
+
+        await redis.set(`user:${user.id}`, JSON.stringify(userData), {
+          ex: CACHE_TTL.USER_SESSION,
+        });
+        return { ...token, ...userData };
       }
 
       if (trigger === 'update') {
-        const dbUser = await db.user.findUnique({ where: { id: token.id as string } });
+        // Try cache first
+        const cachedUser = await redis.get(`user:${token.id}`);
+        if (cachedUser && typeof cachedUser === 'string') {
+          try {
+            const parsedUser = JSON.parse(cachedUser);
+            return { ...token, ...parsedUser };
+          } catch (error) {
+            console.error('Error parsing cached user:', error);
+          }
+        }
+
+        // Fallback to database
+        const dbUser = await db.user.findUnique({
+          where: { id: token.id as string },
+          select: {
+            id: true,
+            role: true,
+            name: true,
+            correoPersonal: true,
+            correoInstitucional: true,
+            signatureUrl: true,
+            codigoDocente: true,
+            codigoEstudiantil: true,
+            telefono: true,
+            document: true,
+            isActive: true,
+          },
+        });
+
         if (dbUser) {
-          Object.assign(token, dbUser);
+          await redis.set(`user:${token.id}`, JSON.stringify(dbUser), {
+            ex: CACHE_TTL.USER_SESSION,
+          });
+          return { ...token, ...dbUser };
         }
       }
 
@@ -88,7 +170,6 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token) {
         session.user = {
-          ...session.user,
           id: token.id as string,
           role: token.role as Role,
           name: token.name as string,
