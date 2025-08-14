@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     // Use transaction to ensure data consistency
-    const result = await db.$transaction(async (tx) => {
+    const result = await db.$transaction(async tx => {
       // Find the subject
       const subject = await tx.subject.findUnique({
         where: { code: codigoAsignatura },
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
       // Find the student
       const student = await tx.user.findFirst({
-        where: { 
+        where: {
           document: documentoEstudiante,
           role: 'ESTUDIANTE',
         },
@@ -51,46 +51,49 @@ export async function POST(request: Request) {
       });
 
       if (!student) {
-        return { success: false, error: 'Estudiante no encontrado o no es un estudiante', status: 404 };
+        return {
+          success: false,
+          error: 'Estudiante no encontrado o no es un estudiante',
+          status: 404,
+        };
       }
 
       // Check if student is already enrolled
       if (subject.studentIds.includes(student.id)) {
-        return { 
-          success: true, 
+        return {
+          success: true,
           message: 'El estudiante ya está inscrito en esta asignatura',
           enrolled: true,
           student,
-          subject: { code: subject.code, name: subject.name }
+          subject: { code: subject.code, name: subject.name },
         };
       }
 
       // Add student to subject
       await tx.subject.update({
         where: { id: subject.id },
-        data: { 
-          studentIds: { push: student.id } 
+        data: {
+          studentIds: { push: student.id },
         },
       });
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: 'Estudiante inscrito exitosamente',
         enrolled: false,
         student,
-        subject: { code: subject.code, name: subject.name }
+        subject: { code: subject.code, name: subject.name },
       };
     });
 
     return NextResponse.json(result, { status: result.status || 200 });
-
   } catch (error) {
     console.error('Error en la asignación de estudiante:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
+        details: error instanceof Error ? error.message : 'Error desconocido',
       },
       { status: 500 }
     );
@@ -120,7 +123,7 @@ export async function DELETE(request: Request) {
     }
 
     // Use transaction to ensure data consistency
-    const result = await db.$transaction(async (tx) => {
+    const result = await db.$transaction(async tx => {
       // Find the subject
       const subject = await tx.subject.findUnique({
         where: { code: codigoAsignatura },
@@ -132,7 +135,7 @@ export async function DELETE(request: Request) {
 
       // Find the student
       const student = await tx.user.findFirst({
-        where: { 
+        where: {
           document: documentoEstudiante,
           role: 'ESTUDIANTE',
         },
@@ -140,48 +143,51 @@ export async function DELETE(request: Request) {
       });
 
       if (!student) {
-        return { success: false, error: 'Estudiante no encontrado o no es un estudiante', status: 404 };
+        return {
+          success: false,
+          error: 'Estudiante no encontrado o no es un estudiante',
+          status: 404,
+        };
       }
 
       // Check if student is enrolled
       if (!subject.studentIds.includes(student.id)) {
-        return { 
-          success: true, 
+        return {
+          success: true,
           message: 'El estudiante no está inscrito en esta asignatura',
           enrolled: false,
           student,
-          subject: { code: subject.code, name: subject.name }
+          subject: { code: subject.code, name: subject.name },
         };
       }
 
       // Remove student from subject
       await tx.subject.update({
         where: { id: subject.id },
-        data: { 
-          studentIds: { 
-            set: subject.studentIds.filter(id => id !== student.id) 
-          } 
+        data: {
+          studentIds: {
+            set: subject.studentIds.filter(id => id !== student.id),
+          },
         },
       });
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: 'Estudiante retirado exitosamente',
         removed: true,
         student,
-        subject: { code: subject.code, name: subject.name }
+        subject: { code: subject.code, name: subject.name },
       };
     });
 
     return NextResponse.json(result, { status: result.status || 200 });
-
   } catch (error) {
     console.error('Error al retirar estudiante:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
+        details: error instanceof Error ? error.message : 'Error desconocido',
       },
       { status: 500 }
     );

@@ -10,10 +10,7 @@ export async function GET(request: Request) {
 
   // Validate session
   if (!session) {
-    return NextResponse.json(
-      { success: false, error: 'No autorizado' },
-      { status: 401 }
-    );
+    return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
   }
 
   // Validate input
@@ -27,7 +24,7 @@ export async function GET(request: Request) {
   try {
     // Find the student by document number
     const student = await db.user.findFirst({
-      where: { 
+      where: {
         document,
         role: 'ESTUDIANTE',
       },
@@ -53,10 +50,10 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Error al buscar el estudiante:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
+        details: error instanceof Error ? error.message : 'Error desconocido',
       },
       { status: 500 }
     );

@@ -3,18 +3,12 @@ import { db } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { code: string } }
-) {
+export async function GET(request: Request, { params }: { params: { code: string } }) {
   const session = await getServerSession(authOptions);
 
   // Validate session
   if (!session) {
-    return NextResponse.json(
-      { success: false, error: 'No autorizado' },
-      { status: 401 }
-    );
+    return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
   }
 
   try {
@@ -45,10 +39,10 @@ export async function GET(
   } catch (error) {
     console.error('Error al buscar la asignatura:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
+        details: error instanceof Error ? error.message : 'Error desconocido',
       },
       { status: 500 }
     );
