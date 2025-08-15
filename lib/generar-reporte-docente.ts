@@ -1,23 +1,24 @@
 import ReportReadyEmail from '@/app/emails/ReportReadyEmail';
 import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/prisma';
-import { Class, Report, Subject, User } from '@prisma/client';
+import { Class, ReportStatus, Subject, User } from '@prisma/client';
+import chromium from '@sparticuz/chromium';
 import { put } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
-import puppeteer from 'puppeteer';
+import type { Browser } from 'puppeteer-core';
+import puppeteer from 'puppeteer-core';
 
-// Define types for the report details
-interface ReportWithRelations extends Report {
-  requestedBy: {
-    correoPersonal: string | null;
-    name: string | null;
-  } | null;
-  subject: {
-    name: string;
-    code: string | null;
-  } | null;
-}
+// Import Puppeteer types for better type safety
+import type { LaunchOptions } from 'puppeteer-core';
+
+// Launch options type for Puppeteer
+type PuppeteerLaunchOptions = LaunchOptions & {
+  args: string[];
+  headless: boolean | 'new';
+  defaultViewport: { width: number; height: number };
+  executablePath?: string;
+};
 
 // Tipos de datos para el nuevo formato de reporte de clases
 type ClassReportData = {
@@ -350,88 +351,119 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
     }
 
     const htmlContent = getReportHTMLForClassRegistry(reportData, logoDataUri, signatureDataUri);
+    const isVercel = !!process.env.NODE_ENV;
+    let browser: Browser | null = null;
 
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-dev-shm-usage'],
-      executablePath:
-        process.env.NODE_ENV === 'production'
-          ? process.env.PUPPETEER_EXECUTABLE_PATH
-          : '/home/manudev/.cache/puppeteer/chrome/linux-137.0.7151.119/chrome-linux64/chrome',
-      headless: true,
-    });
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '25px', right: '25px', bottom: '25px', left: '25px' },
-    });
-    await browser.close();
+    try {
+      const launchOptions: PuppeteerLaunchOptions = {
+        args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
+        headless: true, // Using boolean instead of 'new' for better compatibility
+        defaultViewport: { width: 1920, height: 1080 },
+      };
 
-    const fileName = `registro-clases_${subjectData.code || subjectId}_${Date.now()}.pdf`;
-    // Convert Uint8Array to Buffer
-    const buffer = Buffer.from(pdfBuffer);
-    const blob = await put(`reports/${fileName}`, buffer, {
-      access: 'public',
-    });
+      if (isVercel) {
+        // On Vercel, use the Chromium binary from @sparticuz/chromium
+        launchOptions.executablePath = await chromium.executablePath();
+      } else {
+        // In development, use the locally installed Chrome/Chromium
+        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      }
 
-    // First, update the report with the file URL
-    await db.report.update({
-      where: { id: reportId },
-      data: { status: 'COMPLETADO', fileUrl: blob.url, fileName: fileName },
-    });
+      browser = await puppeteer.launch(launchOptions);
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0', timeout: 30000 });
 
-    console.log(`Reporte generado exitosamente y subido a: ${blob.url}`);
+      // Generate PDF with optimized settings
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '10mm',
+          bottom: '20mm',
+          left: '10mm',
+        },
+        preferCSSPageSize: true,
+        timeout: 30000,
+      });
 
-    // Then fetch the related data in a separate query with proper includes
-    const reportWithDetails = (await db.report.findUnique({
-      where: { id: reportId },
-      include: {
-        requestedBy: {
-          select: {
-            correoPersonal: true, // Using correoPersonal instead of email
-            name: true,
+      // Upload the PDF to Vercel Blob Storage
+      const fileName = `registro-clases_${subjectData.code || subjectId}_${Date.now()}.pdf`;
+      const blob = await put(`reports/${fileName}`, pdfBuffer, {
+        access: 'public',
+      });
+
+      // Update the report with the file URL
+      const updatedReport = await db.report.update({
+        where: { id: reportId },
+        data: {
+          status: 'COMPLETADO',
+          fileUrl: blob.url,
+          fileName: fileName,
+        },
+        include: {
+          requestedBy: {
+            select: {
+              correoPersonal: true,
+              name: true,
+            },
+          },
+          subject: {
+            select: {
+              name: true,
+              code: true,
+            },
           },
         },
-        subject: {
-          select: {
-            name: true,
-            code: true,
-          },
+      });
+
+      // Send email notification
+      if (updatedReport.requestedBy?.correoPersonal && updatedReport.subject) {
+        try {
+          await sendEmail({
+            to: updatedReport.requestedBy.correoPersonal,
+            subject: `Reporte de asistencia generado - ${updatedReport.subject.name}`,
+            react: ReportReadyEmail({
+              subjectName: updatedReport.subject.name,
+              reportName: fileName,
+              downloadUrl: blob.url,
+              userName: updatedReport.requestedBy.name || 'Docente',
+              supportEmail: 'soporte@institucion.edu.co',
+            }),
+          });
+          console.log(`Notificación enviada a: ${updatedReport.requestedBy.correoPersonal}`);
+        } catch (emailError) {
+          console.error('Error al enviar el correo de notificación:', emailError);
+          // Update the report with a warning about the email failure
+          await db.report.update({
+            where: { id: reportId },
+            data: {
+              status: ReportStatus.COMPLETADO,
+              error:
+                'El reporte se generó correctamente, pero hubo un error al enviar la notificación por correo.',
+            },
+          });
+        }
+      }
+
+      return { success: true, fileUrl: blob.url };
+    } catch (error) {
+      console.error('Error al generar el reporte PDF:', error);
+
+      // Update report status to failed
+      await db.report.update({
+        where: { id: reportId },
+        data: {
+          status: ReportStatus.FALLIDO,
+          error: error instanceof Error ? error.message : 'Error desconocido',
         },
-      },
-    })) as unknown as ReportWithRelations | null;
+      });
 
-    // Send email notification to the teacher if we have the required data
-    if (reportWithDetails?.requestedBy?.correoPersonal && reportWithDetails.subject) {
-      const subjectName = reportWithDetails.subject?.name || 'la asignatura';
-      const userName = reportWithDetails.requestedBy?.name || 'Docente';
-
-      try {
-        await sendEmail({
-          to: reportWithDetails.requestedBy.correoPersonal,
-          subject: `Reporte de asistencia listo - ${subjectName}`,
-          react: ReportReadyEmail({
-            subjectName,
-            reportName: fileName,
-            downloadUrl: blob.url,
-            userName,
-            supportEmail: 'soporte@institucion.edu.co',
-          }),
-        });
-        console.log(`Notificación enviada a: ${reportWithDetails.requestedBy.correoPersonal}`);
-      } catch (emailError) {
-        console.error('Error enviando notificación por correo:', emailError);
-        // Update the report with a warning about the email failure
-        await db.report.update({
-          where: { id: reportId },
-          data: {
-            status: 'COMPLETADO',
-            error:
-              'El reporte se generó correctamente, pero hubo un error al enviar la notificación por correo.',
-          },
-        });
-        return; // Exit early since the report was generated successfully
+      throw error;
+    } finally {
+      // Close the browser if it was opened
+      if (browser) {
+        await browser.close().catch(console.error);
       }
     }
   } catch (error) {
@@ -439,9 +471,10 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
     await db.report.update({
       where: { id: reportId },
       data: {
-        status: 'FALLIDO',
+        status: ReportStatus.FALLIDO,
         error: error instanceof Error ? error.message : 'Error desconocido',
       },
     });
+    throw error;
   }
 };
