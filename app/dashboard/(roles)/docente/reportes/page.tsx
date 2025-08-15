@@ -16,7 +16,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { AlertCircle, CheckCircle, Clock, Loader2, RefreshCw } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -75,13 +75,8 @@ export default function ReportsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloadingReportId, setDownloadingReportId] = useState<string | null>(null);
-  const [retryingReportId, setRetryingReportId] = useState<string | null>(null);
-  const [refreshingReportId, setRefreshingReportId] = useState<string | null>(null);
 
-  const fetchReports = useCallback(async (showLoading = true) => {
-    if (showLoading) {
-      setIsLoading(true);
-    }
+  const fetchReports = useCallback(async () => {
     try {
       const response = await fetch('/api/docente/reportes');
       if (!response.ok) {
@@ -89,17 +84,12 @@ export default function ReportsPage() {
       }
       const data = await response.json();
       setReports(data);
-      setError(null);
-      return data;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error al cargar los reportes';
       setError(errorMessage);
       toast.error(errorMessage);
-      throw error;
     } finally {
-      if (showLoading) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
   }, []);
 
@@ -111,7 +101,7 @@ export default function ReportsPage() {
     if (!hasPendingReports) return;
 
     const interval = setInterval(() => {
-      fetchReports(false); // No mostrar loading durante el polling
+      fetchReports();
     }, 5000); // Refresca cada 5 segundos
 
     return () => clearInterval(interval);
@@ -120,43 +110,6 @@ export default function ReportsPage() {
   useEffect(() => {
     fetchReports();
   }, [fetchReports]);
-
-  const handleRetryReport = async (reportId: string) => {
-    setRetryingReportId(reportId);
-    try {
-      const response = await fetch(`/api/docente/reportes/${reportId}/retry`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al reintentar generar el reporte');
-      }
-
-      toast.success('Se ha vuelto a intentar generar el reporte.');
-      // Actualizar la lista de reportes después de un breve retraso
-      setTimeout(() => fetchReports(false), 1000);
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Error al reintentar generar el reporte';
-      toast.error(errorMessage);
-    } finally {
-      setRetryingReportId(null);
-    }
-  };
-
-  const handleRefreshReport = async (reportId: string) => {
-    setRefreshingReportId(reportId);
-    try {
-      await fetchReports(false);
-      toast.success('Estado del reporte actualizado');
-    } catch (error) {
-      console.error('Error actualizando el estado del reporte:', error);
-      toast.error('Error al actualizar el estado del reporte');
-    } finally {
-      setRefreshingReportId(null);
-    }
-  };
 
   const handleDownload = async (report: Report) => {
     if (!report.fileUrl || !report.fileName) {
@@ -252,7 +205,7 @@ export default function ReportsPage() {
               reports.map(report => (
                 <TableRow key={report.id} className="group">
                   <TableCell className="px-4 py-2 text-xs">
-                    <div className="font-normal">
+                    <div className="font-medium">
                       {report.subject?.name || 'Asignatura no disponible'}
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -287,59 +240,22 @@ export default function ReportsPage() {
                         )}
                       </Button>
                     ) : report.status === 'FALLIDO' ? (
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="inline-flex items-center text-xs text-destructive">
-                              No se pudo generar el reporte
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-[200px] text-xs">
-                              {report.error || 'Error desconocido al generar el reporte'}
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs h-7"
-                          onClick={e => {
-                            e.stopPropagation();
-                            handleRetryReport(report.id);
-                          }}
-                          disabled={retryingReportId === report.id}
-                        >
-                          {retryingReportId === report.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                          ) : (
-                            <RefreshCw className="h-3 w-3 mr-1" />
-                          )}
-                          Reintentar
-                        </Button>
-                      </div>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex items-center text-xs text-destructive">
+                            No se pudo generar el reporte
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-[200px] text-xs">
+                            {report.error || 'Error desconocido al generar el reporte'}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
                     ) : (
-                      <div className="flex justify-end items-end">
-                        <div className="text-xs text-muted-foreground px-2">
-                          {report.status === 'EN_PROCESO' ? 'En progreso...' : 'Pendiente'}
-                        </div>
-                        {/* <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={e => {
-                            e.stopPropagation();
-                            handleRefreshReport(report.id);
-                          }}
-                          disabled={refreshingReportId === report.id}
-                        >
-                          {refreshingReportId === report.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <RefreshCw className="h-3 w-3" />
-                          )}
-                        </Button> */}
-                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {report.status === 'EN_PROCESO' ? 'En progreso...' : 'Pendiente'}
+                      </span>
                     )}
                   </TableCell>
                 </TableRow>
