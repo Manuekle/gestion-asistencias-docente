@@ -389,7 +389,7 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
 
       // Upload the PDF to Vercel Blob Storage
       const fileName = `registro-clases_${subjectData.code || subjectId}_${Date.now()}.pdf`;
-      const blob = await put(`reports/${fileName}`, pdfBuffer, {
+      const blob = await put(`reports/${fileName}`, Buffer.from(pdfBuffer), {
         access: 'public',
       });
 
