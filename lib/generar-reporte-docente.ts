@@ -355,37 +355,84 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
     let browser: Browser | null = null;
 
     try {
+      console.log('Iniciando generación de PDF...');
+      console.log(`Modo Vercel: ${isVercel}`);
+
+      // Crear un nuevo array mutable con los argumentos necesarios
+      const chromiumArgs = [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-gpu',
+        '--disable-dev-shm-usage',
+        '--single-process',
+        '--no-zygote',
+        '--disable-accelerated-2d-canvas',
+      ];
+
       const launchOptions: PuppeteerLaunchOptions = {
-        args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
-        headless: true, // Using boolean instead of 'new' for better compatibility
+        args: chromiumArgs,
+        headless: true,
         defaultViewport: { width: 1920, height: 1080 },
       };
 
       if (isVercel) {
-        // On Vercel, use the Chromium binary from @sparticuz/chromium
-        launchOptions.executablePath = await chromium.executablePath();
+        console.log('Configurando para entorno Vercel...');
+        const executablePath = await chromium.executablePath();
+        console.log(`Ruta de Chromium: ${executablePath}`);
+        launchOptions.executablePath = executablePath;
       } else {
-        // In development, use the locally installed Chrome/Chromium
+        console.log('Modo desarrollo local');
         launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        console.log(`Usando Chromium en: ${launchOptions.executablePath}`);
       }
 
-      browser = await puppeteer.launch(launchOptions);
-      const page = await browser.newPage();
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0', timeout: 30000 });
+      console.log('Iniciando navegador...');
+      browser = await puppeteer.launch(launchOptions).catch(error => {
+        console.error('Error al iniciar el navegador:', error);
+        throw new Error(`No se pudo iniciar el navegador: ${error.message}`);
+      });
+
+      console.log('Navegador iniciado, creando nueva página...');
+      const page = await browser.newPage().catch(error => {
+        console.error('Error al crear nueva página:', error);
+        throw new Error(`No se pudo crear una nueva página: ${error.message}`);
+      });
+
+      console.log('Cargando contenido HTML...');
+      await page
+        .setContent(htmlContent, {
+          waitUntil: 'domcontentloaded', // Cambiado de networkidle0 a domcontentloaded
+          timeout: 60000, // Aumentado el timeout a 60 segundos
+        })
+        .catch(error => {
+          console.error('Error al cargar el contenido HTML:', error);
+          throw new Error(`Error al cargar el contenido: ${error.message}`);
+        });
+
+      console.log('Contenido HTML cargado exitosamente');
 
       // Generate PDF with optimized settings
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '10mm',
-          bottom: '20mm',
-          left: '10mm',
-        },
-        preferCSSPageSize: true,
-        timeout: 30000,
-      });
+      console.log('Generando PDF...');
+      const pdfBuffer = await page
+        .pdf({
+          format: 'A4',
+          printBackground: true,
+          margin: {
+            top: '20mm',
+            right: '10mm',
+            bottom: '20mm',
+            left: '10mm',
+          },
+          preferCSSPageSize: true,
+          timeout: 60000, // Aumentado el timeout a 60 segundos
+        })
+        .catch(error => {
+          console.error('Error al generar el PDF:', error);
+          throw new Error(`Error al generar el PDF: ${error.message}`);
+        });
+
+      console.log('PDF generado exitosamente');
 
       // Upload the PDF to Vercel Blob Storage
       const fileName = `registro-clases_${subjectData.code || subjectId}_${Date.now()}.pdf`;
