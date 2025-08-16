@@ -6,7 +6,6 @@
     "dev": "next dev --turbopack",
     "check": "npm run format:check && npm run type-check",
     "build": "prisma generate && next build",
-    "vercel-build": "prisma generate && next build",
     "seed": "prisma db seed",
     "start": "next start",
     "lint": "next lint",
@@ -16,14 +15,10 @@
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:pdf": "node scripts/test-pdf-generation.js",
-    "test:pdf:ci": "NODE_ENV=production node scripts/test-pdf-generation.js",
     "validate": "npm run lint && npm run type-check",
     "prepare": "husky",
     "postbuild": "next-sitemap",
-    "postinstall": "npm run prisma:generate && npm run check:chromium",
-    "prisma:generate": "prisma generate",
-    "check:chromium": "node -e \"try { require('@sparticuz/chromium').executablePath() } catch (e) { console.log('Chromium not available in dev') }\"",
+    "postinstall": "prisma generate",
     "update": "ncu -u"
   },
   "lint-staged": {
@@ -46,9 +41,6 @@
     "url": "https://github.com/Manuekle/edutrack/issues"
   },
   "homepage": "https://github.com/Manuekle/edutrack#readme",
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "resolutions": {
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1"
@@ -60,7 +52,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
-    "@playwright/test": "^1.54.2",
     "@prisma/client": "^6.10.1",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -92,7 +83,6 @@
     "@react-email/components": "^0.1.1",
     "@react-email/render": "^1.1.4",
     "@react-email/tailwind": "^1.2.2",
-    "@sparticuz/chromium": "^138.0.2",
     "@tanstack/react-query": "^5.84.0",
     "@tanstack/react-table": "^8.21.3",
     "@types/react-big-calendar": "^1.16.2",
@@ -108,6 +98,7 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^12.19.1",
     "geist": "^1.4.2",
+    "handlebars": "^4.7.8",
     "lru-cache": "^11.1.0",
     "lucide-react": "^0.532.0",
     "motion": "^12.23.12",
@@ -115,12 +106,9 @@
     "next-auth": "^4.24.11",
     "next-sitemap": "^4.2.3",
     "next-themes": "^0.4.6",
+    "node-html-to-image": "^5.0.0",
     "nodemailer": "^7.0.5",
     "papaparse": "^5.5.3",
-    "playwright": "^1.54.2",
-    "playwright-core": "^1.54.2",
-    "puppeteer": "^24.16.2",
-    "puppeteer-core": "^24.16.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.1.0",
     "react-big-calendar": "^1.19.4",

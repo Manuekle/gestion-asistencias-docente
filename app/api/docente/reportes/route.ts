@@ -1,6 +1,5 @@
-// app/api/docente/reportes/route.ts
 import { authOptions } from '@/lib/auth';
-import { generarBitacoraDocente } from '@/lib/pdf/generar-reporte-docente';
+import { generateAttendanceReportPDF } from '@/lib/generar-reporte-docente';
 import { db } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { NextResponse } from 'next/server';
@@ -43,14 +42,13 @@ export async function GET() {
 
     return NextResponse.json(reports);
   } catch (error) {
-    console.error('Error al obtener reportes:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
 
 /**
  * POST /api/docente/reportes
- * Creates a new report for a subject using Playwright
+ * Creates a new report for a subject
  */
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -63,9 +61,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { subjectId, format } = createReportSchema.parse(body);
 
-    console.log(`📋 Nueva solicitud de reporte para asignatura: ${subjectId}`);
-
-    // Verify the subject belongs to the teacher and get its current period
     const subject = await db.subject.findFirst({
       where: {
         id: subjectId,
@@ -85,67 +80,32 @@ export async function POST(request: Request) {
     });
 
     if (!subject) {
-      console.log(`❌ Asignatura no encontrada o no pertenece al docente: ${subjectId}`);
       return NextResponse.json(
         { error: 'Asignatura no encontrada o no pertenece al docente' },
         { status: 404 }
       );
     }
 
-    // Determine the current period (1: Jan-Jun, 2: Jul-Dec)
     const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1; // 1-12
-    const currentPeriod = currentMonth <= 6 ? 1 : 2; // 1 or 2
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentPeriod = currentMonth <= 6 ? 1 : 2;
     const currentYear = currentDate.getFullYear();
 
-    console.log(`📅 Período actual: ${currentPeriod}/${currentYear}`);
-
-    // Check if a report already exists for this subject and period
     const existingReport = await db.report.findFirst({
       where: {
         subjectId,
         period: currentPeriod,
         year: currentYear,
-        status: {
-          in: ['PENDIENTE', 'EN_PROCESO', 'COMPLETADO'],
-        },
       },
     });
 
     if (existingReport) {
-      console.log(`⚠️ Ya existe un reporte para este período: ${existingReport.id}`);
-
-      // Si el reporte está completado, devolver el existente
-      if (existingReport.status === 'COMPLETADO') {
-        return NextResponse.json(
-          {
-            error: 'Ya se ha generado un reporte para este período',
-            existingReport: existingReport,
-          },
-          { status: 400 }
-        );
-      }
-
-      // Si está en proceso, devolver el reporte en proceso
-      if (existingReport.status === 'EN_PROCESO' || existingReport.status === 'PENDIENTE') {
-        const reportWithDetails = await db.report.findUnique({
-          where: { id: existingReport.id },
-          include: {
-            subject: {
-              select: {
-                name: true,
-                code: true,
-              },
-            },
-          },
-        });
-
-        return NextResponse.json(reportWithDetails, { status: 200 });
-      }
+      return NextResponse.json(
+        { error: 'Ya se ha generado un reporte para este período' },
+        { status: 400 }
+      );
     }
 
-    // Create the report record in the database
-    console.log('📝 Creando nuevo registro de reporte...');
     const newReport = await db.report.create({
       data: {
         subjectId,
@@ -165,36 +125,24 @@ export async function POST(request: Request) {
       },
     });
 
-    console.log(`✅ Reporte creado con ID: ${newReport.id}`);
+    generateAttendanceReportPDF(subjectId, newReport.id)
+      .then(() => {})
+      .catch(error => {});
 
-    // Start the PDF generation process in the background with better error handling
-    generarBitacoraDocente(subjectId, newReport.id)
-      .then(result => {
-        console.log(`🎉 Reporte generado exitosamente: ${result.fileUrl}`);
-      })
-      .catch(error => {
-        console.error(`❌ Error en generación de reporte ${newReport.id}:`, error);
+    const updatedReport = await db.report.findUnique({
+      where: { id: newReport.id },
+      include: {
+        subject: {
+          select: {
+            name: true,
+            code: true,
+          },
+        },
+      },
+    });
 
-        // Intentar actualizar el estado a fallido si no se ha hecho ya
-        db.report
-          .update({
-            where: { id: newReport.id },
-            data: {
-              status: 'FALLIDO',
-              error:
-                error instanceof Error ? error.message : 'Error desconocido en generación de PDF',
-            },
-          })
-          .catch(updateError => {
-            console.error('Error al actualizar estado de reporte fallido:', updateError);
-          });
-      });
-
-    // Return the initial report with PENDING status
-    return NextResponse.json(newReport, { status: 201 });
+    return NextResponse.json(updatedReport, { status: 201 });
   } catch (error) {
-    console.error('❌ Error en API de reportes:', error);
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Datos inválidos', details: error.errors },
