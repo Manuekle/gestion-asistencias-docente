@@ -1,33 +1,49 @@
 {
-  "functions": {
-    "app/api/docente/reportes/route.ts": {
-      "maxDuration": 300,
-      "memory": 2048,
-      "runtime": "nodejs18.x"
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node@4.0.0",
+      "config": {
+        "includeFiles": [
+          "node_modules/@sparticuz/chromium/**"
+        ]
+      }
+    },
+    {
+      "src": "app/api/docente/reportes/route.ts",
+      "use": "@vercel/node@4.0.0",
+      "config": {
+        "maxDuration": 300,
+        "memory": 2048,
+        "includeFiles": [
+          "node_modules/@sparticuz/chromium/**"
+        ]
+      }
     }
-  },
+  ],
+  "routes": [
+    {
+      "src": "/api/docente/reportes/(.*)",
+      "dest": "/api/docente/reportes/route.ts",
+      "headers": {
+        "Cache-Control": "no-store, max-age=0"
+      }
+    },
+    {
+      "src": "/reports/(?<path>.*)",
+      "dest": "/api/reports/$path"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ],
   "build": {
     "env": {
       "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "false",
       "PLAYWRIGHT_BROWSERS_PATH": "0",
       "NODE_OPTIONS": "--max-http-header-size=16384"
     }
-  },
-  "headers": [
-    {
-      "source": "/api/docente/reportes/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/reports/:path*",
-      "destination": "/api/reports/:path*"
-    }
-  ]
+  }
 }
