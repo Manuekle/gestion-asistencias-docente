@@ -1,13 +1,18 @@
 # Dependencies
-node_modules/
+node_modules/*
+!node_modules/@sparticuz/chromium
+!node_modules/playwright-core
+!node_modules/playwright
 
 # Build files
-.next/
-out/
+.next/cache/
+.next/standalone/
+.next/type-check-
 
 # Environment files
-.env*
-!.env.example
+.env
+.env.*.local
+.env.local
 
 # Debug logs
 npm-debug.log*
@@ -26,14 +31,15 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+*.swp
+*.swo
 
 # Test files
 **/*.test.*
 **/__tests__/
 coverage/
 
-# Playwright
+# Playwright test files
 **/test-results/
 **/playwright-report/
 **/playwright/.cache/
@@ -49,3 +55,11 @@ prisma/migrations/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Next.js specific
+.next/static/chunks/pages/
+!.next/static/chunks/pages/_app.js
+!.next/static/chunks/pages/_document.js
+
+# Include public directory
+!public/**

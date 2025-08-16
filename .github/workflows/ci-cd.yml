@@ -67,12 +67,18 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install
+        run: |
+          npm install
+          # Install Playwright dependencies
+          npx playwright install --with-deps
 
       - name: Build
         run: npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # Required for Playwright in CI
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 'false'
+          PLAYWRIGHT_BROWSERS_PATH: '0'
 
   deploy:
     name: Deploy to Vercel
@@ -87,5 +93,17 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
+      - name: Install Dependencies
+        run: |
+          npm install
+          # Ensure Playwright dependencies are installed
+          npx playwright install --with-deps
+
       - name: Deploy to Vercel
-        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          # Required for Playwright in Vercel
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 'false'
+          PLAYWRIGHT_BROWSERS_PATH: '0'
+          NODE_OPTIONS: '--max-http-header-size=16384'

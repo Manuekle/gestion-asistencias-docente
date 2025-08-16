@@ -3,23 +3,7 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/node@4.0.0",
-      "config": {
-        "includeFiles": [
-          "node_modules/@sparticuz/chromium/**"
-        ]
-      }
-    },
-    {
-      "src": "app/api/docente/reportes/route.ts",
-      "use": "@vercel/node@4.0.0",
-      "config": {
-        "maxDuration": 300,
-        "memory": 2048,
-        "includeFiles": [
-          "node_modules/@sparticuz/chromium/**"
-        ]
-      }
+      "use": "@vercel/next@4.0.0"
     }
   ],
   "routes": [
@@ -27,23 +11,33 @@
       "src": "/api/docente/reportes/(.*)",
       "dest": "/api/docente/reportes/route.ts",
       "headers": {
-        "Cache-Control": "no-store, max-age=0"
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
       }
     },
     {
-      "src": "/reports/(?<path>.*)",
-      "dest": "/api/reports/$path"
+      "src": "/(?<nextStatic>[^/]+\\.(?:json|ico|js|css|jpg|jpeg|gif|png|svg|woff|woff2|ttf|eot))",
+      "dest": "/$nextStatic"
+    },
+    {
+      "src": "/_next/static/(?<static>[^/]+)/(?<file>[^/]+)",
+      "dest": "/_next/static/$static/$file"
     },
     {
       "src": "/(.*)",
       "dest": "/"
     }
   ],
-  "build": {
-    "env": {
-      "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "false",
-      "PLAYWRIGHT_BROWSERS_PATH": "0",
-      "NODE_OPTIONS": "--max-http-header-size=16384"
+  "functions": {
+    "app/api/docente/reportes/route.ts": {
+      "maxDuration": 300,
+      "memory": 2048,
+      "runtime": "nodejs18.x"
     }
+  },
+  "env": {
+    "NODE_ENV": "production",
+    "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "false",
+    "PLAYWRIGHT_BROWSERS_PATH": "0",
+    "NODE_OPTIONS": "--max-http-header-size=16384"
   }
 }
