@@ -17,16 +17,16 @@
   ],
   "routes": [
     {
+      "src": "/_next/static/(.*)",
+      "dest": "/_next/static/$1"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
-    },
-    {
-      "src": "/(?<nextStatic>[^/]+\\.(?:json|ico|js|css|jpg|jpeg|gif|png|svg|woff|woff2|ttf|eot))",
-      "dest": "/$nextStatic"
-    },
-    {
-      "src": "/_next/static/(?<static>[^/]+)/(?<file>[^/]+)",
-      "dest": "/_next/static/$static/$file"
     },
     {
       "src": "/(.*)",
