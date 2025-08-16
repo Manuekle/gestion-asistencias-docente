@@ -417,7 +417,7 @@ export const generarBitacoraDocente = async (subjectId: string, reportId: string
     const htmlContent = generateReportHTML(reportData, logoDataUri, signatureDataUri);
 
     // Configuración de Playwright
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
     console.log(`🌍 Entorno: ${isProduction ? 'Producción' : 'Desarrollo'}`);
 
     // Argumentos optimizados para Chromium
@@ -430,28 +430,91 @@ export const generarBitacoraDocente = async (subjectId: string, reportId: string
       '--disable-plugins',
       '--disable-images',
       '--disable-javascript',
-      '--virtual-time-budget=5000',
+      '--virtual-time-budget=10000',
       '--run-all-compositor-stages-before-draw',
       '--disable-background-timer-throttling',
       '--disable-renderer-backgrounding',
       '--disable-backgrounding-occluded-windows',
       '--disable-ipc-flooding-protection',
+      '--single-process',
+      '--no-zygote',
+      '--no-first-run',
+      '--disable-sync',
+      '--disable-features=TranslateUI',
+      '--deterministic-fetch',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-software-rasterizer',
+      '--disable-remote-fonts',
+      '--disable-background-networking',
+      '--disable-default-apps',
+      '--disable-translate',
+      '--disable-web-resources',
+      '--disable-session-crashed-bubble',
+      '--disable-crash-reporter',
+      '--disable-notifications',
+      '--metrics-recording-only',
+      '--mute-audio',
+      '--no-default-browser-check',
+      '--no-pings',
+      '--password-store=basic',
+      '--use-mock-keychain',
+      '--disable-breakpad',
+      '--disable-component-update',
+      '--disable-domain-reliability',
+      '--disable-client-side-phishing-detection',
+      '--disable-default-apps',
+      '--disable-hang-monitor',
+      '--disable-prompt-on-repost',
+      '--disable-sync',
+      '--disable-web-security',
+      '--force-color-profile=srgb',
+      '--use-gl=swiftshader',
+      '--use-angle=swiftshader',
+      '--enable-unsafe-swiftshader',
+      '--ignore-gpu-blocklist',
+      '--in-process-gpu',
     ];
 
+    // Agregar argumentos específicos de producción si es necesario
     if (isProduction) {
-      args.push(...chromiumPkg.args);
+      args.push(
+        ...[
+          '--disable-software-rasterizer',
+          '--disable-dev-shm-usage',
+          '--disable-setuid-sandbox',
+          '--no-sandbox',
+          '--disable-web-security',
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--disable-software-rasterizer',
+          '--no-zygote',
+          '--single-process',
+          '--no-first-run',
+          '--no-zygote',
+          '--font-render-hinting=none',
+          '--disable-features=AudioServiceOutOfProcess,IsolateOrigins,site-per-process',
+          '--enable-features=NetworkService,NetworkServiceInProcess',
+        ]
+      );
     }
 
     // Crear opciones de lanzamiento de forma más robusta
     const launchOptions: ChromiumLaunchOptions = {
-      args: chromiumPkg.args,
-      headless: true, // Use boolean true instead of chromiumPkg.headless
-      timeout: 30000,
+      args,
+      headless: true,
+      timeout: 60000, // Aumentar el tiempo de espera
     };
 
     if (isProduction) {
       console.log('☁️ Configurando para Vercel...');
-      launchOptions.executablePath = await chromiumPkg.executablePath();
+      try {
+        // Usar el ejecutable de @sparticuz/chromium
+        launchOptions.executablePath = await chromiumPkg.executablePath();
+        console.log('✅ Ruta del ejecutable de Chromium configurada correctamente');
+      } catch (error) {
+        console.error('❌ Error al configurar la ruta del ejecutable de Chromium:', error);
+        throw new Error('No se pudo configurar el navegador para la generación de PDF');
+      }
     }
 
     // Lanzar navegador

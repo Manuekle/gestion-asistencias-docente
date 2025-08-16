@@ -1,14 +1,16 @@
 {
   "functions": {
     "app/api/docente/reportes/route.ts": {
-      "maxDuration": 60,
-      "memory": 1024
+      "maxDuration": 300,
+      "memory": 2048,
+      "runtime": "nodejs18.x"
     }
   },
   "build": {
     "env": {
-      "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
-      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "1"
+      "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "false",
+      "PLAYWRIGHT_BROWSERS_PATH": "0",
+      "NODE_OPTIONS": "--max-http-header-size=16384"
     }
   },
   "headers": [
