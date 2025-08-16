@@ -7,7 +7,7 @@ import fs from 'fs';
 import Handlebars from 'handlebars';
 import path from 'path';
 
-// Se importa la nueva librería para generar la imagen desde el HTML
+// Se importa la librería para generar la imagen desde el HTML
 import nodeHtmlToImage from 'node-html-to-image';
 
 // Tipos de datos para el nuevo formato de reporte de clases
@@ -371,26 +371,23 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
     const htmlContent = getReportHTMLForClassRegistry(reportData, logoDataUri, signatureDataUri);
 
     try {
-      console.log('Iniciando generación del PDF...');
+      console.log('Iniciando generación de la imagen...');
 
-      const pdfBuffer = await nodeHtmlToImage({
+      const imageBuffer = await nodeHtmlToImage({
         html: htmlContent,
-        output: undefined, // Se cambia 'null' a 'undefined' para compatibilidad
+        output: undefined,
         puppeteerArgs: {
           args: ['--no-sandbox'],
         },
       });
 
-      // Se asegura que pdfBuffer sea un solo Buffer antes de subirlo
-      if (Array.isArray(pdfBuffer)) {
+      if (Array.isArray(imageBuffer)) {
         console.error('node-html-to-image devolvió un array, se esperaba un Buffer.');
-        throw new Error('Error al generar el PDF: se recibió un formato inesperado.');
+        throw new Error('Error al generar la imagen: se recibió un formato inesperado.');
       }
 
-      console.log('PDF generado exitosamente');
-
-      const fileName = `registro-clases_${subjectData.code || subjectId}_${Date.now()}.pdf`;
-      const blob = await put(`reports/${fileName}`, pdfBuffer, {
+      const fileName = `registro-clases_${subjectData.code || subjectId}_${Date.now()}.png`;
+      const blob = await put(`reports/${fileName}`, imageBuffer, {
         access: 'public',
       });
 
@@ -446,7 +443,7 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
 
       return { success: true, fileUrl: blob.url };
     } catch (error) {
-      console.error('Error al generar el reporte PDF:', error);
+      console.error('Error al generar el reporte:', error);
       await db.report.update({
         where: { id: reportId },
         data: {
