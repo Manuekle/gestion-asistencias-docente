@@ -1,0 +1,31 @@
+{
+  "functions": {
+    "app/api/docente/reportes/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
+  "build": {
+    "env": {
+      "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
+      "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "1"
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/docente/reportes/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/reports/:path*",
+      "destination": "/api/reports/:path*"
+    }
+  ]
+}

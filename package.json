@@ -18,7 +18,9 @@
     "validate": "npm run lint && npm run type-check",
     "prepare": "husky",
     "postbuild": "next-sitemap",
-    "postinstall": "prisma generate",
+    "postinstall": "npm run prisma:generate && npm run check:chromium",
+    "prisma:generate": "prisma generate",
+    "check:chromium": "node -e \"try { require('@sparticuz/chromium').executablePath() } catch (e) { console.log('Chromium not available in dev') }\"",
     "update": "ncu -u"
   },
   "lint-staged": {
@@ -108,6 +110,7 @@
     "next-themes": "^0.4.6",
     "nodemailer": "^7.0.5",
     "papaparse": "^5.5.3",
+    "playwright-core": "^1.54.2",
     "puppeteer": "^24.16.2",
     "puppeteer-core": "^24.16.2",
     "qrcode.react": "^4.2.0",

@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registro de Clases y Asistencia Docente</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+
+      body {
+        font-family: 'Geist', Arial, sans-serif;
+        margin: 20px;
+        color: #333;
+        font-size: 9pt;
+      }
+
+      .page-header {
+        margin-bottom: 25px;
+      }
+
+      .header-grid {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #005a9c;
+      }
+
+      .logo-container {
+        justify-self: start;
+      }
+
+      .logo-container img {
+        width: 130px;
+        height: auto;
+      }
+
+      .title-container {
+        text-align: center;
+        color: #003366;
+      }
+
+      .title-container h1 {
+        margin: 0;
+        font-size: 16pt;
+        font-weight: 700;
+      }
+
+      .title-container h2 {
+        margin: 5px 0 0 0;
+        font-size: 13pt;
+        font-weight: 400;
+      }
+
+      .meta-table {
+        font-size: 8pt;
+        border-collapse: collapse;
+        width: 100%;
+        justify-self: end;
+      }
+
+      .meta-table td {
+        border: 1px solid #ccc;
+        padding: 4px 6px;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 5px 20px;
+        border: 1px solid #eee;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+      }
+
+      .info-grid p {
+        margin: 0;
+        font-size: 9pt;
+      }
+
+      .bold {
+        font-weight: 700;
+      }
+
+      .main-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 8pt;
+      }
+
+      .main-table th,
+      .main-table td {
+        border: 1px solid #ccc;
+        padding: 6px;
+        text-align: center;
+      }
+
+      .main-table th {
+        background-color: #005a9c;
+        color: #fff;
+        font-weight: 700;
+      }
+
+      .main-table tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      .tema {
+        text-align: left;
+        width: 50%;
+      }
+
+      .signature-cell {
+        height: 50px;
+        padding: 2px;
+      }
+
+      .signature-image {
+        max-width: 100%;
+        max-height: 45px;
+        object-fit: contain;
+      }
+
+      .canceled-section {
+        margin-top: 30px;
+      }
+
+      .canceled-section h3 {
+        color: #000;
+        margin-bottom: 15px;
+      }
+
+      @media print {
+        body {
+          margin: 0;
+        }
+
+        .page-header {
+          margin-bottom: 20px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page-header">
+      <div class="header-grid">
+        <div class="logo-container">
+          <img src="{{LOGO_URL}}" alt="Logo FUP" />
+        </div>
+        <div class="title-container">
+          <h1>REGISTRO DE CLASES Y ASISTENCIA</h1>
+          <h2>DOCENCIA</h2>
+        </div>
+        <div>
+          <table class="meta-table">
+            <tr>
+              <td><span class="bold">Código:</span> FO-DO-005</td>
+            </tr>
+            <tr>
+              <td><span class="bold">Versión:</span> 08</td>
+            </tr>
+            <tr>
+              <td><span class="bold">Fecha:</span> Marzo 2023</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <p><span class="bold">NOMBRE DEL DOCENTE:</span> {{TEACHER_NAME}}</p>
+      <p><span class="bold">PROGRAMA:</span> {{PROGRAM}}</p>
+      <p><span class="bold">ASIGNATURA:</span> {{SUBJECT_NAME}}</p>
+      <p><span class="bold">AÑO:</span> {{YEAR}}</p>
+      <p><span class="bold">PERIODO:</span> {{PERIOD}}</p>
+    </div>
+
+    <table class="main-table">
+      <thead>
+        <tr>
+          <th rowspan="2">No.</th>
+          <th colspan="2">FECHA</th>
+          <th colspan="2">HORA</th>
+          <th rowspan="2" class="tema">TEMA</th>
+          <th rowspan="2">TOTAL HORAS</th>
+          <th rowspan="2">FIRMA DOCENTE</th>
+        </tr>
+        <tr>
+          <th>DD</th>
+          <th>MM</th>
+          <th>INICIO</th>
+          <th>FINAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{CLASS_ROWS}}
+      </tbody>
+    </table>
+
+    {{CANCELED_CLASSES_SECTION}}
+  </body>
+</html>
