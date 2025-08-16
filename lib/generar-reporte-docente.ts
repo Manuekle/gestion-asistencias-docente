@@ -2,23 +2,12 @@ import ReportReadyEmail from '@/app/emails/ReportReadyEmail';
 import { sendEmail } from '@/lib/email';
 import { db } from '@/lib/prisma';
 import { Class, ReportStatus, Subject, User } from '@prisma/client';
-import chromium from '@sparticuz/chromium';
 import { put } from '@vercel/blob';
 import fs from 'fs';
 import path from 'path';
-import type { Browser } from 'puppeteer-core';
-import puppeteer from 'puppeteer-core';
 
-// Import Puppeteer types for better type safety
-import type { LaunchOptions } from 'puppeteer-core';
-
-// Launch options type for Puppeteer
-type PuppeteerLaunchOptions = LaunchOptions & {
-  args: string[];
-  headless: boolean | 'new';
-  defaultViewport: { width: number; height: number };
-  executablePath?: string;
-};
+// Importa la librería para generar PDF sin Puppeteer
+import html_to_pdf from 'html-pdf-node';
 
 // Tipos de datos para el nuevo formato de reporte de clases
 type ClassReportData = {
@@ -39,8 +28,7 @@ const getReportHTMLForClassRegistry = (
   const { subject } = data;
   const { teacher, classes } = subject;
 
-  // Validar que el período sea 1 o 2
-  const periodo = subject.semester?.toString() === '2' ? '2' : '1'; // Por defecto 1 si no es 2
+  const periodo = subject.semester?.toString() === '2' ? '2' : '1';
 
   const formatTime = (date: Date | null | undefined): string => {
     if (!date) return '';
@@ -52,12 +40,11 @@ const getReportHTMLForClassRegistry = (
   };
 
   const calculateHours = (start: Date | null | undefined, end: Date | null | undefined): number => {
-    if (!start || !end) return 4; // Default a 4 horas si no hay datos
+    if (!start || !end) return 4;
     const diff = new Date(end).getTime() - new Date(start).getTime();
     return Math.round(diff / (1000 * 60 * 60));
   };
 
-  // Separar clases normales de canceladas
   const normalClasses = classes.filter(cls => cls.status !== 'CANCELADA');
   const canceledClasses = classes.filter(cls => cls.status === 'CANCELADA');
 
@@ -78,7 +65,6 @@ const getReportHTMLForClassRegistry = (
     )
     .join('');
 
-  // Crear filas para las clases canceladas
   const canceledClassRows = canceledClasses
     .map(
       (cls, index) => `
@@ -220,7 +206,6 @@ const getReportHTMLForClassRegistry = (
             </div>
           </div>
         </div>
-
         <div class="info-grid">
           <p><span class="bold">NOMBRE DEL DOCENTE:</span> ${teacher.name || ''}</p>
           <p><span class="bold">PROGRAMA:</span> ${subject.program || ''}</p>
@@ -228,7 +213,6 @@ const getReportHTMLForClassRegistry = (
           <p><span class="bold">AÑO:</span> ${currentYear}</p>
           <p><span class="bold">PERIODO:</span> ${periodo}</p>
         </div>
-
         <table class="main-table">
           <thead>
             <tr>
@@ -245,7 +229,6 @@ const getReportHTMLForClassRegistry = (
           </thead>
           <tbody>${classRows}</tbody>
         </table>
-
         ${
           canceledClasses.length > 0
             ? `
@@ -300,35 +283,25 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
       subject: subjectData as Subject & { teacher: User; classes: Class[] },
     };
 
-    // Obtener la firma del docente y convertirla a Data URI
     const { teacher } = subjectData;
     let signatureDataUri: string | null = null;
     if (teacher.signatureUrl) {
       try {
         if (teacher.signatureUrl.startsWith('http')) {
-          // Es una URL externa, la descargamos
-          console.log(`Descargando firma desde URL externa: ${teacher.signatureUrl}`);
           const response = await fetch(teacher.signatureUrl);
           if (response.ok) {
             const imageBuffer = await response.arrayBuffer();
             const imageBase64 = Buffer.from(imageBuffer).toString('base64');
             const mimeType = response.headers.get('content-type') || 'image/png';
             signatureDataUri = `data:${mimeType};base64,${imageBase64}`;
-          } else {
-            console.warn(
-              `No se pudo descargar la firma desde: ${teacher.signatureUrl}. Estado: ${response.status}`
-            );
           }
         } else {
-          // Es una ruta local, la leemos del disco
           const signaturePath = path.join(process.cwd(), 'public', teacher.signatureUrl);
           if (fs.existsSync(signaturePath)) {
             const signatureBuffer = fs.readFileSync(signaturePath);
             const extension = path.extname(teacher.signatureUrl).slice(1);
             const mimeType = `image/${extension === 'svg' ? 'svg+xml' : extension}`;
             signatureDataUri = `data:${mimeType};base64,${signatureBuffer.toString('base64')}`;
-          } else {
-            console.warn(`Archivo de firma no encontrado en: ${signaturePath}`);
           }
         }
       } catch (error) {
@@ -336,7 +309,6 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
       }
     }
 
-    // Obtener el logo y convertirlo a Data URI
     const logoUrl = 'https://fup.edu.co/wp-content/uploads/Logo-FUP-2018-Isotipo-01-300x300-1.png';
     let logoDataUri = '';
     try {
@@ -351,96 +323,31 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
     }
 
     const htmlContent = getReportHTMLForClassRegistry(reportData, logoDataUri, signatureDataUri);
-    const isVercel = !!process.env.NODE_ENV;
-    let browser: Browser | null = null;
 
     try {
-      console.log('Iniciando generación de PDF...');
-      console.log(`Modo Vercel: ${isVercel}`);
+      console.log('Iniciando generación de PDF sin Puppeteer...');
 
-      // Crear un nuevo array mutable con los argumentos necesarios
-      const chromiumArgs = [
-        ...chromium.args,
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-gpu',
-        '--disable-dev-shm-usage',
-        '--single-process',
-        '--no-zygote',
-        '--disable-accelerated-2d-canvas',
-      ];
-
-      const launchOptions: PuppeteerLaunchOptions = {
-        args: chromiumArgs,
-        headless: true,
-        defaultViewport: { width: 1920, height: 1080 },
+      const options = {
+        format: 'A4',
+        margin: {
+          top: '20mm',
+          right: '10mm',
+          bottom: '20mm',
+          left: '10mm',
+        },
       };
 
-      if (isVercel) {
-        console.log('Configurando para entorno Vercel...');
-        const executablePath = await chromium.executablePath();
-        console.log(`Ruta de Chromium: ${executablePath}`);
-        launchOptions.executablePath = executablePath;
-      } else {
-        console.log('Modo desarrollo local');
-        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-        console.log(`Usando Chromium en: ${launchOptions.executablePath}`);
-      }
-
-      console.log('Iniciando navegador...');
-      browser = await puppeteer.launch(launchOptions).catch(error => {
-        console.error('Error al iniciar el navegador:', error);
-        throw new Error(`No se pudo iniciar el navegador: ${error.message}`);
-      });
-
-      console.log('Navegador iniciado, creando nueva página...');
-      const page = await browser.newPage().catch(error => {
-        console.error('Error al crear nueva página:', error);
-        throw new Error(`No se pudo crear una nueva página: ${error.message}`);
-      });
-
-      console.log('Cargando contenido HTML...');
-      await page
-        .setContent(htmlContent, {
-          waitUntil: 'domcontentloaded', // Cambiado de networkidle0 a domcontentloaded
-          timeout: 60000, // Aumentado el timeout a 60 segundos
-        })
-        .catch(error => {
-          console.error('Error al cargar el contenido HTML:', error);
-          throw new Error(`Error al cargar el contenido: ${error.message}`);
-        });
-
-      console.log('Contenido HTML cargado exitosamente');
-
-      // Generate PDF with optimized settings
-      console.log('Generando PDF...');
-      const pdfBuffer = await page
-        .pdf({
-          format: 'A4',
-          printBackground: true,
-          margin: {
-            top: '20mm',
-            right: '10mm',
-            bottom: '20mm',
-            left: '10mm',
-          },
-          preferCSSPageSize: true,
-          timeout: 60000, // Aumentado el timeout a 60 segundos
-        })
-        .catch(error => {
-          console.error('Error al generar el PDF:', error);
-          throw new Error(`Error al generar el PDF: ${error.message}`);
-        });
+      // Usa html-to-pdf-node para generar el PDF
+      const file = { content: htmlContent };
+      const pdfBuffer = await html_to_pdf.generatePdf(file, options);
 
       console.log('PDF generado exitosamente');
 
-      // Upload the PDF to Vercel Blob Storage
       const fileName = `registro-clases_${subjectData.code || subjectId}_${Date.now()}.pdf`;
-      const blob = await put(`reports/${fileName}`, Buffer.from(pdfBuffer), {
+      const blob = await put(`reports/${fileName}`, pdfBuffer, {
         access: 'public',
       });
 
-      // Update the report with the file URL
       const updatedReport = await db.report.update({
         where: { id: reportId },
         data: {
@@ -464,7 +371,6 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
         },
       });
 
-      // Send email notification
       if (updatedReport.requestedBy?.correoPersonal && updatedReport.subject) {
         try {
           await sendEmail({
@@ -481,7 +387,6 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
           console.log(`Notificación enviada a: ${updatedReport.requestedBy.correoPersonal}`);
         } catch (emailError) {
           console.error('Error al enviar el correo de notificación:', emailError);
-          // Update the report with a warning about the email failure
           await db.report.update({
             where: { id: reportId },
             data: {
@@ -496,8 +401,6 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
       return { success: true, fileUrl: blob.url };
     } catch (error) {
       console.error('Error al generar el reporte PDF:', error);
-
-      // Update report status to failed
       await db.report.update({
         where: { id: reportId },
         data: {
@@ -505,13 +408,7 @@ export const generateAttendanceReportPDF = async (subjectId: string, reportId: s
           error: error instanceof Error ? error.message : 'Error desconocido',
         },
       });
-
       throw error;
-    } finally {
-      // Close the browser if it was opened
-      if (browser) {
-        await browser.close().catch(console.error);
-      }
     }
   } catch (error) {
     console.error(`Error al generar el reporte para la asignatura ${subjectId}:`, error);

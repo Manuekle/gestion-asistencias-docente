@@ -61,7 +61,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { subjectId, format } = createReportSchema.parse(body);
 
-    // Verify the subject belongs to the teacher and get its current period
     const subject = await db.subject.findFirst({
       where: {
         id: subjectId,
@@ -87,13 +86,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Determine the current period (1: Jan-Jun, 2: Jul-Dec)
     const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1; // 1-12
-    const currentPeriod = currentMonth <= 6 ? 1 : 2; // 1 or 2
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentPeriod = currentMonth <= 6 ? 1 : 2;
     const currentYear = currentDate.getFullYear();
 
-    // Check if a report already exists for this subject and period
     const existingReport = await db.report.findFirst({
       where: {
         subjectId,
@@ -109,7 +106,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the report record in the database
     const newReport = await db.report.create({
       data: {
         subjectId,
@@ -129,13 +125,10 @@ export async function POST(request: Request) {
       },
     });
 
-    // Start the PDF generation process in the background
     generateAttendanceReportPDF(subjectId, newReport.id)
       .then(() => {})
       .catch(error => {});
 
-    // Return the initial report with PENDING status
-    // The client should poll or use WebSockets to check for status updates
     const updatedReport = await db.report.findUnique({
       where: { id: newReport.id },
       include: {
