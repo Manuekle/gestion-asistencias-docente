@@ -4,15 +4,21 @@
     {
       "src": "package.json",
       "use": "@vercel/next@4.0.0"
+    },
+    {
+      "src": "app/api/docente/reportes/route.ts",
+      "use": "@vercel/node@4.0.0",
+      "config": {
+        "maxDuration": 300,
+        "memory": 2048,
+        "runtime": "nodejs18.x"
+      }
     }
   ],
   "routes": [
     {
-      "src": "/api/docente/reportes/(.*)",
-      "dest": "/api/docente/reportes/route.ts",
-      "headers": {
-        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
-      }
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     },
     {
       "src": "/(?<nextStatic>[^/]+\\.(?:json|ico|js|css|jpg|jpeg|gif|png|svg|woff|woff2|ttf|eot))",
@@ -27,13 +33,6 @@
       "dest": "/"
     }
   ],
-  "functions": {
-    "app/api/docente/reportes/route.ts": {
-      "maxDuration": 300,
-      "memory": 2048,
-      "runtime": "nodejs18.x"
-    }
-  },
   "env": {
     "NODE_ENV": "production",
     "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "false",
